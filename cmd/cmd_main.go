@@ -110,9 +110,28 @@ func main() {
 
 		&Command{
 			Use:     "now",
-			Short:   "生成增删改查",
-			Example: "in curd test",
-			Run:     handlerCrud,
+			Short:   "当前时间",
+			Example: "in now",
+			Run:     handlerNow,
+		},
+
+		&Command{
+			Use:     "speak",
+			Short:   "文字转语音",
+			Example: "in speak 哈哈哈",
+			Run:     handlerSpeak,
+		},
+
+		&Command{
+			Flag: []*Flag{
+				{Name: "serverAddr", Short: "sa", DefValue: "121.36.99.197:9000", Memo: "服务地址"},
+				{Name: "sn", Short: "sn", DefValue: "cmd", Memo: "客户端标识"},
+				{Name: "proxyAddr", Short: "pa", DefValue: "", Memo: "代理地址"},
+			},
+			Use:     "proxy",
+			Short:   "代理",
+			Example: "in proxy",
+			Run:     handlerProxy,
 		},
 	)
 
