@@ -9,8 +9,11 @@ import (
 	"github.com/DrmagicE/gmqtt/server"
 	_ "github.com/DrmagicE/gmqtt/topicalias/fifo"
 	"github.com/injoyai/base/oss"
+	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/cmd/crud"
+	"github.com/injoyai/io"
 	"github.com/injoyai/io/dial"
+	"github.com/injoyai/io/dial/proxy"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
 	"log"
@@ -18,7 +21,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
+	"time"
 )
 
 func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
@@ -188,8 +193,51 @@ func handlerCrud(cmd *cobra.Command, args []string, flags *Flags) {
 }
 
 func handlerNow(cmd *cobra.Command, args []string, flags *Flags) {
-	if len(args) == 0 {
-		fmt.Println()
+	fmt.Println(time.Now().String())
+}
+
+func handlerSpeak(cmd *cobra.Command, args []string, flags *Flags) {
+
+}
+
+func handlerProxy(cmd *cobra.Command, args []string, flags *Flags) {
+	//服务端地址
+	serverAddr := cfg.GetString("addr", flags.GetString("serverAddr"))
+	if runtime.GOOS == "windows" && len(serverAddr) == 0 {
+		fmt.Println("请输入服务地址(默认121.36.99.197:9000):")
+		fmt.Scanln(&serverAddr)
+		if len(serverAddr) == 0 {
+			serverAddr = "121.36.99.197:9000"
+		}
 	}
-	logs.PrintErr(crud.New(args[0]))
+
+	//客户端唯一标识
+	sn := cfg.GetString("sn", flags.GetString("sn"))
+	if runtime.GOOS == "windows" && len(sn) == 0 {
+		fmt.Println("请输入SN(默认test):")
+		fmt.Scanln(&sn)
+		if len(sn) == 0 {
+			sn = "test"
+		}
+	}
+
+	//代理地址
+	proxyAddr := flags.GetString("proxyAddr")
+	if runtime.GOOS == "windows" && len(proxyAddr) == 0 {
+		fmt.Println("请输入代理地址(默认代理全部):")
+		fmt.Scanln(&proxyAddr)
+	}
+
+	c := proxy.NewPortForwardingClient(serverAddr, sn, func(ctx context.Context, c *io.Client, e *proxy.Entity) {
+		c.SetPrintWithBase()
+		c.Debug()
+		if len(proxyAddr) > 0 {
+			e.SetWriteFunc(func(msg *proxy.Message) (*proxy.Message, error) {
+				msg.Addr = proxyAddr
+				return msg, nil
+			})
+		}
+	})
+	c.Run()
+	select {}
 }
