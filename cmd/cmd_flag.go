@@ -15,7 +15,7 @@ func newFlags(list []*Flag) *Flags {
 	for _, v := range list {
 		f.m[v.Name] = v
 	}
-	f.Extend = f
+	f.Extend = conv.NewExtend(f)
 	return f
 }
 

@@ -124,9 +124,9 @@ func main() {
 
 		&Command{
 			Flag: []*Flag{
-				{Name: "serverAddr", Short: "sa", DefValue: "121.36.99.197:9000", Memo: "服务地址"},
-				{Name: "sn", Short: "sn", DefValue: "cmd", Memo: "客户端标识"},
-				{Name: "proxyAddr", Short: "pa", DefValue: "", Memo: "代理地址"},
+				{Name: "serverAddr", Short: "s", Memo: "服务地址"},
+				{Name: "sn", Short: "k", Memo: "客户端标识"},
+				{Name: "proxyAddr", Short: "p", Memo: "代理地址"},
 			},
 			Use:     "proxy",
 			Short:   "代理",

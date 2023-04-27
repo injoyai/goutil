@@ -214,10 +214,10 @@ func handlerProxy(cmd *cobra.Command, args []string, flags *Flags) {
 	//客户端唯一标识
 	sn := cfg.GetString("sn", flags.GetString("sn"))
 	if runtime.GOOS == "windows" && len(sn) == 0 {
-		fmt.Println("请输入SN(默认test):")
+		fmt.Println("请输入SN(默认cmd):")
 		fmt.Scanln(&sn)
 		if len(sn) == 0 {
-			sn = "test"
+			sn = "cmd"
 		}
 	}
 
