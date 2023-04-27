@@ -47,6 +47,9 @@ func main() {
 		},
 
 		&Command{
+			Flag: []*Flag{
+				{Name: "color", Short: "c", Memo: "日志颜色"},
+			},
 			Use:     "install",
 			Short:   "install",
 			Long:    "安装应用",

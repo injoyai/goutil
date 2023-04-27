@@ -8,6 +8,7 @@ import (
 	"github.com/DrmagicE/gmqtt/pkg/packets"
 	"github.com/DrmagicE/gmqtt/server"
 	_ "github.com/DrmagicE/gmqtt/topicalias/fifo"
+	"github.com/fatih/color"
 	"github.com/injoyai/base/oss"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
@@ -97,6 +98,9 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 		defer f.Close()
 		b := bar.New()
 		b.SetTotalSize(conv.Float64(resp.Header.Get("Content-Length")))
+		if ca := flags.GetInt("color"); ca > 0 {
+			b.SetColor(color.Attribute(ca))
+		}
 		go b.Wait()
 
 		for {
