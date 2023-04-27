@@ -9,8 +9,10 @@ import (
 	"github.com/DrmagicE/gmqtt/server"
 	_ "github.com/DrmagicE/gmqtt/topicalias/fifo"
 	"github.com/injoyai/base/oss"
+	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/cmd/crud"
+	"github.com/injoyai/goutil/string/bar"
 	"github.com/injoyai/io"
 	"github.com/injoyai/io/dial"
 	"github.com/injoyai/io/dial/proxy"
@@ -86,7 +88,33 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 			return
 		}
 		defer resp.Body.Close()
-		logs.PrintErr(oss.New("./downloader.exe", resp.Body))
+
+		f, err := os.Create("./downloader.exe")
+		if err != nil {
+			logs.Err(err)
+			return
+		}
+		defer f.Close()
+		b := bar.New()
+		b.SetTotalSize(conv.Float64(resp.Header.Get("Content-Length")))
+		go b.Wait()
+
+		for {
+			buf := make([]byte, 4096)
+			n, err := resp.Body.Read(buf)
+			if err != nil {
+				if err == io.EOF {
+					return
+				}
+				logs.Err(err)
+				return
+			}
+			b.Add(float64(n))
+			if _, err := f.Write(buf[:n]); err != nil {
+				logs.Err(err)
+				return
+			}
+		}
 
 	case "swag":
 
