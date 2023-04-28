@@ -13,12 +13,13 @@ require (
 )
 
 require (
+	github.com/denisenkom/go-mssqldb v0.10.0
 	github.com/fatih/color v1.13.0
+	github.com/glebarez/go-sqlite v1.21.1
 	github.com/go-ole/go-ole v1.2.6
-	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/gomodule/redigo v2.0.0+incompatible // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
-	go.uber.org/zap v1.21.0 // indirect
+	github.com/go-sql-driver/mysql v1.6.0
+	github.com/robertkrimen/otto v0.2.1
+	github.com/yuin/gopher-lua v1.1.0
 	xorm.io/core v0.7.3
 	xorm.io/xorm v1.3.2
 )
