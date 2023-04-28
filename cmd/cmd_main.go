@@ -1,10 +1,14 @@
 package main
 
 import (
+	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
 )
 
 func main() {
+
+	logs.DefaultErr.SetWriter(logs.Stdout, logs.Trunk)
+	logs.SetShowColor(false)
 
 	root := &cobra.Command{
 		Use:   "in",
@@ -112,6 +116,10 @@ func main() {
 		},
 
 		&Command{
+			Flag: []*Flag{
+				{Name: "rate", Short: "r", Memo: "语速"},
+				{Name: "volume", Short: "v", DefValue: "100", Memo: "音量"},
+			},
 			Use:     "now",
 			Short:   "当前时间",
 			Example: "in now",
