@@ -14,9 +14,11 @@ require (
 
 require (
 	github.com/fatih/color v1.13.0
+	github.com/go-ole/go-ole v1.2.6
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	go.uber.org/zap v1.21.0 // indirect
+	xorm.io/core v0.7.3
+	xorm.io/xorm v1.3.2
 )
