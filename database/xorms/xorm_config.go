@@ -5,6 +5,12 @@ import (
 	"xorm.io/xorm"
 )
 
+type Option struct {
+	DSN         string //账号密码
+	FieldSync   bool   //字段和表名同步
+	TablePrefix string //表名前缀
+}
+
 type Config struct {
 	Type        string //连接方式
 	DSN         string //账号密码

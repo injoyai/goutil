@@ -1,6 +1,7 @@
 package xorms
 
 import (
+	"github.com/injoyai/conv"
 	"log"
 	"time"
 	"xorm.io/core"
@@ -103,4 +104,11 @@ func (this *Engine) Limit(limit int, start ...int) *Session {
 
 func (this *Engine) Where(query interface{}, args ...interface{}) *Session {
 	return newSession(this.Engine.Where(query, args...))
+}
+
+func New(cfg *Config) *Engine {
+	if len(cfg.Type) == 0 {
+		cfg.Type = defaultConfig.Type
+	}
+	return cfg.Open()
 }
