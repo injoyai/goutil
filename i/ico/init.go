@@ -1,0 +1,3 @@
+package ico
+
+func Init() {}
