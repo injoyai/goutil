@@ -92,7 +92,7 @@ func main() {
 			},
 			Use:   "tcpServer",
 			Short: "tcp server",
-			Run:   handlerPprof,
+			Run:   handlerTCPServer,
 		},
 
 		&Command{
@@ -127,6 +127,10 @@ func main() {
 		},
 
 		&Command{
+			Flag: []*Flag{
+				{Name: "rate", Short: "r", DefValue: "", Memo: "语速"},
+				{Name: "volume", Short: "v", DefValue: "100", Memo: "音量"},
+			},
 			Use:     "speak",
 			Short:   "文字转语音",
 			Example: "in speak 哈哈哈",
