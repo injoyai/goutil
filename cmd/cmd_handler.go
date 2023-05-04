@@ -32,17 +32,9 @@ import (
 )
 
 func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
-	fmt.Println("v1.0.0")
-}
-
-func handlerPing(cmd *cobra.Command, args []string, flags *Flags) {
-	fmt.Println("pong")
-}
-
-type Swag struct {
-	g string
-	d string
-	p string
+	fmt.Println("版本: v1.0.0")
+	dir, _ := os.Getwd()
+	fmt.Println("路径: ", dir)
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {
