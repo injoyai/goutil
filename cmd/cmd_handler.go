@@ -21,6 +21,7 @@ import (
 	"github.com/injoyai/io/dial/proxy"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
+	"github.com/tebeka/selenium"
 	"log"
 	"net"
 	"net/http"
@@ -296,5 +297,17 @@ func handlerProxy(cmd *cobra.Command, args []string, flags *Flags) {
 		}
 	})
 	c.Run()
+	select {}
+}
+
+func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
+	port := flags.GetInt("port")
+	ser, err := selenium.NewChromeDriverService(flags.GetString("driver"), port)
+	if err != nil {
+		logs.Err(err)
+		return
+	}
+	defer ser.Stop()
+	logs.Debugf("[%d] 开启驱动成功", port)
 	select {}
 }

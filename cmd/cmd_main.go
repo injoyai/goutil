@@ -148,6 +148,17 @@ func main() {
 			Example: "in proxy",
 			Run:     handlerProxy,
 		},
+
+		&Command{
+			Flag: []*Flag{
+				{Name: "port", Short: "p", Memo: "监听端口", DefValue: "20165"},
+				{Name: "driver", Short: "d", Memo: "驱动路径", DefValue: "./chromedriver.exe"},
+			},
+			Use:     "seleniumServer",
+			Short:   "自动化服务",
+			Example: "in seleniumServer",
+			Run:     handlerSeleniumServer,
+		},
 	)
 
 	root.Execute()
