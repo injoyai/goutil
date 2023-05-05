@@ -302,7 +302,8 @@ func handlerProxy(cmd *cobra.Command, args []string, flags *Flags) {
 
 func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
 	port := flags.GetInt("port")
-	ser, err := selenium.NewChromeDriverService(flags.GetString("driver"), port)
+	selenium.SetDebug(flags.GetBool("debug"))
+	ser, err := selenium.NewChromeDriverService(flags.GetString("chromedriver"), port)
 	if err != nil {
 		logs.Err(err)
 		return

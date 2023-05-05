@@ -152,7 +152,8 @@ func main() {
 		&Command{
 			Flag: []*Flag{
 				{Name: "port", Short: "p", Memo: "监听端口", DefValue: "20165"},
-				{Name: "driver", Short: "d", Memo: "驱动路径", DefValue: "./chromedriver.exe"},
+				{Name: "chromedriver", Short: "c", Memo: "驱动路径", DefValue: "./chromedriver.exe"},
+				{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
 			},
 			Use:     "seleniumServer",
 			Short:   "自动化服务",
