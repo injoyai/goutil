@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"github.com/DrmagicE/gmqtt"
@@ -75,6 +76,10 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 
 		logs.PrintErr(oss.New("./rsrc.exe", rsrc))
 
+	case "chromedriver":
+
+		logs.Debug("未实现")
+
 	case "downloader":
 
 		url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
@@ -84,6 +89,7 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 			return
 		}
 		defer resp.Body.Close()
+		buff := bufio.NewReader(resp.Body)
 
 		f, err := os.Create("./downloader.exe")
 		if err != nil {
@@ -99,8 +105,8 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 		go b.Wait()
 
 		for {
-			buf := make([]byte, 4096)
-			n, err := resp.Body.Read(buf)
+			buf := make([]byte, 1<<20)
+			n, err := buff.Read(buf)
 			if err != nil {
 				if err == io.EOF {
 					return
