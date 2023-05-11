@@ -109,6 +109,7 @@ func (this *Bar) Add(n float64) {
 
 func (this *Bar) Wait() <-chan uintptr {
 	this.Add(0)
+	start := time.Now()
 	for {
 		select {
 		case <-this.done:
@@ -121,7 +122,7 @@ func (this *Bar) Wait() <-chan uintptr {
 				s = this.color.Sprint(s)
 				width = strconv.Itoa(this.length + 9)
 			}
-			s = fmt.Sprintf("\r%s[%-"+width+"s] %0.1f%% %0.0f/%0.0f %s", this.prefix, s, this.nowSize*100/this.maxSize, this.nowSize, this.maxSize, this.suffix)
+			s = fmt.Sprintf("\r%s[%-"+width+"s] %0.1f%% %0.0f/%0.0f %0.0fs %s", this.prefix, s, this.nowSize*100/this.maxSize, this.nowSize, this.maxSize, time.Now().Sub(start).Seconds(), this.suffix)
 			if this.print != nil {
 				this.print(s)
 			} else {
