@@ -34,7 +34,7 @@ func main() {
 
 		&Command{
 			Flag: []*Flag{
-				{Name: "g", Short: "g", DefValue: "", Memo: ""},
+				{Name: "g", Short: "g"},
 			},
 			Use:     "swag",
 			Short:   "swag",
@@ -72,7 +72,6 @@ func main() {
 		&Command{
 			Use:     "heap",
 			Short:   "heap",
-			Long:    "尝试",
 			Example: "in heap localhost:6060",
 			Run:     handlerPprof,
 		},
@@ -80,7 +79,6 @@ func main() {
 		&Command{
 			Use:     "profile",
 			Short:   "profile",
-			Long:    "尝试",
 			Example: "in profile localhost:6060",
 			Run:     handlerPprof,
 		},
