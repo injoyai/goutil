@@ -5,6 +5,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+
+}
+
 func main() {
 
 	logs.DefaultErr.SetWriter(logs.Stdout, logs.Trunk)
@@ -157,6 +161,23 @@ func main() {
 			Short:   "自动化服务",
 			Example: "in seleniumServer",
 			Run:     handlerSeleniumServer,
+		},
+
+		&Command{
+			Flag: []*Flag{
+				{Name: "redial", Short: "r", Memo: "自动重连", DefValue: "true"},
+				{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
+				{Name: "timeout", Short: "t", Memo: "超时时间(ms)", DefValue: "500"},
+
+				{Name: "baudRate", Memo: "波特率", DefValue: "9600"},
+				{Name: "dataBits", Memo: "数据位", DefValue: "8"},
+				{Name: "stopBits", Memo: "停止位", DefValue: "1"},
+				{Name: "parity", Memo: "校验", DefValue: "N"},
+			},
+			Use:     "dial",
+			Short:   "连接",
+			Example: "in dial tcp 127.0.0.1:80 -r false",
+			Run:     handlerDial,
 		},
 	)
 
