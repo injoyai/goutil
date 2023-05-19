@@ -35,8 +35,13 @@ import (
 
 func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
 	fmt.Println("版本: v1.0.0")
+	fmt.Println("系统: ", runtime.GOOS)
 	dir, _ := os.Getwd()
 	fmt.Println("路径: ", dir)
+	fmt.Println("GO版本: ", runtime.Version())
+	fmt.Println("GOROOT: ", runtime.GOROOT())
+	_, file, _, _ := runtime.Caller(1)
+	fmt.Println("GOROOT: ", file)
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {
@@ -124,6 +129,12 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 	case "swag":
 
 		logs.PrintErr(oss.New("./swag.exe", swag))
+
+	case "influxdb":
+
+		oss.New("./influxdb.temp", influxdb)
+		defer oss.Remove("./influxdb.temp")
+		logs.PrintErr(DecodeZIP("./influxdb.temp", "./"))
 
 	default:
 
@@ -317,4 +328,57 @@ func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
 	defer ser.Stop()
 	logs.Debugf("[%d] 开启驱动成功", port)
 	select {}
+}
+
+func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
+	switch true {
+	case len(args) < 1:
+		logs.Err("无效连接类型(tcp,serial...)")
+	case len(args) < 2:
+		logs.Err("无效连接地址")
+	default:
+		r := bufio.NewReader(os.Stdin)
+		op := func(ctx context.Context, c *io.Client) {
+			c.Debug()
+			if !flags.GetBool("redial") {
+				c.SetRedialWithNil()
+			}
+			go func(ctx context.Context) {
+				for {
+					select {
+					case <-ctx.Done():
+					default:
+						bs, _, err := r.ReadLine()
+						logs.PrintErr(err)
+						msg := string(bs)
+						if len(msg) > 2 && msg[0] == '0' && (msg[1] == 'x' || msg[1] == 'X') {
+							_, err := c.WriteHEX(msg[2:])
+							logs.PrintErr(err)
+						} else {
+							_, err := c.WriteASCII(msg)
+							logs.PrintErr(err)
+						}
+					}
+				}
+			}(ctx)
+		}
+		switch args[0] {
+		case "serial":
+			c := dial.RedialSerial(&dial.SerialConfig{
+				Address:  args[1],
+				BaudRate: flags.GetInt("baudRate"),
+				DataBits: flags.GetInt("dataBits"),
+				StopBits: flags.GetInt("stopBits"),
+				Parity:   flags.GetString("parity"),
+				Timeout:  0,
+			}, op)
+			defer c.Close()
+			oss.ListenExit(func() { c.CloseAll() })
+		case "websocket", "ws":
+			dial.RedialWebsocket(args[1], nil, op)
+		default:
+			dial.RedialTCP(args[1], op)
+		}
+		select {}
+	}
 }
