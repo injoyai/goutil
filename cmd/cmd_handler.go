@@ -47,7 +47,7 @@ func handlerUpgrade(cmd *cobra.Command, args []string, flags *Flags) {
 		return
 	}
 	url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
-	logs.PrintErr(bar.Download(url, filepath.Join(filepath.Dir(execDir), "in_temp.exe")))
+	logs.PrintErr(bar.Download(url, filepath.Join(filepath.Dir(execDir), "in.exe")))
 	shell.Exec("in_temp install in")
 }
 
