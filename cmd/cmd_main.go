@@ -30,10 +30,16 @@ func main() {
 
 		&Command{
 			Use:     "version",
-			Short:   "version",
-			Long:    "查看版本",
+			Short:   "查看版本",
 			Example: "in version",
 			Run:     handleVersion,
+		},
+
+		&Command{
+			Use:     "upgrade",
+			Short:   "自我升级",
+			Example: "in upgrade",
+			Run:     handlerUpgrade,
 		},
 
 		&Command{
@@ -188,6 +194,37 @@ func main() {
 			Short:   "扫描",
 			Example: "in scan icmp",
 			Run:     handlerScan,
+		},
+
+		&Command{
+			Use: "demo",
+			Child: []*Command{
+				{
+					Use:   "build",
+					Short: "build.sh",
+					Run:   handlerDemo("./build.sh", build),
+				},
+				{
+					Use:   "dockerfile",
+					Short: "dockerfile",
+					Run:   handlerDemo("./Dockerfile", dockerfile),
+				},
+				{
+					Use:   "service",
+					Short: "service",
+					Run:   handlerDemo("./service.service", service),
+				},
+				{
+					Use:   "install_minio",
+					Short: "install_minio",
+					Run:   handlerDemo("./install_minio.sh", installMinio),
+				},
+				{
+					Use:   "install_nodered",
+					Short: "install_nodered",
+					Run:   handlerDemo("./install_nodered.sh", installNodeRed),
+				},
+			},
 		},
 	)
 

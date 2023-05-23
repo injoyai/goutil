@@ -52,6 +52,7 @@ type Command struct {
 	Long    string
 	Example string
 	Run     RunFunc
+	Child   []*Command
 }
 
 func (this *Command) command() *cobra.Command {
@@ -70,6 +71,9 @@ func (this *Command) command() *cobra.Command {
 		if this.Run != nil {
 			this.Run(cmd, args, newFlags(this.Flag))
 		}
+	}
+	for _, v := range this.Child {
+		this.Command.AddCommand(v.command())
 	}
 	return this.Command
 }
