@@ -41,14 +41,20 @@ func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
 }
 
 func handlerUpgrade(cmd *cobra.Command, args []string, flags *Flags) {
+	fmt.Println("未实现")
+	return
 	execDir, err := os.Executable()
 	if err != nil {
 		logs.Err(err)
 		return
 	}
+	fmt.Println("开始升级...")
 	url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
-	logs.PrintErr(bar.Download(url, filepath.Join(filepath.Dir(execDir), "in.exe")))
-	shell.Exec("in_temp install in")
+	if err := bar.Download(url, filepath.Join(filepath.Dir(execDir), "in.exe")); err != nil {
+		logs.Err(err)
+		return
+	}
+	fmt.Println("下载完成...")
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {
@@ -82,7 +88,8 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 
 	case "in":
 
-		logs.PrintErr(oss.New("./in.exe", in))
+		url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
+		logs.PrintErr(bar.Download(url, "./in.exe"))
 
 	case "upx":
 
