@@ -330,6 +330,7 @@ func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
 				for {
 					select {
 					case <-ctx.Done():
+						return
 					default:
 						bs, _, err := r.ReadLine()
 						logs.PrintErr(err)
@@ -359,6 +360,7 @@ func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
 			oss.ListenExit(func() { c.CloseAll() })
 		case "websocket", "ws":
 			dial.RedialWebsocket(args[1], nil, op)
+		case "ssh":
 		default:
 			dial.RedialTCP(args[1], op)
 		}
