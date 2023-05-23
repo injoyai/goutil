@@ -54,7 +54,7 @@ func handlerUpgrade(cmd *cobra.Command, args []string, flags *Flags) {
 		return
 	}
 	url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
-	logs.PrintErr(bar.Download(url, execDir+"/in.exe"))
+	logs.PrintErr(bar.Download(url, execDir))
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {
