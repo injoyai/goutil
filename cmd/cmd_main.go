@@ -37,7 +37,7 @@ func main() {
 
 		&Command{
 			Use:     "upgrade",
-			Short:   "自我升级",
+			Short:   "升级工具",
 			Example: "in upgrade",
 			Run:     handlerUpgrade,
 		},

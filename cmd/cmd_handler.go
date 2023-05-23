@@ -29,7 +29,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -37,14 +36,7 @@ import (
 )
 
 func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
-	fmt.Println("版本: v1.0.0")
-	fmt.Println("系统: ", runtime.GOOS)
-	userDir, _ := os.Getwd()
-	fmt.Println("用户路径: ", userDir)
-	execDir, _ := os.Executable()
-	fmt.Println("程序路径: ", filepath.Dir(execDir))
-	fmt.Println("GO版本: ", runtime.Version())
-	fmt.Println("GO路径: ", runtime.GOROOT())
+	fmt.Println("v1.0.0")
 }
 
 func handlerUpgrade(cmd *cobra.Command, args []string, flags *Flags) {
