@@ -29,6 +29,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -46,7 +47,8 @@ func handlerUpgrade(cmd *cobra.Command, args []string, flags *Flags) {
 		return
 	}
 	url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
-	logs.PrintErr(bar.Download(url, execDir))
+	logs.PrintErr(bar.Download(url, filepath.Join(filepath.Dir(execDir), "in_temp.exe")))
+	shell.Exec("in_temp install in")
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {
@@ -76,7 +78,11 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 	switch args[0] {
 	case "all":
 
-		//todo 安装全部
+	//todo 安装全部
+
+	case "in":
+
+		logs.PrintErr(oss.New("./in.exe", in))
 
 	case "upx":
 
