@@ -179,6 +179,16 @@ func main() {
 			Example: "in dial tcp 127.0.0.1:80 -r false",
 			Run:     handlerDial,
 		},
+
+		&Command{
+			Flag: []*Flag{
+				{Name: "number", Short: "n", Memo: "扫描数量", DefValue: "-1"},
+			},
+			Use:     "scan",
+			Short:   "扫描",
+			Example: "in scan icmp",
+			Run:     handlerScan,
+		},
 	)
 
 	root.Execute()
