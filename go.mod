@@ -21,6 +21,7 @@ require (
 	github.com/robertkrimen/otto v0.2.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/yuin/gopher-lua v1.1.0
+	go.bug.st/serial v1.5.0
 	xorm.io/core v0.7.3
 	xorm.io/xorm v1.3.2
 )
@@ -29,6 +30,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
+	github.com/creack/goselect v0.1.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.2 // indirect
 	github.com/goburrow/serial v0.1.0 // indirect
