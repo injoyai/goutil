@@ -2,6 +2,8 @@ package main
 
 import _ "embed"
 
+//============================install============================
+
 //go:embed \resource\upx.exe
 var upx []byte
 
@@ -11,5 +13,19 @@ var rsrc []byte
 //go:embed \resource\swag.exe
 var swag []byte
 
-////go:embed \resource\influxdb.zip
-//var influxdb []byte
+//============================demo============================
+
+//go:embed \resource\build.sh
+var build []byte
+
+//go:embed \resource\Dockerfile
+var dockerfile []byte
+
+//go:embed \resource\service.service
+var service []byte
+
+//go:embed \resource\install_minio.sh
+var installMinio []byte
+
+//go:embed \resource\install_nodered.sh
+var installNodeRed []byte

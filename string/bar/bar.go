@@ -1,8 +1,13 @@
 package bar
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/injoyai/conv"
+	"io"
+	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -17,6 +22,42 @@ func Demo() {
 		}
 	}()
 	x.Wait()
+}
+
+func Download(url, filename string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return Copy(f, resp.Body, conv.Int64(resp.Header.Get("Content-Length")))
+}
+
+func Copy(w io.Writer, r io.Reader, total int64) error {
+	buff := bufio.NewReader(r)
+	b := New().SetTotalSize(float64(total))
+	go b.Wait()
+	for {
+		buf := make([]byte, 1<<20)
+		n, err := buff.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		b.Add(float64(n))
+		if _, err := w.Write(buf[:n]); err != nil {
+			return err
+		}
+	}
 }
 
 func New() *Bar {

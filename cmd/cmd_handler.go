@@ -9,7 +9,6 @@ import (
 	"github.com/DrmagicE/gmqtt/pkg/packets"
 	"github.com/DrmagicE/gmqtt/server"
 	_ "github.com/DrmagicE/gmqtt/topicalias/fifo"
-	"github.com/fatih/color"
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
 	"github.com/injoyai/base/oss"
@@ -28,7 +27,6 @@ import (
 	"go.bug.st/serial"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,12 +39,22 @@ import (
 func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
 	fmt.Println("版本: v1.0.0")
 	fmt.Println("系统: ", runtime.GOOS)
-	dir, _ := os.Getwd()
-	fmt.Println("用户路径: ", dir)
-	fmt.Println("程序路径: ", filepath.Dir(os.Args[0]))
+	userDir, _ := os.Getwd()
+	fmt.Println("用户路径: ", userDir)
+	execDir, _ := os.Executable()
+	fmt.Println("程序路径: ", filepath.Dir(execDir))
 	fmt.Println("GO版本: ", runtime.Version())
 	fmt.Println("GO路径: ", runtime.GOROOT())
+}
 
+func handlerUpgrade(cmd *cobra.Command, args []string, flags *Flags) {
+	execDir, err := os.Executable()
+	if err != nil {
+		logs.Err(err)
+		return
+	}
+	url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
+	logs.PrintErr(bar.Download(url, execDir+"/in.exe"))
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {
@@ -93,53 +101,18 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 	case "downloader":
 
 		url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
-		resp, err := http.Get(url)
-		if err != nil {
-			logs.Err(err)
-			return
-		}
-		defer resp.Body.Close()
-		buff := bufio.NewReader(resp.Body)
-
-		f, err := os.Create("./downloader.exe")
-		if err != nil {
-			logs.Err(err)
-			return
-		}
-		defer f.Close()
-		b := bar.New()
-		b.SetTotalSize(conv.Float64(resp.Header.Get("Content-Length")))
-		if ca := flags.GetInt("color"); ca > 0 {
-			b.SetColor(color.Attribute(ca))
-		}
-		go b.Wait()
-
-		for {
-			buf := make([]byte, 1<<20)
-			n, err := buff.Read(buf)
-			if err != nil {
-				if err == io.EOF {
-					return
-				}
-				logs.Err(err)
-				return
-			}
-			b.Add(float64(n))
-			if _, err := f.Write(buf[:n]); err != nil {
-				logs.Err(err)
-				return
-			}
-		}
+		logs.PrintErr(bar.Download(url, "./downloader.exe"))
 
 	case "swag":
 
 		logs.PrintErr(oss.New("./swag.exe", swag))
 
-	//case "influxdb":
-	//
-	//	oss.New("./influxdb.temp", influxdb)
-	//	defer oss.Remove("./influxdb.temp")
-	//	logs.PrintErr(DecodeZIP("./influxdb.temp", "./"))
+	case "influxdb":
+
+		url := "https://dl.influxdata.com/influxdb/releases/influxdb2-2.7.1-windows-amd64.zip"
+		logs.PrintErr(bar.Download(url, "./influxdb.zip"))
+		logs.PrintErr(DecodeZIP("./influxdb.zip", "./"))
+		os.Remove("./influxdb.zip")
 
 	default:
 
@@ -331,16 +304,16 @@ func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
 		return
 	}
 	defer ser.Stop()
-	logs.Debugf("[%d] 开启驱动成功", port)
+	log.Printf("[%d] 开启驱动成功\n", port)
 	select {}
 }
 
 func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
 	switch true {
 	case len(args) < 1:
-		logs.Err("无效连接类型(tcp,serial...)")
+		log.Println("[错误]", "无效连接类型(tcp,serial...)")
 	case len(args) < 2:
-		logs.Err("无效连接地址")
+		log.Println("[错误]", "无效连接地址")
 	default:
 		r := bufio.NewReader(os.Stdin)
 		op := func(ctx context.Context, c *io.Client) {
@@ -391,7 +364,7 @@ func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
 func handlerScan(cmd *cobra.Command, args []string, flags *Flags) {
 	switch true {
 	case len(args) == 0:
-		logs.Err("缺少扫描类型(icmp,serial...)")
+		log.Println("[错误]", "缺少扫描类型(icmp,serial...)")
 	default:
 
 		number := flags.GetInt("number")
@@ -445,4 +418,11 @@ func handlerScan(cmd *cobra.Command, args []string, flags *Flags) {
 		}
 	}
 
+}
+
+func handlerDemo(name string, bs []byte) func(cmd *cobra.Command, args []string, flags *Flags) {
+	return func(cmd *cobra.Command, args []string, flags *Flags) {
+		oss.New(name, bs)
+		fmt.Println("success")
+	}
 }
