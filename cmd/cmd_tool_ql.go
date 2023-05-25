@@ -34,7 +34,7 @@ func handlerScanEdge(startIP, endIP net.IP) (chan IPSN, context.Context) {
 			cli, err := net.DialTimeout("tcp", addr, time.Millisecond*100)
 			if err == nil {
 				c := io.NewClient(cli)
-				c.SetTimeout(time.Second)
+				c.SetReadIntervalTimeout(time.Second)
 				c.SetCloseWithNil()
 				c.SetDealFunc(func(msg *io.IMessage) {
 					s := str.CropFirst(msg.String(), "{")

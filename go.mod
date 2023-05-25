@@ -6,7 +6,7 @@ require (
 	github.com/DrmagicE/gmqtt v0.5.0
 	github.com/injoyai/base v1.0.3
 	github.com/injoyai/conv v1.0.5
-	github.com/injoyai/io v0.0.5
+	github.com/injoyai/io v0.0.7
 	github.com/injoyai/logs v1.0.1
 	github.com/json-iterator/go v1.1.12
 	github.com/spf13/cobra v1.7.0
@@ -58,6 +58,7 @@ require (
 	github.com/prometheus/common v0.9.1 // indirect
 	github.com/prometheus/procfs v0.0.8 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	go.uber.org/atomic v1.6.0 // indirect

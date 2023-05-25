@@ -11,6 +11,7 @@ import (
 	_ "github.com/DrmagicE/gmqtt/topicalias/fifo"
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
+	"github.com/injoyai/base/g"
 	"github.com/injoyai/base/oss"
 	"github.com/injoyai/base/oss/shell"
 	"github.com/injoyai/conv"
@@ -286,7 +287,7 @@ func handlerProxy(cmd *cobra.Command, args []string, flags *Flags) {
 		fmt.Scanln(&proxyAddr)
 	}
 
-	c := proxy.NewPortForwardingClient(serverAddr, sn, func(ctx context.Context, c *io.Client, e *proxy.Entity) {
+	c := proxy.NewPortForwardingClient(serverAddr, sn, func(c *io.Client, e *proxy.Entity) {
 		c.SetPrintWithBase()
 		c.Debug()
 		if len(proxyAddr) > 0 {
@@ -321,7 +322,7 @@ func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
 		log.Println("[错误]", "无效连接地址")
 	default:
 		r := bufio.NewReader(os.Stdin)
-		op := func(ctx context.Context, c *io.Client) {
+		op := func(c *io.Client) {
 			c.Debug()
 			if !flags.GetBool("redial") {
 				c.SetRedialWithNil()
@@ -344,7 +345,7 @@ func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
 						}
 					}
 				}
-			}(ctx)
+			}(c.Ctx())
 		}
 		switch args[0] {
 		case "serial":
@@ -361,6 +362,56 @@ func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
 		case "websocket", "ws":
 			dial.RedialWebsocket(args[1], nil, op)
 		case "ssh":
+			for {
+				addr := args[1]
+				if !strings.Contains(addr, ":") {
+					addr += ":22"
+				}
+				username := flags.GetString("username")
+				if len(username) == 0 {
+					username = g.Input("用户名(root):")
+					if len(username) == 0 {
+						username = "root"
+					}
+				}
+				password := flags.GetString("password")
+				if len(password) == 0 {
+					password = g.Input("密码(root):")
+					if len(password) == 0 {
+						password = "root"
+					}
+				}
+				c, err := dial.NewSSH(&dial.SSHConfig{
+					Addr:     addr,
+					User:     username,
+					Password: password,
+					Timeout:  flags.GetMillisecond("timeout"),
+					High:     flags.GetInt("high"),
+					Wide:     flags.GetInt("wide"),
+				}, op)
+				if err != nil {
+					logs.Err(err)
+					continue
+				}
+				c.Debug(false)
+				c.SetDealFunc(func(msg *io.IMessage) {
+					fmt.Print(msg.String())
+				})
+				go c.Run()
+				reader := bufio.NewReader(os.Stdin)
+				go func() {
+					for {
+						select {
+						case <-c.CtxAll().Done():
+							return
+						default:
+							msg, _ := reader.ReadString('\n')
+							c.WriteString(msg)
+						}
+					}
+				}()
+				break
+			}
 		default:
 			dial.RedialTCP(args[1], op)
 		}
@@ -409,7 +460,7 @@ func handlerScan(cmd *cobra.Command, args []string, flags *Flags) {
 			startIP := append(net.ParseIP(ipv4)[:15], 0)
 			endIP := append(net.ParseIP(ipv4)[:15], 255)
 			ch, ctx := handlerScanEdge(startIP, endIP)
-			for i := 0; ; i++ {
+			for i := 1; ; i++ {
 				select {
 				case <-ctx.Done():
 					return
@@ -417,14 +468,13 @@ func handlerScan(cmd *cobra.Command, args []string, flags *Flags) {
 					fmt.Printf("%v: %v\n", data.IP, data.SN)
 					logs.PrintErr(shell.OpenBrowser(fmt.Sprintf("http://%s:10001", data.IP)))
 					if number > 0 && i >= number {
-						break
+						return
 					}
 				}
 			}
 
 		}
 	}
-
 }
 
 func handlerDemo(name string, bs []byte) func(cmd *cobra.Command, args []string, flags *Flags) {
