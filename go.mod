@@ -18,6 +18,7 @@ require (
 	github.com/glebarez/go-sqlite v1.21.1
 	github.com/go-ole/go-ole v1.2.6
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d
 	github.com/robertkrimen/otto v0.2.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/yuin/gopher-lua v1.1.0
