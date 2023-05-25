@@ -1,7 +1,6 @@
 package xorms
 
 import (
-	"github.com/injoyai/conv"
 	"log"
 	"time"
 	"xorm.io/core"
