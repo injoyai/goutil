@@ -189,6 +189,14 @@ func main() {
 					},
 					Run: handlerMQTTServer,
 				},
+				{
+					Command: &cobra.Command{
+						Use:     "edge",
+						Short:   "Edge服务",
+						Example: "in server edge",
+					},
+					Run: handlerEdgeServer,
+				},
 			},
 		},
 

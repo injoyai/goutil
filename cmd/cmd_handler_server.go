@@ -6,12 +6,16 @@ import (
 	"github.com/DrmagicE/gmqtt"
 	"github.com/DrmagicE/gmqtt/pkg/packets"
 	"github.com/DrmagicE/gmqtt/server"
+	"github.com/injoyai/base/oss"
+	"github.com/injoyai/base/oss/shell"
+	"github.com/injoyai/goutil/string/bar"
 	"github.com/injoyai/io/dial"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
 	"github.com/tebeka/selenium"
 	"log"
 	"net"
+	"path/filepath"
 )
 
 //====================SeleniumServer====================//
@@ -80,4 +84,16 @@ func handlerMQTTServer(cmd *cobra.Command, args []string, flags *Flags) {
 		}
 		return nil
 	}())
+}
+
+//====================EdgeServer====================//
+
+func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
+	userDir, _ := oss.UserHome()
+	filename := filepath.Join(userDir, "edge.exe")
+	if !oss.Exists(filename) {
+		for logs.PrintErr(bar.Download("http://192.168.10.102:8888/gateway/edge/-/raw/v1.0.12(%E5%90%88%E5%B9%B6%E5%88%86%E6%94%AF%E7%89%88%E6%9C%AC)/bin/windows/edge.exe", filename)) {
+		}
+	}
+	shell.Start(filename)
 }
