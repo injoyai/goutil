@@ -9,3 +9,5 @@ package nac
 
 4> go build
 */
+
+func Init() {}

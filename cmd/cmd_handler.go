@@ -75,9 +75,6 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 		return
 	}
 	switch args[0] {
-	case "all":
-
-	//todo 安装全部
 
 	case "in":
 
