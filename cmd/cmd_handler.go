@@ -84,6 +84,13 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 		url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
 		logs.PrintErr(bar.Download(url, "./in.exe"))
 
+	case "upgrade":
+
+		url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
+		filename := "in_upgrade"
+		logs.PrintErr(bar.Download(url, fmt.Sprintf("./%s.exe", filename)))
+		fmt.Printf("执行 '%s install in' 进行升级", filename)
+
 	case "upx":
 
 		logs.PrintErr(oss.New("./upx.exe", upx))
