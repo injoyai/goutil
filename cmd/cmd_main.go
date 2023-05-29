@@ -90,29 +90,6 @@ func main() {
 		},
 
 		&Command{
-			Flag: []*Flag{
-				{Name: "port", Short: "p", DefValue: "10086", Memo: "监听端口"},
-				{Name: "debug", Short: "d", DefValue: "true", Memo: "打印日志"},
-			},
-			Use:   "tcpServer",
-			Short: "tcp server",
-			Run:   handlerTCPServer,
-		},
-
-		&Command{
-			Flag: []*Flag{
-				{Name: "port", Short: "p", DefValue: "1883", Memo: "监听端口"},
-				{Name: "debug", Short: "d", DefValue: "true", Memo: "打印日志"},
-			},
-			Command: &cobra.Command{
-				Use:     "mqttServer",
-				Short:   "mqtt server",
-				Example: "in mqttServer -p 1883",
-			},
-			Run: handlerMQTTServer,
-		},
-
-		&Command{
 			Use:     "crud",
 			Short:   "生成增删改查",
 			Example: "in curd test",
@@ -155,18 +132,6 @@ func main() {
 
 		&Command{
 			Flag: []*Flag{
-				{Name: "port", Short: "p", Memo: "监听端口", DefValue: "20165"},
-				{Name: "chromedriver", Short: "c", Memo: "驱动路径", DefValue: "./chromedriver.exe"},
-				{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
-			},
-			Use:     "seleniumServer",
-			Short:   "自动化服务",
-			Example: "in seleniumServer",
-			Run:     handlerSeleniumServer,
-		},
-
-		&Command{
-			Flag: []*Flag{
 				{Name: "redial", Short: "r", Memo: "自动重连", DefValue: "true"},
 				{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
 				{Name: "timeout", Short: "t", Memo: "超时时间(ms)", DefValue: "500"},
@@ -188,8 +153,49 @@ func main() {
 		},
 
 		&Command{
+			Use:     "server",
+			Short:   "服务",
+			Example: "in server tcp",
+			Child: []*Command{
+				{
+					Flag: []*Flag{
+						{Name: "port", Short: "p", Memo: "监听端口", DefValue: "20165"},
+						{Name: "chromedriver", Short: "c", Memo: "驱动路径", DefValue: "./chromedriver.exe"},
+						{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
+					},
+					Use:     "selenium",
+					Short:   "自动化服务",
+					Example: "in server selenium",
+					Run:     handlerSeleniumServer,
+				},
+				{
+					Flag: []*Flag{
+						{Name: "port", Short: "p", DefValue: "10086", Memo: "监听端口"},
+						{Name: "debug", Short: "d", DefValue: "true", Memo: "打印日志"},
+					},
+					Use:   "tcp",
+					Short: "TCP服务",
+					Run:   handlerTCPServer,
+				},
+				{
+					Flag: []*Flag{
+						{Name: "port", Short: "p", DefValue: "1883", Memo: "监听端口"},
+						{Name: "debug", Short: "d", DefValue: "true", Memo: "打印日志"},
+					},
+					Command: &cobra.Command{
+						Use:     "mqtt",
+						Short:   "MQTT服务",
+						Example: "in server mqtt -p 1883",
+					},
+					Run: handlerMQTTServer,
+				},
+			},
+		},
+
+		&Command{
 			Flag: []*Flag{
 				{Name: "number", Short: "n", Memo: "扫描数量", DefValue: "-1"},
+				{Name: "open", Short: "o", Memo: "是否打开", DefValue: "true"},
 			},
 			Use:     "scan",
 			Short:   "扫描",
@@ -212,17 +218,17 @@ func main() {
 				},
 				{
 					Use:   "service",
-					Short: "service",
+					Short: "service.service",
 					Run:   handlerDemo("./service.service", service),
 				},
 				{
 					Use:   "install_minio",
-					Short: "install_minio",
+					Short: "install_minio.sh",
 					Run:   handlerDemo("./install_minio.sh", installMinio),
 				},
 				{
 					Use:   "install_nodered",
-					Short: "install_nodered",
+					Short: "install_nodered.sh",
 					Run:   handlerDemo("./install_nodered.sh", installNodeRed),
 				},
 			},
