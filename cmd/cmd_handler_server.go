@@ -102,3 +102,15 @@ func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 	}
 	shell.Start(filename)
 }
+
+//====================InfluxServer====================//
+
+func handlerInfluxServer(cmd *cobra.Command, args []string, flags *Flags) {
+	userDir, _ := oss.UserHome()
+	userDir = filepath.Join(userDir, "AppData/Local/injoy")
+	os.MkdirAll(userDir, 0666)
+	url := "https://dl.influxdata.com/influxdb/releases/influxdb2-2.7.1-windows-amd64.zip"
+	logs.PrintErr(bar.Download(url, "./influxdb.zip"))
+	logs.PrintErr(DecodeZIP("./influxdb.zip", "./"))
+	os.Remove("./influxdb.zip")
+}
