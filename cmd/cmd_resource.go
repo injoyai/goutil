@@ -4,9 +4,6 @@ import _ "embed"
 
 //============================install============================
 
-//go:embed \upgrade\in_upgrade.exe
-var in_upgrade []byte
-
 //go:embed \resource\upx.exe
 var upx []byte
 
