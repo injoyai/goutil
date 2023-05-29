@@ -200,6 +200,17 @@ func main() {
 					},
 					Run: handlerEdgeServer,
 				},
+				{
+					Flag: []*Flag{
+						{Name: "download", Short: "d", DefValue: "false", Memo: "重新下载"},
+					},
+					Command: &cobra.Command{
+						Use:     "influx",
+						Short:   "Influx服务",
+						Example: "in server influx",
+					},
+					Run: handlerInfluxServer,
+				},
 			},
 		},
 
