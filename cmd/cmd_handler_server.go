@@ -95,7 +95,7 @@ func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 	userDir = filepath.Join(userDir, "AppData/Local/injoy")
 	os.MkdirAll(userDir, 0666)
 	filename := filepath.Join(userDir, "edge.exe")
-	if !oss.Exists(filename) {
+	if !oss.Exists(filename) || flags.GetBool("download") {
 		for logs.PrintErr(bar.Download("http://192.168.10.102:8888/gateway/edge/-/raw/v1.0.12(%E5%90%88%E5%B9%B6%E5%88%86%E6%94%AF%E7%89%88%E6%9C%AC)/bin/windows/edge.exe", filename)) {
 			<-time.After(time.Second)
 		}

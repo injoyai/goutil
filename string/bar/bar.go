@@ -47,15 +47,15 @@ func Copy(w io.Writer, r io.Reader, total int64) error {
 	for {
 		buf := make([]byte, 1<<20)
 		n, err := buff.Read(buf)
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
+		if err != nil && err != io.EOF {
 			return err
 		}
 		b.Add(float64(n))
 		if _, err := w.Write(buf[:n]); err != nil {
 			return err
+		}
+		if err == io.EOF {
+			return nil
 		}
 	}
 }

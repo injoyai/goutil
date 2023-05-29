@@ -190,6 +190,9 @@ func main() {
 					Run: handlerMQTTServer,
 				},
 				{
+					Flag: []*Flag{
+						{Name: "download", Short: "d", DefValue: "false", Memo: "重新下载"},
+					},
 					Command: &cobra.Command{
 						Use:     "edge",
 						Short:   "Edge服务",
