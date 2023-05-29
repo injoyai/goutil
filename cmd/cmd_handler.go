@@ -1,17 +1,11 @@
 package main
 
 import (
-	"bufio"
-	"context"
 	"fmt"
-	"github.com/DrmagicE/gmqtt"
 	_ "github.com/DrmagicE/gmqtt/persistence"
-	"github.com/DrmagicE/gmqtt/pkg/packets"
-	"github.com/DrmagicE/gmqtt/server"
 	_ "github.com/DrmagicE/gmqtt/topicalias/fifo"
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
-	"github.com/injoyai/base/g"
 	"github.com/injoyai/base/oss"
 	"github.com/injoyai/base/oss/shell"
 	"github.com/injoyai/conv"
@@ -20,11 +14,9 @@ import (
 	"github.com/injoyai/goutil/net/ip"
 	"github.com/injoyai/goutil/string/bar"
 	"github.com/injoyai/io"
-	"github.com/injoyai/io/dial"
 	"github.com/injoyai/io/dial/proxy"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
-	"github.com/tebeka/selenium"
 	"go.bug.st/serial"
 	"log"
 	"net"
@@ -162,57 +154,6 @@ func handlerShell(name string, args ...string) (string, error) {
 	return string(bs), err
 }
 
-//====================MQTTServer====================
-
-func handlerTCPServer(cmd *cobra.Command, args []string, flags *Flags) {
-	port := flags.GetInt("port", 10086)
-	s, err := dial.NewTCPServer(port)
-	if err != nil {
-		log.Printf("[错误] %s", err.Error())
-		return
-	}
-	s.Debug(flags.GetBool("debug"))
-	s.Run()
-}
-
-func handlerMQTTServer(cmd *cobra.Command, args []string, flags *Flags) {
-
-	port := flags.GetInt("port", 1883)
-	debug := flags.GetBool("debug")
-
-	fmt.Printf("ERROR:%v", func() error {
-		ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-		if err != nil {
-			return err
-		}
-		srv := server.New(server.WithTCPListener(ln))
-		if err := srv.Init(server.WithHook(server.Hooks{
-			OnConnected: func(ctx context.Context, client server.Client) {
-				if debug {
-					log.Printf("新的客户端连接:%s", client.ClientOptions().ClientID)
-				}
-				srv.SubscriptionService().Subscribe(client.ClientOptions().ClientID, &gmqtt.Subscription{
-					TopicFilter: client.ClientOptions().ClientID,
-					QoS:         packets.Qos0,
-				})
-			},
-			OnMsgArrived: func(ctx context.Context, client server.Client, req *server.MsgArrivedRequest) error {
-				if debug {
-					log.Printf("发布主题:%s,消息内容:%s", req.Message.Topic, string(req.Message.Payload))
-				}
-				return nil
-			},
-		})); err != nil {
-			return err
-		}
-		log.Printf("[信息][:%d] 开启MQTT服务成功...\n", port)
-		if err := srv.Run(); err != nil {
-			return err
-		}
-		return nil
-	}())
-}
-
 func handlerCrud(cmd *cobra.Command, args []string, flags *Flags) {
 	if len(args) == 0 {
 		log.Printf("[错误] %s", "请输入模块名称 例: in curd test")
@@ -301,124 +242,6 @@ func handlerProxy(cmd *cobra.Command, args []string, flags *Flags) {
 	select {}
 }
 
-func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
-	port := flags.GetInt("port")
-	selenium.SetDebug(flags.GetBool("debug"))
-	ser, err := selenium.NewChromeDriverService(flags.GetString("chromedriver"), port)
-	if err != nil {
-		logs.Err(err)
-		return
-	}
-	defer ser.Stop()
-	log.Printf("[%d] 开启驱动成功\n", port)
-	select {}
-}
-
-func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
-	switch true {
-	case len(args) < 1:
-		log.Println("[错误]", "无效连接类型(tcp,serial...)")
-	case len(args) < 2:
-		log.Println("[错误]", "无效连接地址")
-	default:
-		r := bufio.NewReader(os.Stdin)
-		op := func(c *io.Client) {
-			c.Debug()
-			if !flags.GetBool("redial") {
-				c.SetRedialWithNil()
-			}
-			go func(ctx context.Context) {
-				for {
-					select {
-					case <-ctx.Done():
-						return
-					default:
-						bs, _, err := r.ReadLine()
-						logs.PrintErr(err)
-						msg := string(bs)
-						if len(msg) > 2 && msg[0] == '0' && (msg[1] == 'x' || msg[1] == 'X') {
-							_, err := c.WriteHEX(msg[2:])
-							logs.PrintErr(err)
-						} else {
-							_, err := c.WriteASCII(msg)
-							logs.PrintErr(err)
-						}
-					}
-				}
-			}(c.Ctx())
-		}
-		switch args[0] {
-		case "serial":
-			c := dial.RedialSerial(&dial.SerialConfig{
-				Address:  args[1],
-				BaudRate: flags.GetInt("baudRate"),
-				DataBits: flags.GetInt("dataBits"),
-				StopBits: flags.GetInt("stopBits"),
-				Parity:   flags.GetString("parity"),
-				Timeout:  0,
-			}, op)
-			defer c.Close()
-			oss.ListenExit(func() { c.CloseAll() })
-		case "websocket", "ws":
-			dial.RedialWebsocket(args[1], nil, op)
-		case "ssh":
-			for {
-				addr := args[1]
-				if !strings.Contains(addr, ":") {
-					addr += ":22"
-				}
-				username := flags.GetString("username")
-				if len(username) == 0 {
-					username = g.Input("用户名(root):")
-					if len(username) == 0 {
-						username = "root"
-					}
-				}
-				password := flags.GetString("password")
-				if len(password) == 0 {
-					password = g.Input("密码(root):")
-					if len(password) == 0 {
-						password = "root"
-					}
-				}
-				c, err := dial.NewSSH(&dial.SSHConfig{
-					Addr:     addr,
-					User:     username,
-					Password: password,
-					Timeout:  flags.GetMillisecond("timeout"),
-					High:     flags.GetInt("high"),
-					Wide:     flags.GetInt("wide"),
-				}, op)
-				if err != nil {
-					logs.Err(err)
-					continue
-				}
-				c.Debug(false)
-				c.SetDealFunc(func(msg *io.IMessage) {
-					fmt.Print(msg.String())
-				})
-				go c.Run()
-				reader := bufio.NewReader(os.Stdin)
-				go func() {
-					for {
-						select {
-						case <-c.CtxAll().Done():
-							return
-						default:
-							msg, _ := reader.ReadString('\n')
-							c.WriteString(msg)
-						}
-					}
-				}()
-				break
-			}
-		default:
-			dial.RedialTCP(args[1], op)
-		}
-		select {}
-	}
-}
-
 func handlerScan(cmd *cobra.Command, args []string, flags *Flags) {
 	switch true {
 	case len(args) == 0:
@@ -466,7 +289,9 @@ func handlerScan(cmd *cobra.Command, args []string, flags *Flags) {
 					return
 				case data := <-ch:
 					fmt.Printf("%v: %v\n", data.IP, data.SN)
-					logs.PrintErr(shell.OpenBrowser(fmt.Sprintf("http://%s:10001", data.IP)))
+					if flags.GetBool("open") {
+						logs.PrintErr(shell.OpenBrowser(fmt.Sprintf("http://%s:10001", data.IP)))
+					}
 					if number > 0 && i >= number {
 						return
 					}
