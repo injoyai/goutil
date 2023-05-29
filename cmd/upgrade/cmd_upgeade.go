@@ -7,6 +7,7 @@ import (
 	"github.com/injoyai/logs"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func main() {
@@ -15,6 +16,7 @@ func main() {
 	path, _ := os.Executable()
 	filename := filepath.Join(filepath.Dir(path), "in.exe")
 	for logs.PrintErr(bar.Download(url, filename)) {
+		<-time.After(time.Second)
 	}
 	oss.Input("升级成功,按任意键退出...")
 }
