@@ -109,8 +109,17 @@ func handlerInfluxServer(cmd *cobra.Command, args []string, flags *Flags) {
 	userDir, _ := oss.UserHome()
 	userDir = filepath.Join(userDir, "AppData/Local/injoy")
 	os.MkdirAll(userDir, 0666)
-	url := "https://dl.influxdata.com/influxdb/releases/influxdb2-2.7.1-windows-amd64.zip"
-	logs.PrintErr(bar.Download(url, "./influxdb.zip"))
-	logs.PrintErr(DecodeZIP("./influxdb.zip", "./"))
-	os.Remove("./influxdb.zip")
+	filename := userDir + "/influxd.exe"
+	if !oss.Exists(filename) || flags.GetBool("download") {
+		url := "https://dl.influxdata.com/influxdb/releases/influxdb-1.8.10_windows_amd64.zip"
+		zipName := filepath.Join(userDir, "influxdb.zip")
+		oldDir := userDir + "/influxdb-1.8.10-1"
+		oldFilename := userDir + "/influxdb-1.8.10-1/influxd.exe"
+		logs.PrintErr(bar.Download(url, zipName))
+		logs.PrintErr(DecodeZIP(zipName, userDir))
+		os.Remove(zipName)
+		os.Rename(oldFilename, filename)
+		os.RemoveAll(oldDir)
+	}
+	shell.Start(filename)
 }

@@ -13,7 +13,6 @@ func main() {
 	root := &cobra.Command{
 		Use:   "in",
 		Short: "Cli工具",
-		Long:  "Cli工具",
 	}
 
 	addCommand := func(cmd ...ICommand) {
