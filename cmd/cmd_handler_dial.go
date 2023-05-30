@@ -22,18 +22,31 @@ func handlerDialTCP(cmd *cobra.Command, args []string, flags *Flags) {
 		DataBits: flags.GetInt("dataBits"),
 		StopBits: flags.GetInt("stopBits"),
 		Parity:   flags.GetString("parity"),
-		Timeout:  0,
+		Timeout:  flags.GetMillisecond("timeout"),
 	})
-	defer c.Close()
-	oss.ListenExit(func() { c.CloseAll() })
 	handlerDialDeal(c, flags)
 }
 
 func handlerDialSerial(cmd *cobra.Command, args []string, flags *Flags) {
+	c := dial.RedialSerial(&dial.SerialConfig{
+		Address:  args[1],
+		BaudRate: flags.GetInt("baudRate"),
+		DataBits: flags.GetInt("dataBits"),
+		StopBits: flags.GetInt("stopBits"),
+		Parity:   flags.GetString("parity"),
+		Timeout:  flags.GetMillisecond("timeout"),
+	})
+	handlerDialDeal(c, flags)
+}
 
+func handlerDialWebsocket(cmd *cobra.Command, args []string, flags *Flags) {
+	c := dial.RedialWebsocket(args[1], nil)
+	handlerDialDeal(c, flags)
 }
 
 func handlerDialDeal(c *io.Client, flags *Flags) {
+	defer c.Close()
+	oss.ListenExit(func() { c.CloseAll() })
 	r := bufio.NewReader(os.Stdin)
 	c.SetOptions(func(c *io.Client) {
 		c.Debug()
