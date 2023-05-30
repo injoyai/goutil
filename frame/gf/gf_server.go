@@ -1,0 +1,106 @@
+package gf
+
+import (
+	"fmt"
+	"github.com/gogf/gf/net/ghttp"
+	"github.com/injoyai/goutil/frame/gf/swagger"
+	"github.com/injoyai/goutil/frame/in"
+	"github.com/injoyai/goutil/i/html"
+	"github.com/injoyai/goutil/net/ip"
+	"time"
+)
+
+type Server struct {
+	*ghttp.Server
+	Port        int  //端口
+	enablePprof bool //
+}
+
+/*
+
+//cpu检测
+go tool pprof http://localhost:6060/pprof/profile?seconds=20
+
+//内存检测
+go tool pprof http://localhost:6060/pprof/heap
+
+*/
+
+// New 快速开始默认配置
+// @port,端口
+func New(port int, name ...interface{}) *Server {
+	s := in.InitGf(name...)
+	s.SetPort(port)
+	s.SetClientMaxBodySize(8 << 20) //设置body最大数据,8m
+	s.SetAccessLogEnabled(false)    //请求日志
+	s.SetErrorLogEnabled(false)     //错误日志
+	s.BindStatusHandler(404, func(r *ghttp.Request) {
+		r.Response.ClearBuffer()
+		r.Response.WriteExit(html.PageNotFindRobot)
+	})
+	return &Server{Server: s, Port: port}
+}
+
+func (this *Server) EnablePProf(pattern ...string) *Server {
+	this.enablePprof = true
+	this.Server.EnablePProf(pattern...)
+	return this
+}
+
+func (this *Server) SetSwagger(prefix, path string) *Server {
+	this.Plugin(&swagger.Swagger{
+		Prefix: prefix,
+		Path:   path,
+	})
+	return this
+}
+
+func (this *Server) SetShowRoute(b ...bool) *Server {
+	this.Server.SetDumpRouterMap(!(len(b) > 0 && !b[0]))
+	return this
+}
+
+func (this *Server) UseCORS() *Server {
+	this.Use(func(r *ghttp.Request) {
+		r.Response.CORSDefault()
+		r.Middleware.Next()
+	})
+	return this
+}
+
+func (this *Server) ALL(s string, fn func(r *ghttp.Request)) *Server {
+	this.Server.Group("", func(g *ghttp.RouterGroup) { g.ALL(s, fn) })
+	return this
+}
+
+func (this *Server) GET(s string, fn func(r *ghttp.Request)) *Server {
+	this.Server.Group("", func(g *ghttp.RouterGroup) { g.GET(s, fn) })
+	return this
+}
+
+func (this *Server) POST(s string, fn func(r *ghttp.Request)) *Server {
+	this.Server.Group("", func(g *ghttp.RouterGroup) { g.POST(s, fn) })
+	return this
+}
+
+func (this *Server) PUT(s string, fn func(r *ghttp.Request)) *Server {
+	this.Server.Group("", func(g *ghttp.RouterGroup) { g.PUT(s, fn) })
+	return this
+}
+
+func (this *Server) DELETE(s string, fn func(r *ghttp.Request)) *Server {
+	this.Server.Group("", func(g *ghttp.RouterGroup) { g.DELETE(s, fn) })
+	return this
+}
+
+func (this *Server) Run() {
+	go func() {
+		<-time.After(time.Millisecond * 100)
+		ipv4 := ip.GetLocal()
+		fmt.Printf("打开接口文档: 点击 http://%s:%d/swagger 	\n", ipv4, this.Port)
+		if this.enablePprof {
+			fmt.Printf("打开性能剖析: 点击 http://%s:%d/pprof 	\n", ipv4, this.Port)
+		}
+	}()
+	this.Server.Run()
+}
