@@ -9,24 +9,14 @@ import (
 	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20190711"
 )
 
-type tencent struct {
-	option *Option
-	*sms.Client
-	err error
-}
-
-//新建
-func (this *Option) tencent() *tencent {
+func NewTencent(cfg *TencentConfig) (Interface, error) {
 	/* 必要步骤：
 	 * 实例化一个认证对象，入参需要传入腾讯云账户密钥对secretId，secretKey。
 	 * 这里采用的是从环境变量读取的方式，需要在环境变量中先设置这两个值。
 	 * 你也可以直接在代码中写死密钥对，但是小心不要将代码复制、上传或者分享给他人，
 	 * 以免泄露密钥对危及你的财产安全。
 	 * CAM密匙查询: https://console.cloud.tencent.com/cam/capi*/
-	credential := common.NewCredential(
-		this.SecretID,
-		this.SecretKey,
-	)
+	credential := common.NewCredential(cfg.SecretID, cfg.SecretKey)
 	/* 非必要步骤:
 	 * 实例化一个客户端配置对象，可以指定超时时间等配置 */
 	cpf := profile.NewClientProfile()
@@ -46,16 +36,24 @@ func (this *Option) tencent() *tencent {
 	 * 第二个参数是地域信息，可以直接填写字符串ap-guangzhou，或者引用预设的常量 */
 	client, err := sms.NewClient(credential, "ap-shanghai", cpf)
 	return &tencent{
-		option: this,
+		cfg:    cfg,
 		Client: client,
-		err:    err,
-	}
+	}, err
+}
+
+type TencentConfig struct {
+	SecretID  string //
+	SecretKey string //
+	SignName  string //签名
+	AppID     string //腾讯云用
+}
+
+type tencent struct {
+	cfg *TencentConfig
+	*sms.Client
 }
 
 func (this *tencent) Send(msg *Message) error {
-	if this.err != nil {
-		return this.err
-	}
 	/* 实例化一个请求对象，根据调用的接口和实际情况，可以进一步设置请求参数
 	* 你可以直接查询SDK源码确定接口有哪些属性可以设置
 	 * 属性可能是基本类型，也可能引用了另一个数据结构
@@ -70,9 +68,9 @@ func (this *tencent) Send(msg *Message) error {
 	 * sms helper: https://cloud.tencent.com/document/product/382/3773 */
 
 	/* 短信应用ID: 短信SdkAppid在 [短信控制台] 添加应用后生成的实际SdkAppid，示例如1400006666 */
-	request.SmsSdkAppid = common.StringPtr(this.option.AppID)
+	request.SmsSdkAppid = common.StringPtr(this.cfg.AppID)
 	/* 短信签名内容: 使用 UTF-8 编码，必须填写已审核通过的签名，签名信息可登录 [短信控制台] 查看 */
-	request.Sign = common.StringPtr(this.option.SignName)
+	request.Sign = common.StringPtr(this.cfg.SignName)
 	/* 国际/港澳台短信 senderid: 国内短信填空，默认未开通，如需开通请联系 [sms helper] */
 	//request.SenderId = common.StringPtr("xxx")
 	/* 用户的 session 内容: 可以携带用户侧 ID 等上下文信息，server 会原样返回 */
