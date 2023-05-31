@@ -4,14 +4,13 @@ import (
 	"fmt"
 	_ "github.com/DrmagicE/gmqtt/persistence"
 	_ "github.com/DrmagicE/gmqtt/topicalias/fifo"
-	"github.com/go-ole/go-ole"
-	"github.com/go-ole/go-ole/oleutil"
 	"github.com/injoyai/base/oss"
 	"github.com/injoyai/base/oss/shell"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/cmd/crud"
 	"github.com/injoyai/goutil/net/ip"
+	"github.com/injoyai/goutil/other/notice/voice"
 	"github.com/injoyai/goutil/string/bar"
 	"github.com/injoyai/io"
 	"github.com/injoyai/io/dial/proxy"
@@ -66,6 +65,10 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 
 		url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
 		logs.PrintErr(bar.Download(url, "./in.exe"))
+
+	case "upgrade":
+
+		logs.PrintErr(oss.New("./in_upgrade.exe", upgrade))
 
 	case "upx":
 
@@ -149,38 +152,8 @@ func handlerNow(cmd *cobra.Command, args []string, flags *Flags) {
 }
 
 func handlerSpeak(cmd *cobra.Command, args []string, flags *Flags) {
-	logs.PrintErr(func(msg string) (err error) {
-		if err := ole.CoInitialize(0); err != nil {
-			return err
-		}
-		defer ole.CoUninitialize()
-		unknown, err := oleutil.CreateObject("SAPI.SpVoice")
-		if err != nil {
-			return err
-		}
-		voice, err := unknown.QueryInterface(ole.IID_IDispatch)
-		if err != nil {
-			return err
-		}
-		defer voice.Release()
-		_, err = oleutil.PutProperty(voice, "Rate", flags.GetInt("rate"))
-		if err != nil {
-			return err
-		}
-		_, err = oleutil.PutProperty(voice, "Volume", flags.GetInt("volume", 100))
-		if err != nil {
-			return err
-		}
-		_, err = oleutil.CallMethod(voice, "Speak", msg)
-		if err != nil {
-			return err
-		}
-		_, err = oleutil.CallMethod(voice, "WaitUntilDone", 0)
-		if err != nil {
-			return err
-		}
-		return nil
-	}(fmt.Sprint(conv.Interfaces(args)...)))
+	msg := fmt.Sprint(conv.Interfaces(args)...)
+	voice.Speak(msg)
 }
 
 func handlerProxy(cmd *cobra.Command, args []string, flags *Flags) {
