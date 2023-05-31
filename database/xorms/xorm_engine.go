@@ -1,7 +1,6 @@
 package xorms
 
 import (
-	"log"
 	"time"
 	"xorm.io/core"
 	"xorm.io/xorm"
@@ -18,20 +17,6 @@ type Engine struct {
 
 func (this *Engine) Err() error {
 	return this.err
-}
-
-func (this *Engine) Ping() *Engine {
-	if this.err != nil {
-		log.Printf("[错误][%s] 数据库连接失败:%s\n", this.cfg.Type, this.err.Error())
-		return this
-	}
-	this.err = this.Engine.Ping()
-	if this.err != nil {
-		log.Printf("[错误][%s] 数据库连接失败:%s\n", this.cfg.Type, this.err.Error())
-	} else {
-		log.Printf("[信息][%s] 数据库连接成功...", this.cfg.Type)
-	}
-	return this
 }
 
 func (this *Engine) TableName(v interface{}) string {
@@ -106,8 +91,5 @@ func (this *Engine) Where(query interface{}, args ...interface{}) *Session {
 }
 
 func New(cfg *Config) *Engine {
-	if len(cfg.Type) == 0 {
-		cfg.Type = defaultConfig.Type
-	}
 	return cfg.Open()
 }

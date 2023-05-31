@@ -18,11 +18,13 @@ type Config struct {
 	TablePrefix string //表名前缀
 }
 
-var defaultConfig = &Config{
-	Type:        "mysql",
-	DSN:         "root:root@tcp(127.0.0.1:3306)/test",
-	FieldSync:   true,
-	TablePrefix: "",
+func DefaultConfig() *Config {
+	return &Config{
+		Type:        "mysql",
+		DSN:         "root:root@tcp(127.0.0.1:3306)/test",
+		FieldSync:   true,
+		TablePrefix: "",
+	}
 }
 
 func (this *Config) SetType(s string) *Config {
@@ -46,8 +48,11 @@ func (this *Config) SetTablePrefix(s string) *Config {
 }
 
 func (this *Config) Open() *Engine {
+	if len(this.Type) == 0 {
+		this.Type = DefaultConfig().Type
+	}
 	db, err := xorm.NewEngine(this.Type, this.DSN)
-	data := &Engine{
+	e := &Engine{
 		Engine: db,
 		cfg:    this,
 		err:    err,
@@ -58,5 +63,8 @@ func (this *Config) Open() *Engine {
 		}
 		db.SetTableMapper(core.NewPrefixMapper(core.SameMapper{}, this.TablePrefix))
 	}
-	return data
+	if err := db.Ping(); err != nil {
+		e.err = err
+	}
+	return e
 }
