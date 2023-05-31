@@ -10,6 +10,7 @@ import (
 	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/cmd/crud"
 	"github.com/injoyai/goutil/net/ip"
+	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/other/notice/voice"
 	"github.com/injoyai/goutil/string/bar"
 	"github.com/injoyai/io"
@@ -21,6 +22,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -80,7 +82,9 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 
 	case "chromedriver":
 
-		logs.Debug("未实现")
+		if _, err := installChromedriver(oss2.UserDefaultDir(), flags.GetBool("download")); err != nil {
+			log.Printf("[错误] %s", err.Error())
+		}
 
 	case "downloader":
 
@@ -263,4 +267,23 @@ func handlerDemo(name string, bs []byte) func(cmd *cobra.Command, args []string,
 		oss.New(name, bs)
 		fmt.Println("success")
 	}
+}
+
+func handlerDownload(cmd *cobra.Command, args []string, flags *Flags) {
+	if len(args) == 0 {
+		fmt.Println("请输入下载内容")
+	}
+
+	switch true {
+	case strings.Contains(args[0], ".m3u8"),
+		strings.Contains(args[0], ".m3u8?"):
+
+		//
+
+	default:
+
+		bar.Download(args[0], "./"+filepath.Base(args[0]))
+
+	}
+
 }

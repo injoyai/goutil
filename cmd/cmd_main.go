@@ -58,6 +58,7 @@ func main() {
 		&Command{
 			Flag: []*Flag{
 				{Name: "color", Short: "c", Memo: "日志颜色"},
+				{Name: "download", Short: "d", Memo: "重新下载"},
 			},
 			Use:     "install",
 			Short:   "install",
@@ -253,6 +254,17 @@ func main() {
 					Run:   handlerDemo("./install_nodered.sh", installNodeRed),
 				},
 			},
+		},
+
+		&Command{
+			Flag: []*Flag{
+				{Name: "number", Short: "n", Memo: "扫描数量", DefValue: "-1"},
+				{Name: "open", Short: "o", Memo: "是否打开", DefValue: "true"},
+			},
+			Use:     "download",
+			Short:   "下载",
+			Example: "in download https://xxx.m3u8",
+			Run:     handlerDownload,
 		},
 	)
 
