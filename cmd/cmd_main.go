@@ -258,8 +258,10 @@ func main() {
 
 		&Command{
 			Flag: []*Flag{
-				{Name: "number", Short: "n", Memo: "扫描数量", DefValue: "-1"},
-				{Name: "open", Short: "o", Memo: "是否打开", DefValue: "true"},
+				{Name: "output", Short: "o", Memo: "输出路径"},
+				{Name: "try", Short: "t", Memo: "重试次数", DefValue: "10"},
+				{Name: "goroute", Short: "g", Memo: "协程数量", DefValue: "10"},
+				{Name: "dir", Short: "d", Memo: "下载目录"},
 			},
 			Use:     "download",
 			Short:   "下载",
