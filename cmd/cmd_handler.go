@@ -94,6 +94,10 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 
 		logs.PrintErr(oss.New("./swag.exe", swag))
 
+	case "hfs":
+
+		logs.PrintErr(oss.New("./hfs.exe", hfs))
+
 	case "influxdb":
 
 		url := "https://dl.influxdata.com/influxdb/releases/influxdb2-2.7.1-windows-amd64.zip"

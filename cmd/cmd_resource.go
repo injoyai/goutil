@@ -16,6 +16,9 @@ var rsrc []byte
 //go:embed \resource\swag.exe
 var swag []byte
 
+//go:embed \resource\hfs.exe
+var hfs []byte
+
 //============================demo============================
 
 //go:embed \resource\build.sh
