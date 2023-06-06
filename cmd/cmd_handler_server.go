@@ -25,7 +25,7 @@ import (
 func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
 
 	userDir := InjoyDir()
-	filename := filepath.Join(userDir, "chrome.exe")
+	filename := filepath.Join(userDir, "chromedriver.exe")
 	if !oss.Exists(filename) {
 		if _, err := installChromedriver(userDir, flags.GetBool("download")); err != nil {
 			logs.Err(err)
