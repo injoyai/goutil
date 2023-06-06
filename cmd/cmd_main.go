@@ -153,7 +153,7 @@ func main() {
 				{
 					Flag: []*Flag{
 						{Name: "port", Short: "p", Memo: "监听端口", DefValue: "20165"},
-						{Name: "chromedriver", Short: "c", Memo: "驱动路径", DefValue: "./chromedriver.exe"},
+						{Name: "chromedriver", Short: "c", Memo: "驱动路径"},
 						{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
 						{Name: "download", Memo: "重新下载"},
 					},
