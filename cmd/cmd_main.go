@@ -31,13 +31,6 @@ func main() {
 		},
 
 		&Command{
-			Use:     "upgrade",
-			Short:   "升级工具",
-			Example: "in upgrade",
-			Run:     handlerUpgrade,
-		},
-
-		&Command{
 			Flag: []*Flag{
 				{Name: "g", Short: "g"},
 			},
