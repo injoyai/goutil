@@ -29,11 +29,7 @@ import (
 )
 
 func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
-	fmt.Println("v1.0.0")
-}
-
-func handlerUpgrade(cmd *cobra.Command, args []string, flags *Flags) {
-	fmt.Println("执行 'in_upgrade' 进行升级")
+	fmt.Println("v1.0.1")
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {

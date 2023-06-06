@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	logs.SetShowColor(false)
 	nac.Init()
 	url := "https://github.com/injoyai/goutil/raw/main/cmd/in.exe"
 	path, _ := os.Executable()
