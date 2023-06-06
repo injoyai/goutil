@@ -25,7 +25,8 @@ import (
 func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
 
 	userDir := InjoyDir()
-	if !oss.Exists(filepath.Join(userDir, "chrome.exe")) {
+	filename := filepath.Join(userDir, "chrome.exe")
+	if !oss.Exists(filename) {
 		if _, err := installChromedriver(userDir, flags.GetBool("download")); err != nil {
 			logs.Err(err)
 			return
@@ -33,7 +34,7 @@ func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
 	}
 	port := flags.GetInt("port")
 	selenium.SetDebug(flags.GetBool("debug"))
-	ser, err := selenium.NewChromeDriverService(flags.GetString("chromedriver"), port)
+	ser, err := selenium.NewChromeDriverService(flags.GetString("chromedriver", filename), port)
 	if err != nil {
 		logs.Err(err)
 		return
