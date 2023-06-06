@@ -23,6 +23,14 @@ import (
 //====================SeleniumServer====================//
 
 func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
+
+	userDir := InjoyDir()
+	if !oss.Exists(filepath.Join(userDir, "chrome.exe")) {
+		if _, err := installChromedriver(userDir, flags.GetBool("download")); err != nil {
+			logs.Err(err)
+			return
+		}
+	}
 	port := flags.GetInt("port")
 	selenium.SetDebug(flags.GetBool("debug"))
 	ser, err := selenium.NewChromeDriverService(flags.GetString("chromedriver"), port)
@@ -91,9 +99,7 @@ func handlerMQTTServer(cmd *cobra.Command, args []string, flags *Flags) {
 //====================EdgeServer====================//
 
 func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
-	userDir, _ := oss.UserHome()
-	userDir = filepath.Join(userDir, "AppData/Local/injoy")
-	os.MkdirAll(userDir, 0666)
+	userDir := InjoyDir()
 	filename := filepath.Join(userDir, "edge.exe")
 	if !oss.Exists(filename) || flags.GetBool("download") {
 		for logs.PrintErr(bar.Download("http://192.168.10.102:8888/gateway/edge/-/raw/v1.0.12(%E5%90%88%E5%B9%B6%E5%88%86%E6%94%AF%E7%89%88%E6%9C%AC)/bin/windows/edge.exe", filename)) {
