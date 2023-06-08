@@ -44,6 +44,7 @@ func Copy(w io.Writer, r io.Reader, total int64) error {
 	buff := bufio.NewReader(r)
 	b := New().SetTotalSize(float64(total))
 	go b.Wait()
+	defer b.Done()
 	for {
 		buf := make([]byte, 1<<20)
 		n, err := buff.Read(buf)
@@ -129,23 +130,28 @@ func (this *Bar) Done() {
 }
 
 func (this *Bar) Add(n float64) {
-	this.nowSize += n
-	if this.nowSize >= this.maxSize {
-		this.nowSize = this.maxSize
-		defer func() {
-			select {
-			case <-this.done:
-			default:
-				close(this.done)
-			}
-		}()
+	select {
+	case <-this.done:
+		return
+	default:
+		this.nowSize += n
+		if this.nowSize >= this.maxSize && this.maxSize > 0 {
+			this.nowSize = this.maxSize
+			defer func() {
+				select {
+				case <-this.done:
+				default:
+					close(this.done)
+				}
+			}()
+		}
+		nowLength := int((this.nowSize / this.maxSize) * float64(this.length) / float64(len(this.style)))
+		s := ""
+		for i := 0; i < nowLength; i++ {
+			s += this.style
+		}
+		this.c <- s
 	}
-	nowLength := int((this.nowSize / this.maxSize) * float64(this.length) / float64(len(this.style)))
-	s := ""
-	for i := 0; i < nowLength; i++ {
-		s += this.style
-	}
-	this.c <- s
 }
 
 func (this *Bar) Wait() <-chan uintptr {
@@ -154,7 +160,6 @@ func (this *Bar) Wait() <-chan uintptr {
 	for {
 		select {
 		case <-this.done:
-			fmt.Println("")
 			return this.done
 		case s := <-this.c:
 			width := strconv.Itoa(this.length)

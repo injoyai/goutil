@@ -9,23 +9,23 @@ import (
 
 // Speak 生成音频并播放
 func Speak(msg string) error {
-	return newLocal(&LocalConfig{
-		Rate:   0,
-		Volume: 100,
-	}).Call(&Message{
+	return newLocal(nil).Call(&Message{
 		Param: msg,
 	})
 }
 
 // Save 保存成文件 ./wav xxx
 func Save(path, msg string) error {
-	return newLocal(&LocalConfig{
-		Rate:   0,
-		Volume: 100,
-	}).Save(path, msg)
+	return newLocal(nil).Save(path, msg)
 }
 
 func NewLocal(cfg *LocalConfig) (Interface, error) {
+	if cfg == nil {
+		cfg = &LocalConfig{
+			Rate:   0,
+			Volume: 100,
+		}
+	}
 	return &local{cfg: cfg}, nil
 }
 
@@ -44,23 +44,36 @@ type local struct {
 	cfg *LocalConfig
 }
 
-func (this *local) Call(msg *Message) (err error) {
+func (this *local) Call(msg *Message) error {
 	mu.Lock()
 	defer mu.Unlock()
-	defer g.Recover(&err)
-	g.PanicErr(ole.CoInitialize(0))
+	if err := ole.CoInitialize(0); err != nil {
+		return err
+	}
 	unknown, err := oleutil.CreateObject("SAPI.SpVoice")
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	voice, err := unknown.QueryInterface(ole.IID_IDispatch)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.PutProperty(voice, "Rate", this.cfg.Rate)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.PutProperty(voice, "Volume", this.cfg.Volume)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.CallMethod(voice, "Speak", msg.Param)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.CallMethod(voice, "WaitUntilDone", 0)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	voice.Release()
 	ole.CoUninitialize()
 	return nil

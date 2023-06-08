@@ -38,3 +38,12 @@ func UserDataDir(join ...string) string {
 	dir, _ := os.UserHomeDir()
 	return filepath.Join(append([]string{dir, "AppData/Local"}, join...)...)
 }
+
+func UserDefaultDir() string {
+	return UserDataDir(DefaultName)
+}
+
+func Exists(name string) bool {
+	stat, err := os.Stat(name)
+	return stat != nil && !os.IsNotExist(err)
+}

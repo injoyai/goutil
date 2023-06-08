@@ -31,13 +31,6 @@ func main() {
 		},
 
 		&Command{
-			Use:     "upgrade",
-			Short:   "升级工具",
-			Example: "in upgrade",
-			Run:     handlerUpgrade,
-		},
-
-		&Command{
 			Flag: []*Flag{
 				{Name: "g", Short: "g"},
 			},
@@ -58,6 +51,7 @@ func main() {
 		&Command{
 			Flag: []*Flag{
 				{Name: "color", Short: "c", Memo: "日志颜色"},
+				{Name: "download", Short: "d", Memo: "重新下载"},
 			},
 			Use:     "install",
 			Short:   "install",
@@ -159,8 +153,9 @@ func main() {
 				{
 					Flag: []*Flag{
 						{Name: "port", Short: "p", Memo: "监听端口", DefValue: "20165"},
-						{Name: "chromedriver", Short: "c", Memo: "驱动路径", DefValue: "./chromedriver.exe"},
+						{Name: "chromedriver", Short: "c", Memo: "驱动路径"},
 						{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
+						{Name: "download", Memo: "重新下载"},
 					},
 					Use:     "selenium",
 					Short:   "自动化服务",
@@ -253,6 +248,19 @@ func main() {
 					Run:   handlerDemo("./install_nodered.sh", installNodeRed),
 				},
 			},
+		},
+
+		&Command{
+			Flag: []*Flag{
+				{Name: "output", Short: "o", Memo: "输出路径"},
+				{Name: "try", Short: "t", Memo: "重试次数", DefValue: "10"},
+				{Name: "goroute", Short: "g", Memo: "协程数量", DefValue: "10"},
+				{Name: "dir", Short: "d", Memo: "下载目录"},
+			},
+			Use:     "download",
+			Short:   "下载",
+			Example: "in download https://xxx.m3u8",
+			Run:     handlerDownload,
 		},
 	)
 

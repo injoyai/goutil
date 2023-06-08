@@ -4,6 +4,9 @@ import _ "embed"
 
 //============================install============================
 
+//go:embed \upgrade\in_upgrade.exe
+var upgrade []byte
+
 //go:embed \resource\upx.exe
 var upx []byte
 
@@ -12,6 +15,9 @@ var rsrc []byte
 
 //go:embed \resource\swag.exe
 var swag []byte
+
+//go:embed \resource\hfs.exe
+var hfs []byte
 
 //============================demo============================
 
