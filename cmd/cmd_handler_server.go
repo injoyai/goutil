@@ -101,28 +101,46 @@ func handlerMQTTServer(cmd *cobra.Command, args []string, flags *Flags) {
 
 func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 	userDir := InjoyDir()
-	filename := filepath.Join(userDir, "edge.exe")
-	if !oss.Exists(filename) || flags.GetBool("download") {
-		for logs.PrintErr(bar.Download("http://192.168.10.102:8888/gateway/aiot/-/raw/main/edge/bin/windows/edge.exe?inline=false", filename)) {
-			<-time.After(time.Second)
+	{
+		filename := userDir + "/influxd.exe"
+		if !oss.Exists(filename) || flags.GetBool("download") {
+			url := "https://dl.influxdata.com/influxdb/releases/influxdb-1.8.10_windows_amd64.zip"
+			zipName := filepath.Join(userDir, "influxdb.zip")
+			oldDir := userDir + "/influxdb-1.8.10-1"
+			oldFilename := userDir + "/influxdb-1.8.10-1/influxd.exe"
+			for logs.PrintErr(bar.Download(url, zipName)) {
+				<-time.After(time.Second)
+			}
+			logs.PrintErr(DecodeZIP(zipName, userDir))
+			os.Remove(zipName)
+			os.Rename(oldFilename, filename)
+			os.RemoveAll(oldDir)
 		}
+		shell.Start(filename)
 	}
-	shell.Start(filename)
+	{
+		filename := filepath.Join(userDir, "edge.exe")
+		if !oss.Exists(filename) {
+			for logs.PrintErr(bar.Download("http://192.168.10.102:8888/gateway/aiot/-/raw/main/edge/bin/windows/edge.exe?inline=false", filename)) {
+				<-time.After(time.Second)
+			}
+		}
+		shell.Start(filename)
+	}
 }
 
 //====================InfluxServer====================//
 
 func handlerInfluxServer(cmd *cobra.Command, args []string, flags *Flags) {
-	userDir, _ := oss.UserHome()
-	userDir = filepath.Join(userDir, "AppData/Local/injoy")
-	os.MkdirAll(userDir, 0666)
+	userDir := InjoyDir()
 	filename := userDir + "/influxd.exe"
 	if !oss.Exists(filename) || flags.GetBool("download") {
 		url := "https://dl.influxdata.com/influxdb/releases/influxdb-1.8.10_windows_amd64.zip"
 		zipName := filepath.Join(userDir, "influxdb.zip")
 		oldDir := userDir + "/influxdb-1.8.10-1"
 		oldFilename := userDir + "/influxdb-1.8.10-1/influxd.exe"
-		logs.PrintErr(bar.Download(url, zipName))
+		for ; logs.PrintErr(bar.Download(url, zipName)); <-time.After(time.Second) {
+		}
 		logs.PrintErr(DecodeZIP(zipName, userDir))
 		os.Remove(zipName)
 		os.Rename(oldFilename, filename)
