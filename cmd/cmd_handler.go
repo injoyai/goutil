@@ -29,7 +29,8 @@ import (
 )
 
 func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
-	fmt.Println("v1.0.1")
+	fmt.Println("v1.0.2")
+	fmt.Println("增加了部署相关")
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {

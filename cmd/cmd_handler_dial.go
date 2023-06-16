@@ -173,6 +173,8 @@ func handlerDial(cmd *cobra.Command, args []string, flags *Flags) {
 				}()
 				break
 			}
+		case "deploy":
+			handlerDeployClient(args[1], flags)
 		default:
 			dial.RedialTCP(args[1], op)
 		}
