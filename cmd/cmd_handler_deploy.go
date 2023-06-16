@@ -13,6 +13,7 @@ import (
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -73,6 +74,7 @@ func handlerDeployClient(addr string, flags *Flags) {
 
 	target := flags.GetString("target")
 	source := flags.GetString("source")
+	shell := flags.GetString("shell")
 	c, err := dial.NewTCP(addr, func(c *io.Client) {
 		c.SetReadWriteWithPkg()
 		c.SetDealFunc(func(msg *io.IMessage) {
@@ -101,7 +103,7 @@ func handlerDeployClient(addr string, flags *Flags) {
 		c.WriteAny(&Deploy{
 			Type:  deployDeploy,
 			File:  file,
-			Shell: nil,
+			Shell: []string{shell},
 		})
 
 	})
@@ -109,6 +111,7 @@ func handlerDeployClient(addr string, flags *Flags) {
 		return
 	}
 	logs.Err(c.Run())
+	os.Exit(-127)
 }
 
 //====================DeployServer====================//
