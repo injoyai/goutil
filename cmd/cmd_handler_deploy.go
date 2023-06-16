@@ -8,6 +8,7 @@ import (
 	"github.com/injoyai/base/oss"
 	"github.com/injoyai/base/oss/shell"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/string/bar"
 	"github.com/injoyai/io"
 	"github.com/injoyai/io/dial"
 	"github.com/injoyai/logs"
@@ -15,6 +16,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -74,7 +76,8 @@ func handlerDeployClient(addr string, flags *Flags) {
 
 	target := flags.GetString("target")
 	source := flags.GetString("source")
-	shell := flags.GetString("shell")
+	shell := strings.ReplaceAll(flags.GetString("shell"), "#", " ")
+	Type := flags.GetString("type", deployDeploy)
 	c, err := dial.NewTCP(addr, func(c *io.Client) {
 		c.SetReadWriteWithPkg()
 		c.SetDealFunc(func(msg *io.IMessage) {
@@ -100,13 +103,26 @@ func handlerDeployClient(addr string, flags *Flags) {
 			})
 		}
 
-		c.WriteAny(&Deploy{
-			Type:  deployDeploy,
+		bs := conv.Bytes(&Deploy{
+			Type:  Type,
 			File:  file,
 			Shell: []string{shell},
 		})
 
+		b := bar.New()
+		b.SetTotalSize(float64(len(bs)))
+
+		c.SetWriteFunc(func(p []byte) ([]byte, error) {
+			b.Add(float64(len(p)))
+			return io.WriteWithPkg(p)
+		})
+
+		go b.Wait()
+
+		c.WriteAny(bs)
+
 	})
+	fmt.Println()
 	if logs.PrintErr(err) {
 		return
 	}
