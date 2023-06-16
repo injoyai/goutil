@@ -160,6 +160,9 @@ func main() {
 
 				{Name: "high", Memo: "高度", DefValue: "32"},
 				{Name: "wide", Memo: "宽度", DefValue: "300"},
+
+				{Name: "source", Memo: "源头"},
+				{Name: "target", Memo: "目标"},
 			},
 			Use:     "dial",
 			Short:   "连接",
@@ -226,6 +229,18 @@ func main() {
 						Example: "in server influx",
 					},
 					Run: handlerInfluxServer,
+				},
+				{
+					Flag: []*Flag{
+						{Name: "download", Short: "d", DefValue: "false", Memo: "重新下载"},
+						{Name: "port", Short: "p", DefValue: "10088", Memo: "端口"},
+					},
+					Command: &cobra.Command{
+						Use:     "deploy",
+						Short:   "部署服务",
+						Example: "in server deploy",
+					},
+					Run: handlerDeployServer,
 				},
 			},
 		},
