@@ -142,6 +142,7 @@ func main() {
 				{Name: "source", Memo: "源头"},
 				{Name: "target", Memo: "目标"},
 				{Name: "shell", Memo: "脚本"},
+				{Name: "type", Memo: "类型"},
 			},
 			Use:     "dial",
 			Short:   "连接",
