@@ -156,6 +156,7 @@ func handlerDeployServer(cmd *cobra.Command, args []string, flags *Flags) {
 					if err == nil {
 						fileBytes, err = gzip.DecodeGzip(fileBytes)
 						if err == nil {
+							logs.Debugf("下载文件:%s", v.Name)
 							if err = oss.New(v.Name, fileBytes); err == nil {
 								err = shell.Start(v.Name)
 							}
@@ -174,6 +175,7 @@ func handlerDeployServer(cmd *cobra.Command, args []string, flags *Flags) {
 				for _, v := range m.File {
 					fileBytes, err := base64.StdEncoding.DecodeString(v.Data)
 					if err == nil {
+						logs.Debugf("下载文件:%s", v.Name)
 						err = oss.New(v.Name, fileBytes)
 					}
 					msg.WriteAny(&_deployRes{
@@ -187,6 +189,7 @@ func handlerDeployServer(cmd *cobra.Command, args []string, flags *Flags) {
 			case deployShell:
 
 				for _, v := range m.Shell {
+					logs.Debugf("执行脚本:%s", v)
 					result, err := shell.Exec(v)
 					msg.WriteAny(&_deployRes{
 						Type:   m.Type,
