@@ -146,6 +146,28 @@ func main() {
 		},
 
 		&Command{
+			Flag: []*Flag{
+				{Name: "redial", Short: "r", Memo: "自动重连", DefValue: "true"},
+				{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
+				{Name: "timeout", Short: "t", Memo: "超时时间(ms)", DefValue: "500"},
+				{Name: "username", Short: "u", Memo: "用户名"},
+				{Name: "password", Short: "p", Memo: "密码"},
+
+				{Name: "baudRate", Memo: "波特率", DefValue: "9600"},
+				{Name: "dataBits", Memo: "数据位", DefValue: "8"},
+				{Name: "stopBits", Memo: "停止位", DefValue: "1"},
+				{Name: "parity", Memo: "校验", DefValue: "N"},
+
+				{Name: "high", Memo: "高度", DefValue: "32"},
+				{Name: "wide", Memo: "宽度", DefValue: "300"},
+			},
+			Use:     "dial",
+			Short:   "连接",
+			Example: "in dial tcp 127.0.0.1:80 -r false",
+			Run:     handlerDial,
+		},
+
+		&Command{
 			Use:     "server",
 			Short:   "服务",
 			Example: "in server tcp",
@@ -261,6 +283,13 @@ func main() {
 			Short:   "下载",
 			Example: "in download https://xxx.m3u8",
 			Run:     handlerDownload,
+		},
+
+		&Command{
+			Use:     "open",
+			Short:   "打开",
+			Example: "in open hosts",
+			Run:     handlerOpen,
 		},
 	)
 

@@ -267,3 +267,20 @@ func handlerDemo(name string, bs []byte) func(cmd *cobra.Command, args []string,
 		fmt.Println("success")
 	}
 }
+
+func handlerOpen(cmd *cobra.Command, args []string, flags *Flags) {
+	if len(args) == 0 {
+		fmt.Printf("请输入参数,例(in open hosts)")
+		return
+	}
+	switch strings.ToLower(args[0]) {
+	case "hosts":
+		shell.Start("C:\\Windows\\System32\\drivers\\etc\\hosts")
+	case "injoy":
+		shell.Start(oss2.UserDefaultDir())
+	case "appdata":
+		shell.Start(oss2.UserDataDir())
+	default:
+		shell.Start(args[0])
+	}
+}
