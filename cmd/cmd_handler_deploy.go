@@ -76,8 +76,11 @@ func handlerDeployClient(addr string, flags *Flags) {
 
 	target := flags.GetString("target")
 	source := flags.GetString("source")
-	shell := strings.ReplaceAll(flags.GetString("shell"), "#", " ")
 	Type := flags.GetString("type", deployDeploy)
+	shell := strings.ReplaceAll(flags.GetString("shell"), "#", " ")
+	if len(shell) > 0 {
+		Type = deployShell
+	}
 	c, err := dial.NewTCP(addr, func(c *io.Client) {
 		c.SetReadWriteWithPkg()
 		c.SetDealFunc(func(msg *io.IMessage) {
