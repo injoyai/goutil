@@ -281,6 +281,8 @@ func handlerOpen(cmd *cobra.Command, args []string, flags *Flags) {
 		shell.Start(oss2.UserDefaultDir())
 	case "appdata":
 		shell.Start(oss2.UserDataDir())
+	case "startup":
+		shell.Start(oss2.UserStartupDir())
 	default:
 		shell.Start(args[0])
 	}
