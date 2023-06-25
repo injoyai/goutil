@@ -27,4 +27,4 @@ if [ -f "./$name.000" ]; then
   rm "./$name.000"
 fi
 
-sleep 20
+sleep 5

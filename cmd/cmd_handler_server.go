@@ -103,7 +103,7 @@ func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 	userDir := InjoyDir()
 	{
 		filename := userDir + "/influxd.exe"
-		if !oss.Exists(filename) || flags.GetBool("download") {
+		if !oss.Exists(filename) {
 			url := "https://dl.influxdata.com/influxdb/releases/influxdb-1.8.10_windows_amd64.zip"
 			zipName := filepath.Join(userDir, "influxdb.zip")
 			oldDir := userDir + "/influxdb-1.8.10-1"
@@ -120,7 +120,7 @@ func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 	}
 	{
 		filename := filepath.Join(userDir, "edge.exe")
-		if !oss.Exists(filename) {
+		if !oss.Exists(filename) || flags.GetBool("download") {
 			for logs.PrintErr(bar.Download("http://192.168.10.102:8888/gateway/aiot/-/raw/main/edge/bin/windows/edge.exe?inline=false", filename)) {
 				<-time.After(time.Second)
 			}
