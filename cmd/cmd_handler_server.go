@@ -119,7 +119,9 @@ func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 		shell.Start(filename)
 	}
 	{
-		filename := filepath.Join(userDir, "edge.exe")
+		filename := "edge.exe"
+		shell.Stop(filename)
+		filename = filepath.Join(userDir, filename)
 		if !oss.Exists(filename) || flags.GetBool("download") {
 			for logs.PrintErr(bar.Download("http://192.168.10.102:8888/gateway/aiot/-/raw/main/edge/bin/windows/edge.exe?inline=false", filename)) {
 				<-time.After(time.Second)
