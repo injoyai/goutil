@@ -83,7 +83,7 @@ func newDownload(num, tryNum int, runs []_downloadRun) [][]byte {
 			})
 		}
 	}()
-	<-b.Wait()
+	<-b.Run()
 	return cache
 }
 
