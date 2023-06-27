@@ -8,6 +8,7 @@ import (
 	"github.com/injoyai/base/oss"
 	"github.com/injoyai/base/oss/shell"
 	"github.com/injoyai/conv"
+	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/string/bar"
 	"github.com/injoyai/io"
 	"github.com/injoyai/io/dial"
@@ -28,6 +29,13 @@ const (
 type _deployFile struct {
 	Name string `json:"name"` //文件路径
 	Data string `json:"data"` //文件内容
+}
+
+func (this *_deployFile) deal() *_deployFile {
+	this.Name = strings.ReplaceAll(this.Name, "{user}", oss2.UserDir())
+	this.Name = strings.ReplaceAll(this.Name, "{appdata}", oss2.UserDataDir())
+	this.Name = strings.ReplaceAll(this.Name, "{injoy}", oss2.UserInjoyDir())
+	return this
 }
 
 type Deploy struct {
@@ -100,10 +108,10 @@ func handlerDeployClient(addr string, flags *Flags) {
 				logs.Err(err)
 				return
 			}
-			file = append(file, &_deployFile{
+			file = append(file, (&_deployFile{
 				Name: target,
 				Data: base64.StdEncoding.EncodeToString(bs),
-			})
+			}).deal())
 		}
 
 		bs := conv.Bytes(&Deploy{
@@ -120,7 +128,7 @@ func handlerDeployClient(addr string, flags *Flags) {
 			return io.WriteWithPkg(p)
 		})
 
-		go b.Wait()
+		go b.Run()
 
 		c.WriteAny(bs)
 
