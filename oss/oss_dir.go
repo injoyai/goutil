@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	DefaultName = "injoy"
+	Injoy = "injoy"
 )
 
 func ExecName() string {
@@ -49,8 +49,12 @@ func UserStartupDir(join ...string) string {
 	return filepath.Join(append([]string{dir, "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup"}, join...)...)
 }
 
+func UserInjoyDir() string {
+	return UserLocalDir(Injoy)
+}
+
 func UserDefaultDir() string {
-	return UserLocalDir(DefaultName)
+	return UserInjoyDir()
 }
 
 func Exists(name string) bool {
