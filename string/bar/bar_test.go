@@ -22,7 +22,7 @@ func TestNew(t *testing.T) {
 		time.Sleep(time.Second * 3)
 		//x.Done()
 	}()
-	<-x.Wait()
+	<-x.Run()
 }
 
 func TestDemo(t *testing.T) {
