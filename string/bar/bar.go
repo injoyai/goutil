@@ -21,7 +21,7 @@ func Demo() {
 			x.Add(1)
 		}
 	}()
-	x.Wait()
+	x.Run()
 }
 
 func Download(url, filename string) error {
@@ -43,7 +43,7 @@ func Download(url, filename string) error {
 func Copy(w io.Writer, r io.Reader, total int64) error {
 	buff := bufio.NewReader(r)
 	b := New().SetTotalSize(float64(total))
-	go b.Wait()
+	go b.Run()
 	defer b.Done()
 	for {
 		buf := make([]byte, 1<<20)
@@ -63,30 +63,30 @@ func Copy(w io.Writer, r io.Reader, total int64) error {
 
 func New() *Bar {
 	return &Bar{
-		prefix:  "进度:",
-		suffix:  "",
-		length:  40,
-		nowSize: 0,
-		maxSize: 1000,
-		style:   ">",
-		color:   nil, //color.New(color.Reset),
-		c:       make(chan string, 1),
-		done:    make(chan uintptr, 1),
-		print:   func(s string) { fmt.Print(s) },
+		prefix:    "",
+		suffix:    "",
+		length:    40,
+		nowSize:   0,
+		totalSize: 1000,
+		style:     ">",
+		color:     nil, //color.New(color.Reset),
+		c:         make(chan string, 1),
+		done:      make(chan struct{}, 1),
+		print:     func(s string) { fmt.Print(s) },
 	}
 }
 
 type Bar struct {
-	prefix  string       //前缀
-	suffix  string       //后缀
-	length  int          //总长度
-	nowSize float64      //当前完成数量
-	maxSize float64      //最大数量
-	style   string       //进度条风格
-	color   *color.Color //整体颜色
-	c       chan string  //实时数据通道
-	done    chan uintptr //结束信号
-	print   func(string) //打印
+	prefix    string        //前缀
+	suffix    string        //后缀
+	length    int           //总长度
+	nowSize   float64       //当前完成数量
+	totalSize float64       //最大数量
+	style     string        //进度条风格
+	color     *color.Color  //整体颜色
+	c         chan string   //实时数据通道
+	done      chan struct{} //结束信号
+	print     func(string)  //打印
 }
 
 // SetPrint 设置打印函数
@@ -107,9 +107,14 @@ func (this *Bar) SetWidth(length int) *Bar {
 	return this
 }
 
+// SetTotal 设置进度任务数量
+func (this *Bar) SetTotal(size float64) *Bar {
+	return this.SetTotalSize(size)
+}
+
 // SetTotalSize 设置进度任务数量
 func (this *Bar) SetTotalSize(size float64) *Bar {
-	this.maxSize = size
+	this.totalSize = size
 	return this
 }
 
@@ -126,7 +131,7 @@ func (this *Bar) SetColor(a color.Attribute) *Bar {
 }
 
 func (this *Bar) Done() {
-	this.Add(this.maxSize - this.nowSize)
+	this.Add(this.totalSize - this.nowSize)
 }
 
 func (this *Bar) Add(n float64) {
@@ -135,8 +140,8 @@ func (this *Bar) Add(n float64) {
 		return
 	default:
 		this.nowSize += n
-		if this.nowSize >= this.maxSize && this.maxSize > 0 {
-			this.nowSize = this.maxSize
+		if this.nowSize >= this.totalSize && this.totalSize > 0 {
+			this.nowSize = this.totalSize
 			defer func() {
 				select {
 				case <-this.done:
@@ -145,7 +150,7 @@ func (this *Bar) Add(n float64) {
 				}
 			}()
 		}
-		nowLength := int((this.nowSize / this.maxSize) * float64(this.length) / float64(len(this.style)))
+		nowLength := int((this.nowSize / this.totalSize) * float64(this.length) / float64(len(this.style)))
 		s := ""
 		for i := 0; i < nowLength; i++ {
 			s += this.style
@@ -154,7 +159,7 @@ func (this *Bar) Add(n float64) {
 	}
 }
 
-func (this *Bar) Wait() <-chan uintptr {
+func (this *Bar) Run() <-chan struct{} {
 	this.Add(0)
 	start := time.Now()
 	for {
@@ -168,7 +173,7 @@ func (this *Bar) Wait() <-chan uintptr {
 				s = this.color.Sprint(s)
 				width = strconv.Itoa(this.length + 9)
 			}
-			s = fmt.Sprintf("\r%s[%-"+width+"s] %0.1f%% %0.0f/%0.0f %0.0fs %s", this.prefix, s, this.nowSize*100/this.maxSize, this.nowSize, this.maxSize, time.Now().Sub(start).Seconds(), this.suffix)
+			s = fmt.Sprintf("\r%s[%-"+width+"s] %0.1f%% %0.0f/%0.0f %0.0fs %s", this.prefix, s, this.nowSize*100/this.totalSize, this.nowSize, this.totalSize, time.Now().Sub(start).Seconds(), this.suffix)
 			if this.print != nil {
 				this.print(s)
 			} else {
