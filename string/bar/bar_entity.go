@@ -26,31 +26,31 @@ type Interface interface {
 				this.suffix,
 			)
 	*/
-	SetFormatter(f Formatter)
+	SetFormatter(f Formatter) Interface
 
 	// SetPrefix 设置前缀,默认格式生效
-	SetPrefix(prefix string)
+	SetPrefix(prefix string) Interface
 
 	// SetSuffix 设置后缀,默认格式生效
-	SetSuffix(suffix string)
+	SetSuffix(suffix string) Interface
 
 	// SetWidth 设置宽度
-	SetWidth(width int)
+	SetWidth(width int) Interface
 
 	// SetTotal 设置总数据大小
-	SetTotal(total int64)
+	SetTotal(total int64) Interface
 
 	// SetStyle 设置进度条风格
-	SetStyle(style byte)
+	SetStyle(style byte) Interface
 
 	// SetColor 设置颜色
-	SetColor(color color.Attribute)
+	SetColor(color color.Attribute) Interface
 
 	// Add 添加数据
-	Add(n int64)
+	Add(n int64) Interface
 
 	// Done 结束
-	Done()
+	Done() Interface
 
 	// Run 运行
 	Run() <-chan struct{}
@@ -98,35 +98,42 @@ type entity struct {
 	cancel  context.CancelFunc //
 }
 
-func (this *entity) SetFormatter(f Formatter) {
+func (this *entity) SetFormatter(f Formatter) Interface {
 	this.format = f
+	return this
 }
 
-func (this *entity) SetPrefix(prefix string) {
+func (this *entity) SetPrefix(prefix string) Interface {
 	this.prefix = prefix
+	return this
 }
 
-func (this *entity) SetSuffix(suffix string) {
+func (this *entity) SetSuffix(suffix string) Interface {
 	this.suffix = suffix
+	return this
 }
 
-func (this *entity) SetWidth(width int) {
+func (this *entity) SetWidth(width int) Interface {
 	this.width = width
+	return this
 }
 
-func (this *entity) SetTotal(total int64) {
+func (this *entity) SetTotal(total int64) Interface {
 	this.total = total
+	return this
 }
 
-func (this *entity) SetStyle(style byte) {
+func (this *entity) SetStyle(style byte) Interface {
 	this.style = style
+	return this
 }
 
-func (this *entity) SetColor(a color.Attribute) {
+func (this *entity) SetColor(a color.Attribute) Interface {
 	this.color = color.New(a)
+	return this
 }
 
-func (this *entity) Add(n int64) {
+func (this *entity) Add(n int64) Interface {
 	if this.c == nil {
 		this.c = make(chan int64, 1)
 	}
@@ -134,10 +141,11 @@ func (this *entity) Add(n int64) {
 	case <-this.ctx.Done():
 	case this.c <- n:
 	}
+	return this
 }
 
-func (this *entity) Done() {
-	this.Add(this.total)
+func (this *entity) Done() Interface {
+	return this.Add(this.total)
 }
 
 func (this *entity) Run() <-chan struct{} {
