@@ -1,9 +1,14 @@
 package bar
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/injoyai/conv"
+	"io"
+	"net/http"
+	"os"
 	"time"
 )
 
@@ -49,6 +54,17 @@ type Interface interface {
 
 	// Run 运行
 	Run() <-chan struct{}
+
+	//衍生功能,
+
+	// Copy 复制数据加入进度条
+	Copy(w io.Writer, r io.Reader) error
+
+	// CopyN 复制数据加入进度条
+	CopyN(w io.Writer, r io.Reader, num int64) error
+
+	// DownloadHTTP 下载http
+	DownloadHTTP(url, filename string) error
 }
 
 var _ Interface = new(entity)
@@ -114,7 +130,10 @@ func (this *entity) Add(n int64) {
 	if this.c == nil {
 		this.c = make(chan int64, 1)
 	}
-	this.c <- n
+	select {
+	case <-this.ctx.Done():
+	case this.c <- n:
+	}
 }
 
 func (this *entity) Done() {
@@ -128,6 +147,7 @@ func (this *entity) Run() <-chan struct{} {
 	for {
 		select {
 		case <-this.ctx.Done():
+			fmt.Println()
 			return this.ctx.Done()
 		case n := <-this.c:
 
@@ -203,6 +223,61 @@ func (this *entity) init() {
 		}
 	}
 	this.Add(0)
+}
+
+func (this *entity) Copy(w io.Writer, r io.Reader) error {
+	buff := bufio.NewReader(r)
+	go this.Run()
+	for {
+		buf := make([]byte, 1<<20)
+		n, err := buff.Read(buf)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		this.Add(int64(n))
+		if _, err := w.Write(buf[:n]); err != nil {
+			return err
+		}
+		if err == io.EOF {
+			return nil
+		}
+	}
+}
+
+func (this *entity) CopyN(w io.Writer, r io.Reader, num int64) error {
+	buff := bufio.NewReader(r)
+	go this.Run()
+	for {
+		buf := make([]byte, num)
+		n, err := buff.Read(buf)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		this.Add(int64(n))
+		num -= int64(n)
+		if _, err := w.Write(buf[:n]); err != nil {
+			return err
+		}
+		if err == io.EOF || num <= 0 {
+			return nil
+		}
+	}
+}
+
+func (this *entity) DownloadHTTP(url, filename string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	total := conv.Int64(resp.Header.Get("Content-Length"))
+	this.SetTotal(total)
+	return this.Copy(f, resp.Body)
 }
 
 type Element interface {
