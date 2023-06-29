@@ -156,6 +156,7 @@ func (this *entity) Run() <-chan struct{} {
 				}),
 				Rate: element(func() string { return fmt.Sprintf("%0.1f%%", rate*100) }),
 				Size: element(func() string { return fmt.Sprintf("%d/%d", this.current, this.total) }),
+				Used: element(func() string { return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds()) }),
 				Remain: element(func() string {
 					spend := time.Now().Sub(start)
 					remain := "0s"
@@ -196,7 +197,7 @@ func (this *entity) init() {
 				e.Bar,
 				e.Rate,
 				e.Size,
-				e.Remain,
+				e.Used,
 				this.suffix,
 			)
 		}
@@ -216,6 +217,7 @@ type Entity struct {
 	Bar    Element
 	Rate   Element
 	Size   Element
+	Used   Element
 	Remain Element
 }
 
