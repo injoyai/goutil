@@ -61,7 +61,7 @@ func handlerDownload(cmd *cobra.Command, args []string, flags *Flags) {
 }
 
 func newDownload(num, tryNum int, runs []_downloadRun) [][]byte {
-	b := bar.New().SetTotalSize(float64(len(runs)))
+	b := bar.New(int64(len(runs)))
 	cache := make([][]byte, len(runs))
 	queue := chans.NewEntity(num, len(runs))
 	queue.SetHandler(func(ctx context.Context, no, count int, data interface{}) {

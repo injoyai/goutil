@@ -120,11 +120,10 @@ func handlerDeployClient(addr string, flags *Flags) {
 			Shell: []string{shell},
 		})
 
-		b := bar.New()
-		b.SetTotalSize(float64(len(bs)))
+		b := bar.New(int64(len(bs)))
 
 		c.SetWriteFunc(func(p []byte) ([]byte, error) {
-			b.Add(float64(len(p)))
+			b.Add(int64(len(p)))
 			return io.WriteWithPkg(p)
 		})
 
