@@ -1,7 +1,3 @@
-#-ldflags="-w -s"
-#-ldflags="-H windowsgui"
-#-ldflags="-X "
-
 name="in_upgrade"
 
 GOOS=windows GOARCH=amd64 go build -v -ldflags="-w -s" -o ./$name.exe
