@@ -8,6 +8,10 @@ import (
 	"os"
 )
 
+func init() {
+	logs.DefaultErr.SetWriter(logs.Stdout)
+}
+
 func main() {
 	url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
 	filename := "./downloader.exe"
