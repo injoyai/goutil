@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil"
 	"io"
 	"net/http"
 	"os"
@@ -16,15 +17,13 @@ type Interface interface {
 
 	/*
 		SetFormatter 自定义格式
-		func(e *Entity) string {
-			return fmt.Sprintf("\r%s%s %s %s %s %s",
-				this.prefix,
+		SetFormatter(func(e *Entity) string {
+			return fmt.Sprintf("\r%s %s %s %s",
 				e.Bar,
 				e.Rate,
 				e.Size,
 				e.Remain,
-				this.suffix,
-			)
+			))
 	*/
 	SetFormatter(f Formatter) Interface
 
@@ -85,17 +84,18 @@ func NewWithContext(ctx context.Context, total int64) Interface {
 }
 
 type entity struct {
-	format  Formatter          //格式化
-	prefix  string             //前缀
-	suffix  string             //后缀
-	width   int                //宽度
-	current int64              //当前
-	total   int64              //总
-	style   byte               //进度条风格
-	color   *color.Color       //整体颜色
-	c       chan int64         //实时数据通道
-	ctx     context.Context    //
-	cancel  context.CancelFunc //
+	format      Formatter          //格式化
+	prefix      string             //前缀
+	suffix      string             //后缀
+	width       int                //宽度
+	current     int64              //当前
+	currentTime time.Time          //当前时间
+	total       int64              //总
+	style       byte               //进度条风格
+	color       *color.Color       //整体颜色
+	c           chan int64         //实时数据通道
+	ctx         context.Context    //
+	cancel      context.CancelFunc //
 }
 
 func (this *entity) SetFormatter(f Formatter) Interface {
@@ -159,7 +159,10 @@ func (this *entity) Run() <-chan struct{} {
 			return this.ctx.Done()
 		case n := <-this.c:
 
+			spend := float64(n) / time.Now().Sub(this.currentTime).Seconds()
+
 			this.current += n
+			this.currentTime = time.Now()
 			if this.current >= this.total {
 				this.current = this.total
 				this.cancel()
@@ -183,7 +186,13 @@ func (this *entity) Run() <-chan struct{} {
 					return bar
 				}),
 				Rate: element(func() string { return fmt.Sprintf("%0.1f%%", rate*100) }),
-				Size: element(func() string { return fmt.Sprintf("%d/%d", this.current, this.total) }),
+				Size: element(func() string {
+					return fmt.Sprintf("%d/%d", this.current, this.total)
+				}),
+				Speed: element(func() string {
+					f, unit := this.toB(int64(spend))
+					return fmt.Sprintf("%0.1f%s/s", f, unit)
+				}),
 				Used: element(func() string { return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds()) }),
 				Remain: element(func() string {
 					spend := time.Now().Sub(start)
@@ -208,6 +217,10 @@ func (this *entity) Run() <-chan struct{} {
 	}
 }
 
+func (this *entity) toB(n int64) (float64, string) {
+	return goutil.ToB(n)
+}
+
 func (this *entity) init() {
 	if this.width == 0 {
 		this.width = 40
@@ -223,8 +236,8 @@ func (this *entity) init() {
 			return fmt.Sprintf("\r%s%s %s %s %s %s",
 				this.prefix,
 				e.Bar,
-				e.Rate,
 				e.Size,
+				e.Speed,
 				e.Used,
 				this.suffix,
 			)
@@ -300,6 +313,7 @@ type Entity struct {
 	Bar    Element
 	Rate   Element
 	Size   Element
+	Speed  Element
 	Used   Element
 	Remain Element
 }

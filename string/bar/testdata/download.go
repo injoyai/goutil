@@ -14,8 +14,12 @@ func main() {
 	b := bar.New(0)
 	b.SetColor(color.BgCyan)
 	b.SetStyle('>')
-	err := b.DownloadHTTP(url, filename)
-	logs.PrintErr(err)
-	os.Remove(filename)
+	for {
+		err := b.DownloadHTTP(url, filename)
+		if !logs.PrintErr(err) {
+			os.Remove(filename)
+			break
+		}
+	}
 	g.Input("请按回车键退出...")
 }
