@@ -8,5 +8,9 @@ func TestDir(t *testing.T) {
 	t.Log(FuncName())
 	t.Log(FuncDir())
 	t.Log(UserDir())
-	t.Log(UserDataDir(Injoy))
+	t.Log(UserDataDir(DefaultName))
+}
+
+func TestUserStartupDir(t *testing.T) {
+	t.Log(UserStartupDir())
 }

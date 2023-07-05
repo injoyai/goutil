@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	Injoy = "injoy"
+	DefaultName = "injoy"
 )
 
 func ExecName() string {
@@ -50,7 +50,7 @@ func UserStartupDir(join ...string) string {
 }
 
 func UserInjoyDir() string {
-	return UserLocalDir(Injoy)
+	return UserLocalDir(DefaultName)
 }
 
 func UserDefaultDir() string {
