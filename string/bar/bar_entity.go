@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil"
 	"io"
@@ -12,59 +13,6 @@ import (
 	"os"
 	"time"
 )
-
-type Interface interface {
-
-	/*
-		SetFormatter 自定义格式
-		SetFormatter(func(e *Entity) string {
-			return fmt.Sprintf("\r%s %s %s %s",
-				e.Bar,
-				e.Rate,
-				e.Size,
-				e.Remain,
-			))
-	*/
-	SetFormatter(f Formatter) Interface
-
-	// SetPrefix 设置前缀,默认格式生效
-	SetPrefix(prefix string) Interface
-
-	// SetSuffix 设置后缀,默认格式生效
-	SetSuffix(suffix string) Interface
-
-	// SetWidth 设置宽度
-	SetWidth(width int) Interface
-
-	// SetTotal 设置总数据大小
-	SetTotal(total int64) Interface
-
-	// SetStyle 设置进度条风格
-	SetStyle(style byte) Interface
-
-	// SetColor 设置颜色
-	SetColor(color color.Attribute) Interface
-
-	// Add 添加数据
-	Add(n int64) Interface
-
-	// Done 结束
-	Done() Interface
-
-	// Run 运行
-	Run() <-chan struct{}
-
-	//衍生功能,
-
-	// Copy 复制数据加入进度条
-	Copy(w io.Writer, r io.Reader) error
-
-	// CopyN 复制数据加入进度条
-	CopyN(w io.Writer, r io.Reader, num int64) error
-
-	// DownloadHTTP 下载http
-	DownloadHTTP(url, filename string) error
-}
 
 var _ Interface = new(entity)
 
@@ -75,7 +23,7 @@ func New(total int64) Interface {
 func NewWithContext(ctx context.Context, total int64) Interface {
 	ctx, cancel := context.WithCancel(ctx)
 	return &entity{
-		width:  40,
+		width:  50,
 		style:  '>',
 		total:  total,
 		ctx:    ctx,
@@ -85,8 +33,6 @@ func NewWithContext(ctx context.Context, total int64) Interface {
 
 type entity struct {
 	format      Formatter          //格式化
-	prefix      string             //前缀
-	suffix      string             //后缀
 	width       int                //宽度
 	current     int64              //当前
 	currentTime time.Time          //当前时间
@@ -100,16 +46,6 @@ type entity struct {
 
 func (this *entity) SetFormatter(f Formatter) Interface {
 	this.format = f
-	return this
-}
-
-func (this *entity) SetPrefix(prefix string) Interface {
-	this.prefix = prefix
-	return this
-}
-
-func (this *entity) SetSuffix(suffix string) Interface {
-	this.suffix = suffix
 	return this
 }
 
@@ -152,6 +88,7 @@ func (this *entity) Run() <-chan struct{} {
 	this.init()
 	start := time.Now()
 	max := 0
+	m := maps.NewSafe()
 	for {
 		select {
 		case <-this.ctx.Done():
@@ -160,7 +97,6 @@ func (this *entity) Run() <-chan struct{} {
 		case n := <-this.c:
 
 			spend := float64(n) / time.Now().Sub(this.currentTime).Seconds()
-
 			this.current += n
 			this.currentTime = time.Now()
 			if this.current >= this.total {
@@ -185,15 +121,27 @@ func (this *entity) Run() <-chan struct{} {
 					}
 					return bar
 				}),
-				Rate: element(func() string { return fmt.Sprintf("%0.1f%%", rate*100) }),
+				Rate: element(func() string {
+					return fmt.Sprintf("%0.1f%%", rate*100)
+				}),
 				Size: element(func() string {
 					return fmt.Sprintf("%d/%d", this.current, this.total)
 				}),
-				Speed: element(func() string {
-					f, unit := this.toB(int64(spend))
-					return fmt.Sprintf("%0.1f%s/s", f, unit)
+				SizeUnit: element(func() string {
+					currentNum, currentUnit := this.toB(this.current)
+					totalNum, totalUnit := this.toB(this.total)
+					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
-				Used: element(func() string { return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds()) }),
+				Speed: element(func() string {
+					v, _ := m.GetOrSetByHandler("", func() (interface{}, error) {
+						f, unit := this.toB(int64(spend))
+						return fmt.Sprintf("%0.1f%s/s", f, unit), nil
+					}, time.Second)
+					return conv.String(v)
+				}),
+				Used: element(func() string {
+					return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds())
+				}),
 				Remain: element(func() string {
 					spend := time.Now().Sub(start)
 					remain := "0s"
@@ -233,13 +181,10 @@ func (this *entity) init() {
 	}
 	if this.format == nil {
 		this.format = func(e *Entity) string {
-			return fmt.Sprintf("\r%s%s %s %s %s %s",
-				this.prefix,
+			return fmt.Sprintf("\r%s  %s  %s",
 				e.Bar,
-				e.Size,
+				e.SizeUnit,
 				e.Speed,
-				e.Used,
-				this.suffix,
 			)
 		}
 	}
@@ -300,22 +245,3 @@ func (this *entity) DownloadHTTP(url, filename string) error {
 	this.SetTotal(total)
 	return this.Copy(f, resp.Body)
 }
-
-type Element interface {
-	String() string
-}
-
-type element func() string
-
-func (this element) String() string { return this() }
-
-type Entity struct {
-	Bar    Element
-	Rate   Element
-	Size   Element
-	Speed  Element
-	Used   Element
-	Remain Element
-}
-
-type Formatter func(e *Entity) string

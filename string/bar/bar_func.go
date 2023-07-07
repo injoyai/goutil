@@ -8,8 +8,6 @@ import (
 
 func Demo() <-chan struct{} {
 	x := New(60)
-	x.SetPrefix("进度: ")
-	x.SetSuffix("$")
 	x.SetStyle('>')
 	x.SetColor(color.BgCyan)
 	go func() {

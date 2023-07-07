@@ -1,8 +1,11 @@
 package bar
 
 import (
+	"fmt"
 	"github.com/fatih/color"
+	"github.com/injoyai/goutil"
 	"io"
+	"time"
 )
 
 type Interface interface {
@@ -20,12 +23,6 @@ type Interface interface {
 			)
 	*/
 	SetFormatter(f Formatter) Interface
-
-	// SetPrefix 设置前缀,默认格式生效
-	SetPrefix(prefix string) Interface
-
-	// SetSuffix 设置后缀,默认格式生效
-	SetSuffix(suffix string) Interface
 
 	// SetWidth 设置宽度
 	SetWidth(width int) Interface
@@ -69,11 +66,51 @@ type element func() string
 func (this element) String() string { return this() }
 
 type Entity struct {
-	Bar    Element
-	Rate   Element
-	Size   Element
-	Used   Element
-	Remain Element
+	Bar      Element
+	Rate     Element
+	Size     Element
+	SizeUnit Element
+	Speed    Element
+	Used     Element
+	Remain   Element
 }
 
 type Formatter func(e *Entity) string
+
+type _speed struct {
+	Size int64     //数量
+	Time time.Time //时间戳
+}
+
+type _speeds struct {
+	list []*_speed
+}
+
+func (this *_speeds) Add(size int64, t time.Time) {
+	this.list = append(this.list, &_speed{
+		Size: size, Time: t,
+	})
+}
+
+func (this *_speeds) Speed(interval time.Duration) string {
+	node := -1
+	last := time.Now().Add(-interval).Unix()
+	size := float64(0)
+	for i, v := range this.list {
+		if sub := v.Time.Unix() - last; sub > 0 {
+			if node == -1 {
+				node = i
+			}
+			if size == 0 {
+				interval -= time.Duration(sub) * time.Second
+				//logs.Debug(interval)
+			}
+			size += float64(v.Size)
+		}
+	}
+	if node >= 0 {
+		this.list = this.list[node:]
+	}
+	f, unit := goutil.ToB(int64(size / float64(interval/time.Second)))
+	return fmt.Sprintf("%0.1f%s/s", f, unit)
+}

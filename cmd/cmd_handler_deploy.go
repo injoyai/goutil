@@ -86,7 +86,7 @@ func handlerDeployClient(addr string, flags *Flags) {
 	source := flags.GetString("source")
 	Type := flags.GetString("type", deployDeploy)
 	shell := strings.ReplaceAll(flags.GetString("shell"), "#", " ")
-	if len(shell) > 0 {
+	if len(shell) > 0 && len(target) == 0 && len(source) == 0 {
 		Type = deployShell
 	}
 	c, err := dial.NewTCP(addr, func(c *io.Client) {
