@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/fatih/color"
-	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil"
 	"io"
@@ -88,7 +87,6 @@ func (this *entity) Run() <-chan struct{} {
 	this.init()
 	start := time.Now()
 	max := 0
-	m := maps.NewSafe()
 	for {
 		select {
 		case <-this.ctx.Done():
@@ -133,11 +131,9 @@ func (this *entity) Run() <-chan struct{} {
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
-					v, _ := m.GetOrSetByHandler("", func() (interface{}, error) {
-						f, unit := this.toB(int64(spend))
-						return fmt.Sprintf("%0.1f%s/s", f, unit), nil
-					}, time.Second)
-					return conv.String(v)
+					// todo 算法待优化
+					f, unit := this.toB(int64(spend))
+					return fmt.Sprintf("%0.1f%s/s", f, unit)
 				}),
 				Used: element(func() string {
 					return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds())
@@ -195,7 +191,7 @@ func (this *entity) Copy(w io.Writer, r io.Reader) error {
 	buff := bufio.NewReader(r)
 	go this.Run()
 	for {
-		buf := make([]byte, 1<<20)
+		buf := make([]byte, 2<<20)
 		n, err := buff.Read(buf)
 		if err != nil && err != io.EOF {
 			return err
