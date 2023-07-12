@@ -13,6 +13,9 @@ func init() {
 }
 
 func main() {
+
+	bar.Demo()
+
 	url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
 	filename := "./downloader.exe"
 	b := bar.New(0)
