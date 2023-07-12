@@ -228,6 +228,24 @@ func handlerScan(cmd *cobra.Command, args []string, flags *Flags) {
 			}
 			wg.Wait()
 
+		case "ssh":
+
+			gateIPv4 := []byte(net.ParseIP(ip.GetLocal())[12:15])
+			wg := sync.WaitGroup{}
+			for i := conv.Uint32(append(gateIPv4, 0)); i <= conv.Uint32(append(gateIPv4, 255)); i++ {
+				ipv4 := net.IPv4(uint8(i>>24), uint8(i>>16), uint8(i>>8), uint8(i))
+				wg.Add(1)
+				go func(ipv4 net.IP) {
+					defer wg.Done()
+					c, err := net.Dial("tcp", ipv4.String()+":22")
+					if err == nil {
+						c.Close()
+						fmt.Printf("%s\n", ipv4)
+					}
+				}(ipv4)
+			}
+			wg.Wait()
+
 		case "serial":
 
 			list, err := serial.GetPortsList()
