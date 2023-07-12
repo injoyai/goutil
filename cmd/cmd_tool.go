@@ -3,8 +3,6 @@ package main
 import (
 	"archive/zip"
 	"github.com/injoyai/base/oss"
-	"os"
-	"path/filepath"
 )
 
 // DecodeZIP 解压zip
@@ -29,11 +27,4 @@ func DecodeZIP(zipPath, filePath string) error {
 		}
 	}
 	return nil
-}
-
-func InjoyDir() string {
-	dir, _ := oss.UserHome()
-	dir = filepath.Join(dir, "AppData/Local/injoy")
-	os.MkdirAll(dir, 0666)
-	return dir
 }

@@ -128,26 +128,72 @@ func main() {
 				{Name: "redial", Short: "r", Memo: "自动重连", DefValue: "true"},
 				{Name: "debug", Short: "d", Memo: "打印日志", DefValue: "true"},
 				{Name: "timeout", Short: "t", Memo: "超时时间(ms)", DefValue: "500"},
-				{Name: "username", Short: "u", Memo: "用户名"},
-				{Name: "password", Short: "p", Memo: "密码"},
-
-				{Name: "baudRate", Memo: "波特率", DefValue: "9600"},
-				{Name: "dataBits", Memo: "数据位", DefValue: "8"},
-				{Name: "stopBits", Memo: "停止位", DefValue: "1"},
-				{Name: "parity", Memo: "校验", DefValue: "N"},
-
-				{Name: "high", Memo: "高度", DefValue: "32"},
-				{Name: "wide", Memo: "宽度", DefValue: "300"},
-
-				{Name: "source", Memo: "源头"},
-				{Name: "target", Memo: "目标"},
-				{Name: "shell", Memo: "脚本"},
-				{Name: "type", Memo: "类型"},
 			},
 			Use:     "dial",
 			Short:   "连接",
 			Example: "in dial tcp 127.0.0.1:80 -r false",
-			Run:     handlerDial,
+			Child: []*Command{
+				{
+					Use:     "tcp",
+					Short:   "TCP连接",
+					Example: "in dial tcp 127.0.0.1:80 -r false",
+					Run:     handlerDialTCP,
+				},
+				{
+					Use:     "ws",
+					Short:   "Websocket连接",
+					Example: "in dial ws 127.0.0.1:80 -r false",
+					Run:     handlerDialWebsocket,
+				},
+				{
+					Use:     "websocket",
+					Short:   "Websocket连接",
+					Example: "in dial ws 127.0.0.1:80 -r false",
+					Run:     handlerDialWebsocket,
+				},
+				{
+					Flag: []*Flag{
+						{Name: "username", Short: "u", Memo: "用户名"},
+						{Name: "password", Short: "p", Memo: "密码"},
+						{Name: "high", Memo: "高度", DefValue: "32"},
+						{Name: "wide", Memo: "宽度", DefValue: "300"},
+					},
+					Use:     "ssh",
+					Short:   "SSH连接",
+					Example: "in dial ssh 127.0.0.1 -r false",
+					Run:     handlerDialSSH,
+				},
+				{
+					Use:     "ssh",
+					Short:   "SSH连接",
+					Example: "in dial ssh 127.0.0.1 -r false",
+					Run:     handlerDialSSH,
+				},
+				{
+					Flag: []*Flag{
+						{Name: "baudRate", Memo: "波特率", DefValue: "9600"},
+						{Name: "dataBits", Memo: "数据位", DefValue: "8"},
+						{Name: "stopBits", Memo: "停止位", DefValue: "1"},
+						{Name: "parity", Memo: "校验", DefValue: "N"},
+					},
+					Use:     "serial",
+					Short:   "串口连接",
+					Example: "in dial serial COM3 -r false",
+					Run:     handlerDialSerial,
+				},
+				{
+					Flag: []*Flag{
+						{Name: "source", Memo: "源头"},
+						{Name: "target", Memo: "目标"},
+						{Name: "shell", Memo: "脚本"},
+						{Name: "type", Memo: "类型"},
+					},
+					Use:     "deploy",
+					Short:   "Deploy连接",
+					Example: "in dial deploy 127.0.0.1 -r false",
+					Run:     handlerDialDeploy,
+				},
+			},
 		},
 
 		&Command{
@@ -226,14 +272,44 @@ func main() {
 		},
 
 		&Command{
-			Flag: []*Flag{
-				{Name: "number", Short: "n", Memo: "扫描数量", DefValue: "-1"},
-				{Name: "open", Short: "o", Memo: "是否打开", DefValue: "true"},
-			},
 			Use:     "scan",
 			Short:   "扫描",
 			Example: "in scan icmp",
-			Run:     handlerScan,
+			Child: []*Command{
+				{
+					Use:     "icmp",
+					Short:   "ping(当前网段)",
+					Example: "in scan icmp",
+					Run:     handlerScanICMP,
+				},
+				{
+					Use:     "port",
+					Short:   "端口扫描(当前网段)",
+					Example: "in scan port",
+					Run:     handlerScanPort,
+				},
+				{
+					Use:     "ssh",
+					Short:   "SSH服务扫描(当前网段)",
+					Example: "in scan ssh",
+					Run:     handlerScanSSH,
+				},
+				{
+					Use:     "serial",
+					Short:   "串口扫描",
+					Example: "in scan serial",
+					Run:     handlerScanSerial,
+				},
+				{
+					Flag: []*Flag{
+						{Name: "open", Short: "o", Memo: "是否打开", DefValue: "false"},
+					},
+					Use:     "edge",
+					Short:   "网关扫描",
+					Example: "in scan edge",
+					Run:     handlerScanEdge,
+				},
+			},
 		},
 
 		&Command{

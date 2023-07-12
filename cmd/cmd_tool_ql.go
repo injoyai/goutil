@@ -19,7 +19,7 @@ type IPSN struct {
 	SN string
 }
 
-func handlerScanEdge(startIP, endIP net.IP) (chan IPSN, context.Context) {
+func qlScanEdge(startIP, endIP net.IP) (chan IPSN, context.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ch := make(chan IPSN)
 	start := []byte(startIP[12:16])

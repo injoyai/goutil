@@ -9,7 +9,6 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/cmd/crud"
-	"github.com/injoyai/goutil/net/ip"
 	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/other/notice/voice"
 	"github.com/injoyai/goutil/string/bar"
@@ -17,14 +16,11 @@ import (
 	"github.com/injoyai/io/dial/proxy"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
-	"go.bug.st/serial"
 	"log"
-	"net"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -34,12 +30,12 @@ func handleVersion(cmd *cobra.Command, args []string, flags *Flags) {
 }
 
 func handlerSwag(cmd *cobra.Command, args []string, flags *Flags) {
-	param := []string{"init"}
+	param := []string{"swag init"}
 	flags.Range(func(key string, val *Flag) bool {
 		param = append(param, fmt.Sprintf(" -%s %s", val.Short, val.Value))
 		return true
 	})
-	bs, _ := handlerShell("swag", append(param, args...)...)
+	bs, _ := shell.Exec(append(param, args...)...)
 	fmt.Println(bs)
 }
 
@@ -48,7 +44,7 @@ func handleBuild(cmd *cobra.Command, args []string, flags *Flags) {
 	os.Setenv("GOARCH", "amd64")
 	os.Setenv("GO111MODULE", "on")
 	list := append([]string{"go", "build"}, args...)
-	result, _ := handlerShell(strings.Join(list, " "))
+	result, _ := shell.Exec(strings.Join(list, " "))
 	fmt.Println(result)
 }
 
@@ -57,7 +53,7 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 		fmt.Println("请输入需要安装的应用")
 		return
 	}
-	switch args[0] {
+	switch strings.ToLower(args[0]) {
 
 	case "in":
 
@@ -134,14 +130,9 @@ func handlerPprof2(url string, param ...string) {
 		url = "http://" + url
 	}
 	param = append(param, url)
-	param = append([]string{"tool", "pprof"}, param...)
-	result, _ := handlerShell("go", param...)
+	param = append([]string{"go", "tool", "pprof"}, param...)
+	result, _ := shell.Exec(param...)
 	fmt.Println(result)
-}
-
-func handlerShell(name string, args ...string) (string, error) {
-	bs, err := exec.Command(name, args...).CombinedOutput()
-	return string(bs), err
 }
 
 func handlerCrud(cmd *cobra.Command, args []string, flags *Flags) {
@@ -202,106 +193,9 @@ func handlerProxy(cmd *cobra.Command, args []string, flags *Flags) {
 	select {}
 }
 
-func handlerScan(cmd *cobra.Command, args []string, flags *Flags) {
-	switch true {
-	case len(args) == 0:
-		log.Println("[错误]", "缺少扫描类型(icmp,serial...)")
-	default:
-
-		number := flags.GetInt("number")
-
-		switch args[0] {
-		case "icmp":
-
-			gateIPv4 := []byte(net.ParseIP(ip.GetLocal())[12:15])
-			wg := sync.WaitGroup{}
-			for i := conv.Uint32(append(gateIPv4, 0)); i <= conv.Uint32(append(gateIPv4, 255)); i++ {
-				ipv4 := net.IPv4(uint8(i>>24), uint8(i>>16), uint8(i>>8), uint8(i))
-				wg.Add(1)
-				go func(ipv4 net.IP) {
-					defer wg.Done()
-					used, err := ip.Ping(ipv4.String(), time.Second)
-					if err == nil {
-						fmt.Printf("%s: %s\n", ipv4, used.String())
-					}
-				}(ipv4)
-			}
-			wg.Wait()
-
-		case "ssh":
-
-			gateIPv4 := []byte(net.ParseIP(ip.GetLocal())[12:15])
-			wg := sync.WaitGroup{}
-			for i := conv.Uint32(append(gateIPv4, 0)); i <= conv.Uint32(append(gateIPv4, 255)); i++ {
-				ipv4 := net.IPv4(uint8(i>>24), uint8(i>>16), uint8(i>>8), uint8(i))
-				wg.Add(1)
-				go func(ipv4 net.IP) {
-					defer wg.Done()
-					c, err := net.Dial("tcp", ipv4.String()+":22")
-					if err == nil {
-						c.Close()
-						fmt.Printf("%s\n", ipv4)
-					}
-				}(ipv4)
-			}
-			wg.Wait()
-
-		case "serial":
-
-			list, err := serial.GetPortsList()
-			if err != nil {
-				logs.Err(err)
-				return
-			}
-			fmt.Println(strings.Join(list, "\n"))
-
-		case "edge":
-
-			ipv4 := ip.GetLocal()
-			startIP := append(net.ParseIP(ipv4)[:15], 0)
-			endIP := append(net.ParseIP(ipv4)[:15], 255)
-			ch, ctx := handlerScanEdge(startIP, endIP)
-			for i := 1; ; i++ {
-				select {
-				case <-ctx.Done():
-					return
-				case data := <-ch:
-					fmt.Printf("%v: %v\n", data.IP, data.SN)
-					if flags.GetBool("open") {
-						logs.PrintErr(shell.OpenBrowser(fmt.Sprintf("http://%s:10001", data.IP)))
-					}
-					if number > 0 && i >= number {
-						return
-					}
-				}
-			}
-
-		}
-	}
-}
-
 func handlerDemo(name string, bs []byte) func(cmd *cobra.Command, args []string, flags *Flags) {
 	return func(cmd *cobra.Command, args []string, flags *Flags) {
 		oss.New(name, bs)
 		fmt.Println("success")
-	}
-}
-
-func handlerOpen(cmd *cobra.Command, args []string, flags *Flags) {
-	if len(args) == 0 {
-		fmt.Printf("请输入参数,例(in open hosts)")
-		return
-	}
-	switch strings.ToLower(args[0]) {
-	case "hosts":
-		shell.Start("C:\\Windows\\System32\\drivers\\etc\\hosts")
-	case "injoy":
-		shell.Start(oss2.UserDefaultDir())
-	case "appdata":
-		shell.Start(oss2.UserDataDir())
-	case "startup":
-		shell.Start(oss2.UserStartupDir())
-	default:
-		shell.Start(args[0])
 	}
 }

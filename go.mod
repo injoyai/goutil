@@ -31,6 +31,7 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.667
 	github.com/yuin/gopher-lua v1.1.0
 	go.bug.st/serial v1.5.0
+	golang.org/x/sys v0.6.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	xorm.io/core v0.7.3
 	xorm.io/xorm v1.3.2
@@ -96,7 +97,6 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/genproto v0.0.0-20221201204527-e3fa12d562f3 // indirect

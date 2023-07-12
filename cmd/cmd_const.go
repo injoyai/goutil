@@ -1,6 +1,6 @@
 package main
 
 const (
-	version = "v1.0.3"
-	details = "优化了edge服务"
+	version = "v1.0.4"
+	details = "整理了结构"
 )
