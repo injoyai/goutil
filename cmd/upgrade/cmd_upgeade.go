@@ -19,5 +19,5 @@ func main() {
 	for logs.PrintErr(bar.Download(url, filename)) {
 		<-time.After(time.Second)
 	}
-	oss.Input("升级成功,按任意键退出...")
+	oss.Input("升级成功,按回车键退出...")
 }
