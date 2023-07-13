@@ -27,11 +27,11 @@ func handlerDialWebsocket(cmd *cobra.Command, args []string, flags *Flags) {
 		fmt.Println("[错误] 未填写连接地址")
 	}
 	if strings.HasPrefix(args[0], "https://") {
-		args[0], _ = strings.CutPrefix(args[0], "https://")
+		_, args[0], _ = strings.Cut(args[0], "https://")
 		args[0] = "wss://" + args[0]
 	}
 	if strings.HasPrefix(args[0], "http://") {
-		args[0], _ = strings.CutPrefix(args[0], "http://")
+		_, args[0], _ = strings.Cut(args[0], "http://")
 		args[0] = "ws://" + args[0]
 	}
 	if !strings.HasPrefix(args[0], "wss://") || !strings.HasPrefix(args[0], "ws://") {
