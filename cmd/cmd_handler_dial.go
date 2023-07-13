@@ -42,8 +42,11 @@ func handlerDialWebsocket(cmd *cobra.Command, args []string, flags *Flags) {
 }
 
 func handlerDialSSH(cmd *cobra.Command, args []string, flags *Flags) {
+	if len(args) == 0 {
+		fmt.Println("[错误] 未填写连接地址")
+	}
 	for {
-		addr := args[1]
+		addr := args[0]
 		if !strings.Contains(addr, ":") {
 			addr += ":22"
 		}
@@ -109,7 +112,10 @@ func handlerDialSerial(cmd *cobra.Command, args []string, flags *Flags) {
 }
 
 func handlerDialDeploy(cmd *cobra.Command, args []string, flags *Flags) {
-	handlerDeployClient(args[1], flags)
+	if len(args) == 0 {
+		fmt.Println("[错误] 未填写连接地址")
+	}
+	handlerDeployClient(args[0], flags)
 }
 
 func handlerDialDeal(c *io.Client, flags *Flags) {
