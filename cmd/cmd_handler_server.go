@@ -103,6 +103,7 @@ func handlerMQTTServer(cmd *cobra.Command, args []string, flags *Flags) {
 func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 	userDir := oss2.UserInjoyDir()
 	{
+		fmt.Println("开始运行InfluxDB服务...")
 		filename := userDir + "/influxd.exe"
 		if !oss.Exists(filename) {
 			url := "https://dl.influxdata.com/influxdb/releases/influxdb-1.8.10_windows_amd64.zip"
@@ -120,6 +121,7 @@ func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 		shell.Start(filename)
 	}
 	{
+		fmt.Println("开始运行Edge服务...")
 		filename := "edge.exe"
 		shell.Stop(filename)
 		filename = filepath.Join(userDir, filename)
