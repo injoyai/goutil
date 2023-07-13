@@ -48,10 +48,10 @@ func handlerScanPort(cmd *cobra.Command, args []string, flags *Flags) {
 		go func(ipv4 net.IP) {
 			defer wg.Done()
 			addr := fmt.Sprintf("%s:%s", ipv4, args[0])
-			c, err := net.Dial("tcp", addr)
+			c, err := net.DialTimeout("tcp", addr, time.Second)
 			if err == nil {
 				c.Close()
-				fmt.Printf("%s: 开启\n", addr)
+				fmt.Printf("%s   开启\n", addr)
 			}
 		}(ipv4)
 	}
