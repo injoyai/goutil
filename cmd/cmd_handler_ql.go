@@ -3,12 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/injoyai/base/oss/shell"
 	"github.com/injoyai/base/str"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/io"
 	"net"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -57,16 +55,4 @@ func qlScanEdge(startIP, endIP net.IP) (chan IPSN, context.Context) {
 		cancel()
 	}()
 	return ch, ctx
-}
-
-func openBrowser(uri string) (err error) {
-	switch runtime.GOOS {
-	case "windows":
-		_, err = shell.Exec("start", uri)
-	case "darwin":
-		_, err = shell.Exec("open", uri)
-	case "linux":
-		_, err = shell.Exec("xdg-open", uri)
-	}
-	return
 }
