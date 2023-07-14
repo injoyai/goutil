@@ -277,18 +277,30 @@ func main() {
 			Example: "in scan icmp",
 			Child: []*Command{
 				{
+					Flag: []*Flag{
+						{Name: "timeout", Short: "t", Memo: "超时时间(毫秒)", DefValue: "1000"},
+						{Name: "sort", Short: "s", Memo: "排序"},
+					},
 					Use:     "icmp",
 					Short:   "ping(当前网段)",
 					Example: "in scan icmp",
 					Run:     handlerScanICMP,
 				},
 				{
+					Flag: []*Flag{
+						{Name: "timeout", Short: "t", Memo: "超时时间(毫秒)", DefValue: "1000"},
+						{Name: "sort", Short: "s", Memo: "排序"},
+					},
 					Use:     "port",
 					Short:   "端口扫描(当前网段)",
 					Example: "in scan port",
 					Run:     handlerScanPort,
 				},
 				{
+					Flag: []*Flag{
+						{Name: "timeout", Short: "t", Memo: "超时时间(毫秒)", DefValue: "1000"},
+						{Name: "sort", Short: "s", Memo: "排序"},
+					},
 					Use:     "ssh",
 					Short:   "SSH服务扫描(当前网段)",
 					Example: "in scan ssh",
@@ -303,6 +315,8 @@ func main() {
 				{
 					Flag: []*Flag{
 						{Name: "open", Short: "o", Memo: "是否打开", DefValue: "false"},
+						{Name: "timeout", Short: "t", Memo: "超时时间(毫秒)", DefValue: "100"},
+						{Name: "sort", Short: "s", Memo: "排序"},
 					},
 					Use:     "edge",
 					Short:   "网关扫描",

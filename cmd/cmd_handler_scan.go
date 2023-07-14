@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/injoyai/base/g"
 	"github.com/injoyai/base/oss/shell"
+	"github.com/injoyai/base/sort"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/ip"
 	"github.com/injoyai/logs"
@@ -16,20 +18,36 @@ import (
 )
 
 func handlerScanICMP(cmd *cobra.Command, args []string, flags *Flags) {
+	timeout := time.Millisecond * time.Duration(flags.GetInt("timeout", 1000))
+	sortResult := flags.GetBool("sort")
+	list := []g.Map(nil)
 	gateIPv4 := []byte(net.ParseIP(ip.GetLocal())[12:15])
 	wg := sync.WaitGroup{}
 	for i := conv.Uint32(append(gateIPv4, 0)); i <= conv.Uint32(append(gateIPv4, 255)); i++ {
 		ipv4 := net.IPv4(uint8(i>>24), uint8(i>>16), uint8(i>>8), uint8(i))
 		wg.Add(1)
-		go func(ipv4 net.IP) {
+		go func(ipv4 net.IP, i uint32) {
 			defer wg.Done()
-			used, err := ip.Ping(ipv4.String(), time.Second)
+			used, err := ip.Ping(ipv4.String(), timeout)
 			if err == nil {
-				fmt.Printf("%s: %s\n", ipv4, used.String())
+				s := fmt.Sprintf("%s: %s\n", ipv4, used.String())
+				if sortResult {
+					list = append(list, g.Map{"i": i, "s": s})
+				} else {
+					fmt.Print(s)
+				}
 			}
-		}(ipv4)
+		}(ipv4, i)
 	}
 	wg.Wait()
+	if sortResult {
+		logs.PrintErr(sort.List(func(i, j interface{}) bool {
+			return i.(g.Map)["i"].(uint32) < j.(g.Map)["i"].(uint32)
+		}).Bind(&list))
+		for _, m := range list {
+			fmt.Print(m["s"])
+		}
+	}
 }
 
 func handlerScanSSH(cmd *cobra.Command, args []string, flags *Flags) {
@@ -40,22 +58,38 @@ func handlerScanPort(cmd *cobra.Command, args []string, flags *Flags) {
 	if len(args) == 0 {
 		log.Println("[错误]", "缺少端口")
 	}
+	timeout := time.Millisecond * time.Duration(flags.GetInt("timeout", 1000))
+	sortResult := flags.GetBool("sort")
+	list := []g.Map(nil)
 	gateIPv4 := []byte(net.ParseIP(ip.GetLocal())[12:15])
 	wg := sync.WaitGroup{}
 	for i := conv.Uint32(append(gateIPv4, 0)); i <= conv.Uint32(append(gateIPv4, 255)); i++ {
 		ipv4 := net.IPv4(uint8(i>>24), uint8(i>>16), uint8(i>>8), uint8(i))
 		wg.Add(1)
-		go func(ipv4 net.IP) {
+		go func(ipv4 net.IP, i uint32) {
 			defer wg.Done()
 			addr := fmt.Sprintf("%s:%s", ipv4, args[0])
-			c, err := net.DialTimeout("tcp", addr, time.Second)
+			c, err := net.DialTimeout("tcp", addr, timeout)
 			if err == nil {
 				c.Close()
-				fmt.Printf("%s   开启\n", addr)
+				s := fmt.Sprintf("%s   开启\n", addr)
+				if sortResult {
+					list = append(list, g.Map{"i": i, "s": s})
+				} else {
+					fmt.Print(s)
+				}
 			}
-		}(ipv4)
+		}(ipv4, i)
 	}
 	wg.Wait()
+	if sortResult {
+		logs.PrintErr(sort.List(func(i, j interface{}) bool {
+			return i.(g.Map)["i"].(uint32) < j.(g.Map)["i"].(uint32)
+		}).Bind(&list))
+		for _, m := range list {
+			fmt.Print(m["s"])
+		}
+	}
 }
 
 func handlerScanSerial(cmd *cobra.Command, args []string, flags *Flags) {
