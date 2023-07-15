@@ -3,7 +3,8 @@ package voice
 import (
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
-	"github.com/injoyai/base/g"
+	"github.com/injoyai/goutil/g"
+
 	"sync"
 )
 
