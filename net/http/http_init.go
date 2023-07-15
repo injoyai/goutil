@@ -1,7 +1,7 @@
 package http
 
 import (
-	"io"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -40,7 +40,7 @@ func GetBody(uri string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	return io.ReadAll(resp.Body)
+	return ioutil.ReadAll(resp.Body)
 }
 
 func Post(url string, bind ...interface{}) *Response {
