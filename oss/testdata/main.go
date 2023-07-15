@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/injoyai/base/oss"
+	"github.com/injoyai/goutil/oss"
 	"log"
 )
 

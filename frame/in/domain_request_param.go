@@ -1,8 +1,8 @@
 package in
 
 import (
-	"github.com/injoyai/base/oss"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/oss"
 	"net/http"
 )
 

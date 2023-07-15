@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/injoyai/base/oss"
 	"github.com/injoyai/goutil/cmd/nac"
+	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/logs"
 	"os"

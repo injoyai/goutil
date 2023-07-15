@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/injoyai/base/g"
-	"github.com/injoyai/base/oss/shell"
 	"github.com/injoyai/base/sort"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/net/ip"
+	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
 	"go.bug.st/serial"
@@ -41,7 +41,7 @@ func handlerScanICMP(cmd *cobra.Command, args []string, flags *Flags) {
 	}
 	wg.Wait()
 	if sortResult {
-		logs.PrintErr(sort.List(func(i, j interface{}) bool {
+		logs.PrintErr(sort.New(func(i, j interface{}) bool {
 			return i.(g.Map)["i"].(uint32) < j.(g.Map)["i"].(uint32)
 		}).Bind(&list))
 		for _, m := range list {
@@ -83,7 +83,7 @@ func handlerScanPort(cmd *cobra.Command, args []string, flags *Flags) {
 	}
 	wg.Wait()
 	if sortResult {
-		logs.PrintErr(sort.List(func(i, j interface{}) bool {
+		logs.PrintErr(sort.New(func(i, j interface{}) bool {
 			return i.(g.Map)["i"].(uint32) < j.(g.Map)["i"].(uint32)
 		}).Bind(&list))
 		for _, m := range list {

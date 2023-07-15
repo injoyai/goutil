@@ -2,7 +2,7 @@ package main
 
 import (
 	"archive/zip"
-	"github.com/injoyai/base/oss"
+	"github.com/injoyai/goutil/oss"
 )
 
 // DecodeZIP 解压zip

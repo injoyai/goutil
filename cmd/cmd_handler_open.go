@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/injoyai/base/oss/shell"
 	oss2 "github.com/injoyai/goutil/oss"
+	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
 	"strings"

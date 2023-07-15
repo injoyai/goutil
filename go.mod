@@ -3,7 +3,7 @@ module github.com/injoyai/goutil
 go 1.17
 
 require (
-	github.com/injoyai/base v1.0.3
+	github.com/injoyai/base v1.0.5
 	github.com/injoyai/conv v1.0.5
 	github.com/injoyai/io v0.0.7
 	github.com/injoyai/logs v1.0.2
