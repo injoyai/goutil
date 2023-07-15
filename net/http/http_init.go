@@ -2,7 +2,6 @@ package http
 
 import (
 	"io/ioutil"
-	"net/http"
 )
 
 const (
@@ -35,7 +34,7 @@ func GetBytes(url string) ([]byte, error) {
 }
 
 func GetBody(uri string) ([]byte, error) {
-	resp, err := http.Get(uri)
+	resp, err := DefaultClient.Get(uri)
 	if err != nil {
 		return nil, err
 	}
