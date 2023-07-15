@@ -8,7 +8,7 @@ import (
 	"github.com/injoyai/goutil/cache"
 	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/protocol/m3u8"
-	"github.com/injoyai/goutil/string/bar"
+	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
 	"log"

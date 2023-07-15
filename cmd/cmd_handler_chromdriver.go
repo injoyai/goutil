@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/injoyai/base/str"
 	"github.com/injoyai/goutil/oss"
-	"github.com/injoyai/goutil/string/bar"
+	"github.com/injoyai/goutil/str/bar"
 	"io/ioutil"
 	"os"
 	"path/filepath"

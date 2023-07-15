@@ -9,7 +9,7 @@ import (
 	"github.com/injoyai/base/oss/shell"
 	"github.com/injoyai/conv"
 	oss2 "github.com/injoyai/goutil/oss"
-	"github.com/injoyai/goutil/string/bar"
+	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/io"
 	"github.com/injoyai/io/dial"
 	"github.com/injoyai/logs"

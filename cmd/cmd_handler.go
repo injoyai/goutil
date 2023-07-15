@@ -11,7 +11,7 @@ import (
 	"github.com/injoyai/goutil/cmd/crud"
 	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/other/notice/voice"
-	"github.com/injoyai/goutil/string/bar"
+	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/io"
 	"github.com/injoyai/io/dial/proxy"
 	"github.com/injoyai/logs"
