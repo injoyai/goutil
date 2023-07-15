@@ -3,7 +3,7 @@ package shell
 import (
 	"errors"
 	"fmt"
-	"github.com/injoyai/base/str"
+	"github.com/injoyai/goutil/str"
 	"os/exec"
 	"runtime"
 	"strings"

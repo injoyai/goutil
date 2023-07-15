@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/injoyai/base/oss/shell"
+	"github.com/injoyai/goutil/oss/shell"
 	"testing"
 )
 

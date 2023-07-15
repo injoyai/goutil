@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/fatih/color"
-	"github.com/injoyai/base/g"
+	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/logs"
 	"os"

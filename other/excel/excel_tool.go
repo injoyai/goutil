@@ -1,7 +1,7 @@
 package excel
 
 import (
-	"github.com/injoyai/base/str"
+	"github.com/injoyai/goutil/str"
 	"strconv"
 )
 

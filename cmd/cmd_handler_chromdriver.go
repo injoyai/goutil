@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/injoyai/base/str"
 	"github.com/injoyai/goutil/oss"
+	"github.com/injoyai/goutil/str"
 	"github.com/injoyai/goutil/str/bar"
 	"io/ioutil"
 	"os"
