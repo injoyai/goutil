@@ -21,16 +21,16 @@ func Save(path, msg string) error {
 }
 
 func NewLocal(cfg *LocalConfig) (Interface, error) {
+	return newLocal(cfg), nil
+}
+
+func newLocal(cfg *LocalConfig) *local {
 	if cfg == nil {
 		cfg = &LocalConfig{
 			Rate:   0,
 			Volume: 100,
 		}
 	}
-	return &local{cfg: cfg}, nil
-}
-
-func newLocal(cfg *LocalConfig) *local {
 	return &local{cfg: cfg}
 }
 
