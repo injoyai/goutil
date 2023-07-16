@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	oss2 "github.com/injoyai/goutil/oss"
+	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
@@ -20,11 +20,11 @@ func handlerOpen(cmd *cobra.Command, args []string, flags *Flags) {
 			shell.Start("C:\\Windows\\System32\\drivers\\etc\\")
 		}
 	case "injoy":
-		shell.Start(oss2.UserDefaultDir())
+		shell.Start(oss.UserDefaultDir())
 	case "appdata":
-		shell.Start(oss2.UserDataDir())
+		shell.Start(oss.UserDataDir())
 	case "startup":
-		shell.Start(oss2.UserStartupDir())
+		shell.Start(oss.UserStartupDir())
 	case "hfs", "downloader", "influxdb", "chromedriver":
 		handlerInstall(cmd, args, flags)
 		logs.PrintErr(shell.Start(args[0] + ".exe"))

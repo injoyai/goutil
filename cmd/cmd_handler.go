@@ -8,7 +8,6 @@ import (
 	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/cmd/crud"
 	"github.com/injoyai/goutil/oss"
-	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/other/notice/voice"
 	"github.com/injoyai/goutil/str/bar"
@@ -74,7 +73,7 @@ func handlerInstall(cmd *cobra.Command, args []string, flags *Flags) {
 
 	case "chromedriver":
 
-		if _, err := installChromedriver(oss2.UserDefaultDir(), flags.GetBool("download")); err != nil {
+		if _, err := installChromedriver(oss.UserDefaultDir(), flags.GetBool("download")); err != nil {
 			log.Printf("[错误] %s", err.Error())
 		}
 

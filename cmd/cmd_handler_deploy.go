@@ -7,7 +7,6 @@ import (
 	"github.com/injoyai/base/bytes/crypt/gzip"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
-	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/io"
@@ -32,9 +31,9 @@ type _deployFile struct {
 }
 
 func (this *_deployFile) deal() *_deployFile {
-	this.Name = strings.ReplaceAll(this.Name, "{user}", oss2.UserDir())
-	this.Name = strings.ReplaceAll(this.Name, "{appdata}", oss2.UserDataDir())
-	this.Name = strings.ReplaceAll(this.Name, "{injoy}", oss2.UserInjoyDir())
+	this.Name = strings.ReplaceAll(this.Name, "{user}", oss.UserDir())
+	this.Name = strings.ReplaceAll(this.Name, "{appdata}", oss.UserDataDir())
+	this.Name = strings.ReplaceAll(this.Name, "{injoy}", oss.UserInjoyDir())
 	return this
 }
 

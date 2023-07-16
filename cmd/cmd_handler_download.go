@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/goutil/oss"
-	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
@@ -48,7 +47,7 @@ func handlerDownload(cmd *cobra.Command, args []string, flags *Flags) {
 
 	case "chromedriver":
 
-		if _, err := installChromedriver(oss2.UserDefaultDir(), flags.GetBool("download")); err != nil {
+		if _, err := installChromedriver(oss.UserDefaultDir(), flags.GetBool("download")); err != nil {
 			log.Printf("[错误] %s", err.Error())
 		}
 

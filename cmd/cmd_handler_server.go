@@ -7,7 +7,6 @@ import (
 	"github.com/DrmagicE/gmqtt/pkg/packets"
 	"github.com/DrmagicE/gmqtt/server"
 	"github.com/injoyai/goutil/oss"
-	oss2 "github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/io/dial"
@@ -25,7 +24,7 @@ import (
 
 func handlerSeleniumServer(cmd *cobra.Command, args []string, flags *Flags) {
 
-	userDir := oss2.UserInjoyDir()
+	userDir := oss.UserInjoyDir()
 	filename := filepath.Join(userDir, "chromedriver.exe")
 	if !oss.Exists(filename) {
 		if _, err := installChromedriver(userDir, flags.GetBool("download")); err != nil {
@@ -101,7 +100,7 @@ func handlerMQTTServer(cmd *cobra.Command, args []string, flags *Flags) {
 //====================EdgeServer====================//
 
 func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
-	userDir := oss2.UserInjoyDir()
+	userDir := oss.UserInjoyDir()
 	{
 		fmt.Println("开始运行InfluxDB服务...")
 		filename := userDir + "/influxd.exe"
@@ -137,7 +136,7 @@ func handlerEdgeServer(cmd *cobra.Command, args []string, flags *Flags) {
 //====================InfluxServer====================//
 
 func handlerInfluxServer(cmd *cobra.Command, args []string, flags *Flags) {
-	userDir := oss2.UserInjoyDir()
+	userDir := oss.UserInjoyDir()
 	filename := userDir + "/influxd.exe"
 	if !oss.Exists(filename) || flags.GetBool("download") {
 		url := "https://dl.influxdata.com/influxdb/releases/influxdb-1.8.10_windows_amd64.zip"
