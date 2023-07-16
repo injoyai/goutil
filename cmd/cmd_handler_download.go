@@ -4,16 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/injoyai/base/chans"
-	"github.com/injoyai/goutil/cache"
 	"github.com/injoyai/goutil/oss"
 	oss2 "github.com/injoyai/goutil/oss"
-	"github.com/injoyai/goutil/protocol/m3u8"
 	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/logs"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -81,40 +78,7 @@ func handlerDownload(cmd *cobra.Command, args []string, flags *Flags) {
 
 	default:
 
-		switch true {
-		case strings.Contains(resource, ".m3u8"),
-			strings.Contains(resource, ".m3u8?"):
-
-			cache.DefaultDir = oss2.UserDefaultDir() + "/config/"
-			cfg := cache.NewFile("cmd_download", "cmd").Sync()
-			dir := flags.GetString("dir", cfg.GetString("dir"))
-			cfg.Set("dir", dir)
-			os.MkdirAll(dir, 0666)
-			filename = filepath.Join(dir, flags.GetString("output", filepath.Base(resource)))
-			goroute := flags.GetInt("goroute")
-			tryNum := flags.GetInt("try")
-
-			list, err := m3u8.New(resource)
-			if err != nil {
-				log.Printf("[错误] %v", err)
-				return
-			}
-			input := []_downloadRun(nil)
-			for _, v := range list {
-				input = append(input, v)
-			}
-			result := newDownload(goroute, tryNum, input)
-			bytes := []byte(nil)
-			for _, v := range result {
-				bytes = append(bytes, v...)
-			}
-			logs.PrintErr(oss.New(filename, bytes))
-
-		default:
-
-			logs.PrintErr(bar.Download(resource, filename))
-
-		}
+		logs.PrintErr(bar.Download(resource, filename))
 
 	}
 }
