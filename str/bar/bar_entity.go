@@ -132,6 +132,9 @@ func (this *entity) Run() <-chan struct{} {
 				}),
 				Speed: element(func() string {
 					// todo 算法待优化
+					if spend <= 0 {
+						spend = 0
+					}
 					f, unit := this.toB(int64(spend))
 					return fmt.Sprintf("%0.1f%s/s", f, unit)
 				}),
