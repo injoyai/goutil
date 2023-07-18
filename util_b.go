@@ -19,11 +19,11 @@ var mapB = map[int]string{
 
 func ToB(b int64) (float64, string) {
 	for n := 0; n <= 130; n += 10 {
-		if b < 2<<(n+10) {
+		if b < 1<<(n+10) {
 			if n == 0 {
 				return float64(b), mapB[n]
 			}
-			return float64(b) / float64(int64(2)<<n), mapB[n]
+			return float64(b) / float64(int64(1)<<n), mapB[n]
 		}
 	}
 	return float64(b), mapB[0]
