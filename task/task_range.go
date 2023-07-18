@@ -1,6 +1,7 @@
 package task
 
 import (
+	"context"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/g"
@@ -34,19 +35,24 @@ func (this *Range) SetDoneFunc(f func(i int, err error)) *Range {
 	return this
 }
 
-func (this *Range) Run(list []Handler) []error {
+func (this *Range) Run(ctx context.Context, list []Handler) []error {
 	errList := []error(nil)
 	limit := chans.NewWaitLimit(uint(this.Limit))
 	for i, f := range list {
-		limit.Add()
-		go func(i int, f Handler, errList []error) {
-			defer limit.Done()
-			err := g.Retry(f, this.Retry)
-			if err != nil {
-				errList = append(errList, err)
-			}
-			this.DoneFunc(i, err)
-		}(i, f, errList)
+		select {
+		case <-ctx.Done():
+			break
+		default:
+			limit.Add()
+			go func(i int, f Handler, errList []error) {
+				defer limit.Done()
+				err := g.Retry(f, this.Retry)
+				if err != nil {
+					errList = append(errList, err)
+				}
+				this.DoneFunc(i, err)
+			}(i, f, errList)
+		}
 	}
 	return errList
 }
