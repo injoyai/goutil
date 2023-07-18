@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type Runner func() error
+type Handler func() error
 
 // New 新建计时器(任务调度),最小周期秒
 func New() *Cron {

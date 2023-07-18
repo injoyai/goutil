@@ -29,7 +29,7 @@ func (this *Range) SetDoneFunc(f func(i int, err error)) *Range {
 	return this
 }
 
-func (this *Range) Run(list []Runner) []error {
+func (this *Range) Run(list []Handler) []error {
 	errList := []error(nil)
 	limit := chans.NewWaitLimit(uint(this.Limit))
 	for i, f := range list {
