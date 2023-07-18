@@ -24,6 +24,11 @@ func (this *Range) SetRetry(retry int) *Range {
 	return this
 }
 
+func (this *Range) SetLimit(limit int) *Range {
+	this.Limit = limit
+	return this
+}
+
 func (this *Range) SetDoneFunc(f func(i int, err error)) *Range {
 	this.DoneFunc = f
 	return this
