@@ -39,14 +39,14 @@ func (this *Range) Run(list []Handler) []error {
 	limit := chans.NewWaitLimit(uint(this.Limit))
 	for i, f := range list {
 		limit.Add()
-		go func(i int, errList []error) {
+		go func(i int, f Handler, errList []error) {
 			defer limit.Done()
 			err := g.Retry(f, this.Retry)
 			if err != nil {
 				errList = append(errList, err)
 			}
 			this.DoneFunc(i, err)
-		}(i, errList)
+		}(i, f, errList)
 	}
 	return errList
 }
