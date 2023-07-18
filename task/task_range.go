@@ -6,8 +6,6 @@ import (
 	"github.com/injoyai/goutil/g"
 )
 
-type Runner func() error
-
 func NewRange(limit int, retry ...int) *Range {
 	return &Range{
 		Retry: conv.GetDefaultInt(3, retry...),
