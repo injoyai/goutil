@@ -22,6 +22,7 @@ require (
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/robertkrimen/otto v0.2.1
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/tealeg/xlsx v1.0.5
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.667
