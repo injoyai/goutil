@@ -15,13 +15,14 @@ func NewOnce(retryNum, limit int) *Once {
 }
 
 type Once struct {
-	RetryNum int         //重试次数
-	Limit    int         //并发数量
-	DoneFunc func(i int) //子项执行完成
+	RetryNum int                    //重试次数
+	Limit    int                    //并发数量
+	DoneFunc func(i int, err error) //子项执行完成
 }
 
-func (this *Once) SetDoneFunc(f func(i int)) {
+func (this *Once) SetDoneFunc(f func(i int, err error)) *Once {
 	this.DoneFunc = f
+	return this
 }
 
 func (this *Once) Run(list []Runner) []error {
@@ -31,10 +32,11 @@ func (this *Once) Run(list []Runner) []error {
 		limit.Add()
 		go func(i int, errList []error) {
 			defer limit.Done()
-			if err := g.Retry(f, this.RetryNum); err != nil {
+			err := g.Retry(f, this.RetryNum)
+			if err != nil {
 				errList = append(errList, err)
 			}
-			this.DoneFunc(i)
+			this.DoneFunc(i, err)
 		}(i, errList)
 	}
 	return errList
