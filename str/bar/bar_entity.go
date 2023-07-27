@@ -83,6 +83,13 @@ func (this *entity) Done() Interface {
 	return this.Add(this.total)
 }
 
+func (this *entity) Close() error {
+	if this.cancel != nil {
+		this.cancel()
+	}
+	return nil
+}
+
 func (this *entity) Run() <-chan struct{} {
 	this.init()
 	start := time.Now()
@@ -191,6 +198,7 @@ func (this *entity) init() {
 }
 
 func (this *entity) Copy(w io.Writer, r io.Reader) error {
+	defer this.Close()
 	buff := bufio.NewReader(r)
 	go this.Run()
 	for {
