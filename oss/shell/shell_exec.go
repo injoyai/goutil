@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/injoyai/goutil/str"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -32,6 +33,26 @@ func Exec(args ...string) (string, error) {
 		return string(result), nil
 	}
 	return "", errors.New("未知操作系统:" + runtime.GOOS)
+}
+
+func Run(args ...string) error {
+	list := append([]string{"/c"}, args...)
+	switch runtime.GOOS {
+	case "windows":
+		cmd := exec.Command("cmd", list...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+		return cmd.Run()
+	case "linux":
+		list[0] = "-c"
+		cmd := exec.Command("bash", list...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+		return cmd.Run()
+	}
+	return errors.New("未知操作系统:" + runtime.GOOS)
 }
 
 // Stop 结束程序 "taskkill.exe", "/f", "/im", "edge.exe"
