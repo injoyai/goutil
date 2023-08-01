@@ -88,6 +88,10 @@ func (this *File) Del(key string, cover ...bool) error {
 	return nil
 }
 
+func (this *File) Save() error {
+	return this.Cover()
+}
+
 // Cover 覆盖
 func (this *File) Cover() error {
 	path := this.getPath(this.tag, this.name)
