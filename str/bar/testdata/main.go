@@ -20,7 +20,7 @@ func main() {
 	filename := "./downloader.exe"
 	b := bar.New(0)
 	b.SetColor(color.BgCyan)
-	b.SetStyle('>')
+	b.SetStyle('#')
 	for {
 		err := b.DownloadHTTP(url, filename)
 		if !logs.PrintErr(err) {
