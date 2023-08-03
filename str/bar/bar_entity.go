@@ -7,7 +7,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil"
 	"io"
 	"net/http"
 	"os"
@@ -135,13 +134,13 @@ func (this *entity) Run() <-chan struct{} {
 					return fmt.Sprintf("%d/%d", this.current, this.total)
 				}),
 				SizeUnit: element(func() string {
-					currentNum, currentUnit := this.toB(this.current)
-					totalNum, totalUnit := this.toB(this.total)
+					currentNum, currentUnit := ToB(this.current)
+					totalNum, totalUnit := ToB(this.total)
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
 					data, _ := cache.GetOrSetByHandler("Speed", func() (interface{}, error) {
-						f, unit := this.toB(int64(spend))
+						f, unit := ToB(int64(spend))
 						if f < 0 {
 							f, unit = 0, "B"
 						}
@@ -173,10 +172,6 @@ func (this *entity) Run() <-chan struct{} {
 
 		}
 	}
-}
-
-func (this *entity) toB(n int64) (float64, string) {
-	return goutil.ToB(n)
 }
 
 func (this *entity) init() {
