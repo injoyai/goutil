@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil"
 	"io"
@@ -94,6 +95,7 @@ func (this *entity) Run() <-chan struct{} {
 	this.init()
 	start := time.Now()
 	max := 0
+	cache := maps.NewSafe()
 	for {
 		select {
 		case <-this.ctx.Done():
@@ -138,12 +140,14 @@ func (this *entity) Run() <-chan struct{} {
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
-					// todo 算法待优化
-					if spend <= 0 {
-						spend = 0
-					}
-					f, unit := this.toB(int64(spend))
-					return fmt.Sprintf("%0.1f%s/s", f, unit)
+					data, _ := cache.GetOrSetByHandler("Speed", func() (interface{}, error) {
+						f, unit := this.toB(int64(spend))
+						if f < 0 {
+							f, unit = 0, "B"
+						}
+						return fmt.Sprintf("%0.1f%s/s", f, unit), nil
+					}, time.Millisecond*500)
+					return data.(string)
 				}),
 				Used: element(func() string {
 					return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds())

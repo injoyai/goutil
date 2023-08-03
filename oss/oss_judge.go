@@ -2,6 +2,7 @@ package oss
 
 import (
 	"os"
+	"runtime"
 )
 
 // Exists 是否存在
@@ -20,4 +21,12 @@ func IsDir(name string) bool {
 func IsFile(name string) bool {
 	s, err := os.Stat(name)
 	return err == nil && !s.IsDir()
+}
+
+func IsWindows() bool {
+	return runtime.GOOS == "windows"
+}
+
+func IsLinux() bool {
+	return runtime.GOOS == "linux"
 }
