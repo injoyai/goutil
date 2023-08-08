@@ -35,6 +35,10 @@ func Exec(args ...string) (string, error) {
 	return "", errors.New("未知操作系统:" + runtime.GOOS)
 }
 
+func Runf(format string, args ...interface{}) error {
+	return Run(fmt.Sprintf(format, args...))
+}
+
 func Run(args ...string) error {
 	list := append([]string{"/c"}, args...)
 	switch runtime.GOOS {
@@ -65,16 +69,28 @@ func Stop(name string) error {
 		} else if err == nil && !strings.Contains(result, "成功") {
 			return errors.New(result)
 		}
+	case "linux":
+		result, err := Execf("systemctl stop %s.service", name)
+		if err != nil {
+			return err
+		}
+		_ = result
 	}
 	return nil
 }
 
 // Start 启动程序
 // windows "cmd", "/c", "start ./xxx.exe"
-func Start(path string) error {
+func Start(filename string) error {
 	switch runtime.GOOS {
 	case "windows":
-		return exec.Command("cmd", "/c", "start "+path).Start()
+		return exec.Command("cmd", "/c", "start "+filename).Start()
+	case "linux":
+		result, err := Execf("systemctl restart %s.service", filename)
+		if err != nil {
+			return err
+		}
+		_ = result
 	}
 	return nil
 }
