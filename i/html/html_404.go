@@ -1,8 +1,7 @@
 package html
 
-const (
-	// PageNotFindRobot 机器人404
-	PageNotFindRobot = `
+// PageNotFindRobot 机器人404
+const PageNotFindRobot = `
 <!DOCTYPE html>
 <html>
 
@@ -219,4 +218,3 @@ const (
 
 </html>
 `
-)
