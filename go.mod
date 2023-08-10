@@ -26,9 +26,11 @@ require (
 	github.com/robertkrimen/otto v0.2.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/satori/go.uuid v1.2.0
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tealeg/xlsx v1.0.5
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.667
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.667
+	github.com/tuotoo/qrcode v0.0.0-20220425170535-52ccc2bebf5d
 	github.com/yuin/gopher-lua v1.1.0
 	golang.org/x/image v0.11.0
 	golang.org/x/sys v0.6.0
@@ -59,6 +61,7 @@ require (
 	github.com/grokify/html-strip-tags-go v0.0.1 // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
+	github.com/maruel/rs v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
@@ -86,5 +89,6 @@ require (
 	modernc.org/memory v1.5.0 // indirect
 	modernc.org/sqlite v1.21.1 // indirect
 	qiniupkg.com/x v7.0.8+incompatible // indirect
+	rsc.io/qr v0.2.0 // indirect
 	xorm.io/builder v0.3.11-0.20220531020008-1bd24a7dc978 // indirect
 )
