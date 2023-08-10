@@ -21,6 +21,7 @@ require (
 	github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d
 	github.com/json-iterator/go v1.1.12
 	github.com/minio/minio-go v6.0.14+incompatible
+	github.com/mojocn/base64Captcha v1.3.5
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/robertkrimen/otto v0.2.1
