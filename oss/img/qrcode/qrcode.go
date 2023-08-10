@@ -2,6 +2,7 @@ package qrcode
 
 import (
 	"bytes"
+	"github.com/injoyai/goutil/oss"
 	"github.com/skip2/go-qrcode"
 	qrcode2 "github.com/tuotoo/qrcode"
 	"image"
@@ -37,6 +38,14 @@ func EncodeBytes(text string, color ...color.Color) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func EncodeLocal(filename, text string, color ...color.Color) error {
+	bs, err := EncodeBytes(text, color...)
+	if err != nil {
+		return err
+	}
+	return oss.New(filename, bs)
 }
 
 func Decode(img image.Image) (string, error) {
