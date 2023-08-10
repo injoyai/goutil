@@ -1,10 +1,8 @@
 package bar
 
 import (
-	"fmt"
 	"github.com/fatih/color"
 	"io"
-	"time"
 )
 
 type Interface interface {
@@ -75,44 +73,6 @@ type Entity struct {
 }
 
 type Formatter func(e *Entity) string
-
-type _speed struct {
-	Size int64     //数量
-	Time time.Time //时间戳
-}
-
-type _speeds struct {
-	list []*_speed
-}
-
-func (this *_speeds) Add(size int64, t time.Time) {
-	this.list = append(this.list, &_speed{
-		Size: size, Time: t,
-	})
-}
-
-func (this *_speeds) Speed(interval time.Duration) string {
-	node := -1
-	last := time.Now().Add(-interval).Unix()
-	size := float64(0)
-	for i, v := range this.list {
-		if sub := v.Time.Unix() - last; sub > 0 {
-			if node == -1 {
-				node = i
-			}
-			if size == 0 {
-				interval -= time.Duration(sub) * time.Second
-				//logs.Debug(interval)
-			}
-			size += float64(v.Size)
-		}
-	}
-	if node >= 0 {
-		this.list = this.list[node:]
-	}
-	f, unit := ToB(int64(size / float64(interval/time.Second)))
-	return fmt.Sprintf("%0.1f%s/s", f, unit)
-}
 
 func ToB(b int64) (float64, string) {
 	var mapB = map[int]string{
