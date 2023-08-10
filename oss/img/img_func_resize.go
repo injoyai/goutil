@@ -3,8 +3,7 @@ package img
 import (
 	"bytes"
 	"image"
-	"image/jpeg"
-	"image/png"
+	"io"
 
 	"github.com/nfnt/resize"
 )
@@ -25,28 +24,14 @@ func Resize(img image.Image, maxSize uint) image.Image {
 	return resize.Thumbnail(maxSize, maxSize, img, resize.Lanczos3)
 }
 
-func ResizeBytesJpeg(bs []byte, maxSize uint) ([]byte, error) {
-	i, err := jpeg.Decode(bytes.NewReader(bs))
+func ResizeReader(r io.Reader, maxSize uint) (image.Image, error) {
+	img, _, err := image.Decode(r)
 	if err != nil {
 		return nil, err
 	}
-	w := bytes.NewBuffer(nil)
-	err = jpeg.Encode(w, Resize(i, maxSize), nil)
-	if err != nil {
-		return nil, err
-	}
-	return w.Bytes(), nil
+	return Resize(img, maxSize), nil
 }
 
-func ResizeBytesPng(bs []byte, maxSize uint) ([]byte, error) {
-	i, err := png.Decode(bytes.NewReader(bs))
-	if err != nil {
-		return nil, err
-	}
-	w := bytes.NewBuffer(nil)
-	err = png.Encode(w, Resize(i, maxSize))
-	if err != nil {
-		return nil, err
-	}
-	return w.Bytes(), nil
+func ResizeBytes(bs []byte, maxSize uint) (image.Image, error) {
+	return ResizeReader(bytes.NewReader(bs), maxSize)
 }

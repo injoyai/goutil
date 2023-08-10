@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/injoyai/goutil/str"
+	"io"
 	"os"
 	"os/exec"
 	"runtime"
@@ -54,6 +55,26 @@ func Run(args ...string) error {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
+		return cmd.Run()
+	}
+	return errors.New("未知操作系统:" + runtime.GOOS)
+}
+
+func IO(w io.ReadWriter, args ...string) error {
+	list := append([]string{"/c"}, args...)
+	switch runtime.GOOS {
+	case "windows":
+		cmd := exec.Command("cmd", list...)
+		cmd.Stdout = w
+		cmd.Stderr = w
+		cmd.Stdin = w
+		return cmd.Run()
+	case "linux":
+		list[0] = "-c"
+		cmd := exec.Command("bash", list...)
+		cmd.Stdout = w
+		cmd.Stderr = w
+		cmd.Stdin = w
 		return cmd.Run()
 	}
 	return errors.New("未知操作系统:" + runtime.GOOS)
