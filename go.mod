@@ -17,6 +17,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogf/gf v1.16.9
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d
 	github.com/json-iterator/go v1.1.12
 	github.com/minio/minio-go v6.0.14+incompatible
@@ -29,8 +30,9 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.667
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.667
 	github.com/yuin/gopher-lua v1.1.0
+	golang.org/x/image v0.11.0
 	golang.org/x/sys v0.6.0
-	golang.org/x/text v0.4.0
+	golang.org/x/text v0.12.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	xorm.io/core v0.7.3
 	xorm.io/xorm v1.3.2
@@ -72,7 +74,7 @@ require (
 	go.opentelemetry.io/otel v1.0.0 // indirect
 	go.opentelemetry.io/otel/trace v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
+	golang.org/x/net v0.6.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect

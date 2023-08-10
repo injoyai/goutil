@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"github.com/injoyai/goutil/oss"
 	"image"
-	"image/color"
 	"image/draw"
 	"image/jpeg"
 	"image/png"
@@ -13,21 +12,8 @@ import (
 	"strings"
 )
 
-// New 新建
-func New(wide, high int, backColor ...color.Color) image.Image {
-	alpha := image.NewNRGBA(image.Rect(0, 0, wide, high))
-	if len(backColor) > 0 {
-		for x := 0; x < wide; x++ {
-			for y := 0; y < high; y++ {
-				alpha.Set(x, y, backColor[0])
-			}
-		}
-	}
-	return alpha
-}
-
 // DrawImg 画上图片
-func DrawImg(img1, img2 image.Image, offset ...image.Point) (image.Image, error) {
+func DrawImg(img1, img2 image.Image, offset ...image.Point) (draw.Image, error) {
 	srcBounds := img1.Bounds()
 	newImg := image.NewNRGBA(srcBounds)
 	draw.Draw(newImg, srcBounds, img1, image.ZP, draw.Src)
@@ -40,7 +26,7 @@ func DrawImg(img1, img2 image.Image, offset ...image.Point) (image.Image, error)
 }
 
 // JoinImg 拼接图片
-func JoinImg(img1, img2 image.Image, offsets ...image.Point) (img image.Image, err error) {
+func JoinImg(img1, img2 image.Image, offsets ...image.Point) (img draw.Image, err error) {
 	offset := image.Point{}
 	if len(offsets) > 0 {
 		offset = offsets[0]
@@ -95,18 +81,30 @@ func Save(filename string, img image.Image) error {
 	return SavePng(filename, img)
 }
 
-func SaveJpeg(path string, img image.Image) error {
-	bs := bytes.NewBuffer(nil)
-	if err := jpeg.Encode(bs, img, nil); err != nil {
+func SaveJpeg(filename string, img image.Image) error {
+	buf, err := BufferJpeg(img)
+	if err != nil {
 		return err
 	}
-	return oss.New(path, bs)
+	return oss.New(filename, buf)
 }
 
-func SavePng(path string, img image.Image) error {
-	bs := bytes.NewBuffer(nil)
-	if err := png.Encode(bs, img); err != nil {
+func SavePng(filename string, img image.Image) error {
+	buf, err := BufferPng(img)
+	if err != nil {
 		return err
 	}
-	return oss.New(path, bs)
+	return oss.New(filename, buf)
+}
+
+func BufferJpeg(img image.Image) (*bytes.Buffer, error) {
+	buf := bytes.NewBuffer(nil)
+	err := jpeg.Encode(buf, img, nil)
+	return buf, err
+}
+
+func BufferPng(img image.Image) (*bytes.Buffer, error) {
+	buf := bytes.NewBuffer(nil)
+	err := png.Encode(buf, img)
+	return buf, err
 }
