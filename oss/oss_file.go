@@ -42,12 +42,6 @@ func ReadBase64(filename string) (string, error) {
 	return base64.StdEncoding.EncodeToString(bs), err
 }
 
-// NewDir 新建文件夹
-// @path,路径
-func NewDir(path string) error {
-	return os.MkdirAll(path, defaultPerm)
-}
-
 // NewFile 新建文件
 func NewFile(filename string) (io.ReadWriteCloser, error) {
 	return os.Create(filename)
@@ -82,20 +76,6 @@ func New(filename string, v ...interface{}) error {
 	}
 	_, err = f.Write(data)
 	return err
-}
-
-// ReadDirFunc 遍历目录
-func ReadDirFunc(dir string, fn func(info os.FileInfo) error) error {
-	fileInfos, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return err
-	}
-	for _, info := range fileInfos {
-		if err = fn(info); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // OpenFunc 打开文件,并执行函数

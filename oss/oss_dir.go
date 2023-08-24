@@ -1,6 +1,7 @@
 package oss
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -64,4 +65,68 @@ func UserInjoyDir(join ...string) string {
 // UserDefaultDir 默认系统用户数据子路径(个人使用)
 func UserDefaultDir(join ...string) string {
 	return UserInjoyDir(join...)
+}
+
+/*
+
+
+
+ */
+
+// NewDir 新建文件夹
+// @path,路径
+func NewDir(path string) error {
+	return os.MkdirAll(path, defaultPerm)
+}
+
+func DelDir(dir string) error {
+	return os.RemoveAll(dir)
+}
+
+// ReadDirFunc 遍历目录
+func ReadDirFunc(dir string, fn func(info os.FileInfo) error) error {
+	fileInfos, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	for _, info := range fileInfos {
+		if err = fn(info); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ReadFileInfos 获取目录下的所有文件信息
+func ReadFileInfos(dir string) ([]os.FileInfo, error) {
+	files := []os.FileInfo(nil)
+	err := ReadDirFunc(dir, func(info os.FileInfo) error {
+		if !info.IsDir() {
+			files = append(files, info)
+		}
+		return nil
+	})
+	return files, err
+}
+
+// ReadFilenames 获取目录下的所有文件名称
+func ReadFilenames(dir string) ([]string, error) {
+	filenames := []string(nil)
+	err := ReadDirFunc(dir, func(info os.FileInfo) error {
+		filenames = append(filenames, filepath.Join(dir, info.Name()))
+		return nil
+	})
+	return filenames, err
+}
+
+// ReadDirNames 获取目录下的所有目录
+func ReadDirNames(dir string) ([]string, error) {
+	dirNames := []string(nil)
+	err := ReadDirFunc(dir, func(info os.FileInfo) error {
+		if info.IsDir() {
+			dirNames = append(dirNames, filepath.Join(dir, info.Name()))
+		}
+		return nil
+	})
+	return dirNames, err
 }
