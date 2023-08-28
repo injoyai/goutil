@@ -51,7 +51,7 @@ type Interface interface {
 	CopyN(w io.Writer, r io.Reader, num int64) error
 
 	// DownloadHTTP 下载http
-	DownloadHTTP(url, filename string) error
+	DownloadHTTP(url, filename string, proxy ...string) error
 }
 
 type Element interface {

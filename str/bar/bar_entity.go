@@ -7,8 +7,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/net/http"
 	"io"
-	"net/http"
 	"os"
 	"time"
 )
@@ -236,8 +236,9 @@ func (this *entity) CopyN(w io.Writer, r io.Reader, num int64) error {
 	}
 }
 
-func (this *entity) DownloadHTTP(url, filename string) error {
-	resp, err := http.Get(url)
+func (this *entity) DownloadHTTP(source, filename string, proxy ...string) error {
+	c := http.NewClient(proxy...)
+	resp, err := c.Get(source)
 	if err != nil {
 		return err
 	}
