@@ -6,6 +6,7 @@ import (
 	"github.com/injoyai/goutil/str/bar"
 	"github.com/injoyai/logs"
 	"os"
+	"time"
 )
 
 func init() {
@@ -22,11 +23,12 @@ func main() {
 	b.SetColor(color.BgCyan)
 	b.SetStyle('#')
 	for {
-		err := b.DownloadHTTP(url, filename)
+		err := b.DownloadHTTP(url, filename, "http://127.0.0.1:1081")
 		if !logs.PrintErr(err) {
 			os.Remove(filename)
 			break
 		}
+		<-time.After(time.Second * 5)
 	}
 	g.Input("请按回车键退出...")
 }
