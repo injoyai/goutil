@@ -1,7 +1,8 @@
 package geo
 
 type Point struct {
-	X, Y float64
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
 
 func (this Point) Equal(p Point) bool {
