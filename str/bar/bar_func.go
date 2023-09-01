@@ -19,12 +19,12 @@ func Demo() <-chan struct{} {
 	return x.Run()
 }
 
-func Download(url, filename string) error {
-	return New(0).DownloadHTTP(url, filename)
+func Download(url, filename string, proxy ...string) error {
+	return New(0).DownloadHTTP(url, filename, proxy...)
 }
 
-func DownloadHTTP(url, filename string) error {
-	return New(0).DownloadHTTP(url, filename)
+func DownloadHTTP(url, filename string, proxy ...string) error {
+	return New(0).DownloadHTTP(url, filename, proxy...)
 }
 
 func Copy(w io.Writer, r io.Reader, total int64) error {
