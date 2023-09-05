@@ -236,9 +236,13 @@ func (this *entity) CopyN(w io.Writer, r io.Reader, num int64) error {
 	}
 }
 
+var (
+	defaultClient = http.NewClient()
+)
+
 func (this *entity) DownloadHTTP(source, filename string, proxy ...string) error {
-	c := http.NewClient(proxy...)
-	resp, err := c.Get(source)
+	defaultClient.SetProxy(conv.GetDefaultString("", proxy...))
+	resp, err := defaultClient.Get(source)
 	if err != nil {
 		return err
 	}
