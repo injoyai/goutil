@@ -25,7 +25,7 @@ func NewClient(proxy ...string) *Client {
 					InsecureSkipVerify: true,
 				},
 				Proxy: func(r *http.Request) (*url.URL, error) {
-					if len(proxy) > 0 {
+					if len(proxy) > 0 && len(proxy[0]) > 0 {
 						return url.Parse(proxy[0])
 					}
 					return r.URL, nil
