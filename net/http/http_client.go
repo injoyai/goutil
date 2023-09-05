@@ -13,7 +13,7 @@ var DefaultClient = NewClient()
 
 // NewClient
 // 新建HTTP请求客户端
-func NewClient(proxy ...string) *Client {
+func NewClient() *Client {
 	data := &Client{
 		Client: &http.Client{
 			Transport: &http.Transport{
@@ -23,12 +23,6 @@ func NewClient(proxy ...string) *Client {
 				TLSClientConfig: &tls.Config{
 					//设置可以访问HTTPS
 					InsecureSkipVerify: true,
-				},
-				Proxy: func(r *http.Request) (*url.URL, error) {
-					if len(proxy) > 0 && len(proxy[0]) > 0 {
-						return url.Parse(proxy[0])
-					}
-					return r.URL, nil
 				},
 			},
 			//设置连接超时时间,连接成功后无效
@@ -48,7 +42,10 @@ type Client struct {
 func (this *Client) SetProxy(u string) {
 	if val, ok := this.Client.Transport.(*http.Transport); ok {
 		val.Proxy = func(request *http.Request) (*url.URL, error) {
-			return url.Parse(u)
+			if len(u) > 0 {
+				return url.Parse(u)
+			}
+			return request.URL, nil
 		}
 	}
 }
