@@ -19,6 +19,11 @@ func Read(filename string) ([]byte, error) {
 	return ReadBytes(filename)
 }
 
+// ReadReader 读取reader
+func ReadReader(r io.Reader) ([]byte, error) {
+	return ioutil.ReadAll(r)
+}
+
 // ReadBytes 读取文件内容
 func ReadBytes(filename string) ([]byte, error) {
 	return ioutil.ReadFile(filename)
