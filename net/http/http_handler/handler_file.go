@@ -8,11 +8,7 @@ import (
 	"path/filepath"
 )
 
-var DefaultFile http.Handler
-
-func init() {
-	DefaultFile = NewFile("", "")
-}
+var DefaultFile = NewFile("", "")
 
 type File struct {
 	Prefix  string         //前缀
