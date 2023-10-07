@@ -21,7 +21,7 @@ func New(port int) *Server {
 }
 
 func (this *Server) ALL(s string, fn gin.HandlerFunc) *Server {
-	this.Any(s, fn)
+	this.Engine.Any(s, fn)
 	return this
 }
 
@@ -45,9 +45,10 @@ func (this *Server) DELETE(s string, fn gin.HandlerFunc) *Server {
 	return this
 }
 
-func (this *Server) Run(port ...int) {
-	if len(port) > 0 {
-		this.Port = port[0]
+func (this *Server) Run(ports ...int) {
+	addr := []string(nil)
+	for _, v := range ports {
+		addr = append(addr, fmt.Sprintf(":%d", v))
 	}
-	logs.PrintErr(this.Engine.Run(fmt.Sprintf(":%d", this.Port)))
+	logs.PrintErr(this.Engine.Run(addr...))
 }
