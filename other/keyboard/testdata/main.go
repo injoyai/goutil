@@ -7,10 +7,10 @@ import (
 
 func main() {
 
-	c := keyboard.ListenKey(keyboard.KeySpace)
-	for range c {
-		logs.Debug()
-	}
+	//c := keyboard.ListenKey(keyboard.KeySpace)
+	//for range c {
+	//	logs.Debug()
+	//}
 
 	logs.Debug(keyboard.ListenFunc(func(key keyboard.KeyEvent) {
 

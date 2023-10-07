@@ -18,10 +18,23 @@ func New() *Client {
 	cli := &Client{
 		Otto: vm,
 	}
-	cli.Set("print", cli.toFunc(func(args *script.Args) interface{} {
+	cli.SetFunc("print", func(args *script.Args) interface{} {
 		fmt.Println(args.Interfaces()...)
 		return Nil
-	}))
+	})
+	cli.SetFunc("println", func(args *script.Args) interface{} {
+		fmt.Println(args.Interfaces()...)
+		return Nil
+	})
+	cli.SetFunc("printf", func(args *script.Args) interface{} {
+		a := args.Interfaces()
+		if len(a) > 0 {
+			fmt.Printf(conv.String(a[0]), a[1:]...)
+		} else {
+			fmt.Printf("")
+		}
+		return nil
+	})
 	cli.Exec("var console={\nlog:function(any){\nprint(any)\n}\n}")
 	return cli
 }
@@ -75,16 +88,15 @@ func (this *Client) Close() error {
 
 func (this *Client) toFunc(fn script.Func) func(call otto.FunctionCall) otto.Value {
 	return func(call otto.FunctionCall) otto.Value {
-		it, _ := call.This.Export()
+		//it, _ := call.This.Export()
 		args := []*conv.Var(nil)
 		for _, v := range call.ArgumentList {
 			val, _ := v.Export()
 			args = append(args, conv.New(val))
 		}
 		arg := &script.Args{
-			This:      conv.New(it),
-			Args:      args,
-			Interface: this,
+			This: this,
+			Args: args,
 		}
 		result, _ := otto.ToValue(fn(arg))
 		return result

@@ -139,9 +139,8 @@ func (this *Client) toFunc(fn script.Func) lua.LGFunction {
 			args = append(args, conv.New(call.Get(i).String()))
 		}
 		arg := &script.Args{
-			This:      conv.Nil(),
-			Args:      args,
-			Interface: this,
+			This: this,
+			Args: args,
 		}
 		call.Push(this.Value(fn(arg)))
 		return 1

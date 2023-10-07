@@ -13,9 +13,9 @@ type Interface interface {
 }
 
 type Args struct {
-	This *conv.Var
+	This Interface
 	Args []*conv.Var
-	Interface
+	//Interface
 }
 
 func (this *Args) Len() int {

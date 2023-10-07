@@ -83,6 +83,14 @@ func New(filename string, v ...interface{}) error {
 	return err
 }
 
+// NewNotExist 如果不存在,则新建
+func NewNotExist(filename string, v ...interface{}) error {
+	if !Exists(filename) {
+		return New(filename, v...)
+	}
+	return nil
+}
+
 // OpenFunc 打开文件,并执行函数
 func OpenFunc(filename string, fn func(f *os.File) error) error {
 	f, err := os.Open(filename)
@@ -93,16 +101,16 @@ func OpenFunc(filename string, fn func(f *os.File) error) error {
 	return fn(f)
 }
 
-// OpenWithWriteTo 打开文件,并写入到io.Writer
-func OpenWithWriteTo(filename string, writer io.Writer) error {
+// OpenWithWriter 打开文件,并写入到io.Writer
+func OpenWithWriter(filename string, writer io.Writer) error {
 	return OpenFunc(filename, func(f *os.File) error {
 		_, err := io.Copy(writer, f)
 		return err
 	})
 }
 
-// OpenWithWriteFrom 打开文件,并从io.Reader写入
-func OpenWithWriteFrom(filename string, reader io.Reader) error {
+// OpenWithReader 打开文件,并从io.Reader写入
+func OpenWithReader(filename string, reader io.Reader) error {
 	return OpenFunc(filename, func(f *os.File) error {
 		_, err := io.Copy(f, reader)
 		return err

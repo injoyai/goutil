@@ -12,8 +12,8 @@ import (
 
 type Server struct {
 	*ghttp.Server
-	Port        int  //端口
-	enablePprof bool //
+	Port        []int //端口
+	enablePprof bool  //
 }
 
 /*
@@ -28,9 +28,8 @@ go tool pprof http://localhost:6060/pprof/heap
 
 // New 快速开始默认配置
 // @port,端口
-func New(port int, name ...interface{}) *Server {
+func New(name ...interface{}) *Server {
 	s := in.InitGf(name...)
-	s.SetPort(port)
 	s.SetClientMaxBodySize(8 << 20) //设置body最大数据,8m
 	s.SetAccessLogEnabled(false)    //请求日志
 	s.SetErrorLogEnabled(false)     //错误日志
@@ -38,7 +37,12 @@ func New(port int, name ...interface{}) *Server {
 		r.Response.ClearBuffer()
 		r.Response.WriteExit(html.PageNotFindRobot)
 	})
-	return &Server{Server: s, Port: port}
+	return &Server{Server: s}
+}
+
+func (this *Server) SetPort(port ...int) *Server {
+	this.Port = port
+	return this
 }
 
 func (this *Server) EnablePProf(pattern ...string) *Server {
@@ -96,10 +100,13 @@ func (this *Server) DELETE(s string, fn func(r *ghttp.Request)) *Server {
 func (this *Server) Run() {
 	go func() {
 		<-time.After(time.Millisecond * 100)
-		ipv4 := ip.GetLocal()
-		fmt.Printf("打开接口文档: 点击 http://%s:%d/swagger 	\n", ipv4, this.Port)
-		if this.enablePprof {
-			fmt.Printf("打开性能剖析: 点击 http://%s:%d/pprof 	\n", ipv4, this.Port)
+		for _, port := range this.Port {
+			ipv4 := ip.GetLocal()
+			fmt.Printf("打开接口文档: 点击 http://%s:%d/swagger 	\n", ipv4, port)
+			if this.enablePprof {
+				fmt.Printf("打开性能剖析: 点击 http://%s:%d/pprof 	\n", ipv4, port)
+			}
+			break
 		}
 	}()
 	this.Server.Run()

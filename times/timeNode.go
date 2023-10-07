@@ -7,240 +7,242 @@
 package times
 
 import (
-	"fmt"
-	"github.com/injoyai/conv"
 	"strings"
 	"time"
 )
 
-type times struct {
-	time int64 //秒
-	//nanosecond int64 //纳秒,纳秒太快,加计算控制不住时间的准确性,基础误差0.03-0.01秒
-	start time.Time //用于打印输出用时
+type (
+	Duration = time.Duration
+	Month    = time.Month
+)
+
+const (
+	FormatDefault = "2006-01-02 15:04:05"
+	FormatDate    = "2006-01-02"
+	FormatTime    = "15:04:05"
+
+	Nanosecond  = time.Nanosecond
+	Microsecond = time.Microsecond
+	Millisecond = time.Millisecond
+	Second      = time.Second
+	Minute      = time.Minute
+	Hour        = time.Hour
+	Day         = Hour * 24
+	Week        = Day * 7
+)
+
+type Time struct {
+	time.Time
 }
 
 // Now 取当前时间
-func Now() times {
-	t := time.Now()
-	return times{
-		time: t.Unix(),
-		//Nanosecond: t.UnixNano(),
-		start: t,
+func Now() Time {
+	return Time{
+		Time: time.Now(),
 	}
 }
 
 // New 新建时间,秒
-func New(n int64) times {
-	return times{
-		time:  n,
-		start: time.Unix(n, 0),
+func New(sec int64) Time {
+	return NewSec(sec)
+}
+
+func NewSec(sec int64) Time {
+	return NewNano(sec * 1e9)
+}
+
+func NewMill(mill int64) Time {
+	return NewNano(mill * 1e6)
+}
+
+func NewMicro(micro int64) Time {
+	return NewNano(micro * 1e3)
+}
+
+func NewNano(nano int64) Time {
+	return Time{
+		Time: time.Unix(nano/1e9, nano%1e9),
 	}
 }
 
-// Unix 对应time.Unix()
-func Unix(n int64) times {
-	return times{
-		time:  n,
-		start: time.Unix(n, 0),
-	}
+// Parse string类型转time
+func Parse(format, value string) (Time, error) {
+	t, err := time.Parse(format, value)
+	return Time{Time: t}, err
 }
 
-// String string类型转time
-func String(s string) (times, error) {
-	t, err := time.ParseInLocation("2006-01-02 15:04:05", s, time.Local)
-	if err != nil {
-		return times{}, err
-	}
-	return times{
-		time:  t.Unix(),
-		start: t,
-	}, nil
+// ParseDefault string类型转time
+func ParseDefault(s string) (Time, error) {
+	t, err := time.Parse(FormatDefault, s)
+	return Time{Time: t}, err
 }
 
-func Date(year, month, day, hour, min, second int) times {
-	return times{time: time.Date(year, time.Month(month), day, hour, min, second, 0, time.Local).Unix()}
+func Date(year, month, day, hour, min, second int) Time {
+	return Time{Time: time.Date(year, time.Month(month), day, hour, min, second, 0, time.Local)}
 }
 
-// Unix 转为时间戳
-func (this times) Unix() int64 {
-	return this.time
+func (this Time) String() string {
+	return this.Format(FormatDefault)
 }
 
-// String 转为字符串,格式比如 "年-月-日 时-分-秒" "2006-01-02 15:04:05"
-func (this times) String(s ...string) string {
-	var str string
-
-	if len(s) > 0 {
-		str = strings.Replace(s[0], "年", "2006", -1)
-		str = strings.Replace(str, "月", "01", -1)
-		str = strings.Replace(str, "日", "02", -1)
-		str = strings.Replace(str, "时", "15", -1)
-		str = strings.Replace(str, "分", "04", -1)
-		str = strings.Replace(str, "秒", "05", -1)
-		str = time.Unix(this.time, 0).Format(str)
-	} else {
-		//0.4秒
-		str = time.Unix(this.time, 0).Format("2006-01-02 15:04:05")
-	}
-	return str
+// Format 转为字符串,格式比如 "年-月-日 时-分-秒" "2006-01-02 15:04:05"
+func (this Time) Format(format string) string {
+	format = strings.Replace(format, "年", "2006", -1)
+	format = strings.Replace(format, "月", "01", -1)
+	format = strings.Replace(format, "日", "02", -1)
+	format = strings.Replace(format, "时", "15", -1)
+	format = strings.Replace(format, "分", "04", -1)
+	format = strings.Replace(format, "秒", "05", -1)
+	format = this.Time.Format(format)
+	return format
 }
 
 // Date 年月日秒
-func (this times) Date() (int, int, int, int) {
-	year, month, day := this.ToTime().Date()
-	second := this.Unix() - this.IntegerDay().Unix()
-	return year, int(month), day, int(second)
+func (this Time) Date() (int, int, int, int) {
+	year, month, day := this.Time.Date()
+	return year, int(month), day, this.Second()
 }
 
 // Year 年
-func (this times) Year() int {
-	return this.ToTime().Year()
+func (this Time) Year() int {
+	return this.Time.Year()
 }
 
 // Quarter 1-4季,当年
-func (this times) Quarter() int {
+func (this Time) Quarter() int {
 	return (this.Month()-1)/3 + 1
 }
 
 // Month 1-12月,当年
-func (this times) Month() int {
-	return int(this.ToTime().Month())
+func (this Time) Month() int {
+	return int(this.Time.Month())
 }
 
 // Day 1-31日,当月
-func (this times) Day() int {
-	return this.ToTime().Day()
+func (this Time) Day() int {
+	return this.Time.Day()
 }
 
-// Week 0-6星期,星期天是0
-func (this times) Week() int {
-	return int(this.ToTime().Weekday())
+// Weekday 0-6星期,星期天是0
+func (this Time) Weekday() int {
+	return int(this.Time.Weekday())
 }
 
 // Hour 0-23时,当天
-func (this times) Hour() int {
-	return int((this.time - New(this.time).IntegerDay().Unix()) / (60 * 60))
+func (this Time) Hour() int {
+	return this.Time.Hour()
 }
 
 // Minute 0-59分,时
-func (this times) Minute() int {
-	return int(this.time-New(this.time).IntegerHour().Unix()) / 60
+func (this Time) Minute() int {
+	return this.Time.Minute()
 }
 
 // Second 0-59秒,分
-func (this times) Second() int64 {
-	return this.Unix() - this.IntegerMin().Unix()
+func (this Time) Second() int {
+	return this.Time.Second()
+}
+
+func (this Time) Duration() time.Duration {
+	return time.Duration(this.UnixNano())
 }
 
 //********************************************分界线**************************************************//
 
-// ToTime 变成标准库的time
-func (this times) ToTime() time.Time {
-	return time.Unix(this.time, 0)
-}
-
-// Add 秒,加减
-func (this times) Add(a int) times {
-	this.time += int64(a)
+func (this Time) Add(d time.Duration) Time {
+	this.Time = this.Time.Add(d)
 	return this
 }
 
 // AddSec 秒,加减
-func (this times) AddSec(a int) times {
-	this.time += int64(a)
-	return this
+func (this Time) AddSec(sec int) Time {
+	return this.Add(time.Second * time.Duration(sec))
 }
 
 // AddMin 分,加减
-func (this times) AddMin(a int) times {
-	this.time += int64(a) * 60
-	return this
+func (this Time) AddMin(minute int) Time {
+	return this.Add(time.Minute * time.Duration(minute))
 }
 
 // AddHour 小时加减
-func (this times) AddHour(a int) times {
-	this.time += int64(a) * 60 * 60
-	return this
+func (this Time) AddHour(hour int) Time {
+	return this.Add(time.Hour * time.Duration(hour))
 }
 
 // AddDay 天,加减
-func (this times) AddDay(a int) times {
-	this.time += int64(a) * 60 * 60 * 24
+func (this Time) AddDay(day int) Time {
+	this.Time = this.AddDate(0, 0, day)
 	return this
 }
 
 // AddWeek 周,加减
-func (this times) AddWeek(a int) times {
-	this.time = time.Unix(this.time, 0).AddDate(0, 0, a*7).Unix()
+func (this Time) AddWeek(week int) Time {
+	this.Time = this.AddDate(0, 0, week*7)
 	return this
 }
 
 // AddMonth 月,加减
-func (this times) AddMonth(a int) times {
-	this.time = time.Unix(this.time, 0).AddDate(0, a, 0).Unix()
+func (this Time) AddMonth(month int) Time {
+	this.Time = this.AddDate(0, month, 0)
 	return this
 }
 
 // AddYear 年,加减
-func (this times) AddYear(a int) times {
-	this.time = time.Unix(this.time, 0).AddDate(a, 0, 0).Unix()
+func (this Time) AddYear(year int) Time {
+	this.Time = this.AddDate(year, 0, 0)
 	return this
 }
 
 //************************************************分界线**********************************************//
 
+// IntegerSec 取整秒
+func (this Time) IntegerSec() Time {
+	return this.Add(-this.Duration() % Second)
+}
+
 // IntegerMin 取整分
-func (this times) IntegerMin() times {
-	this.time = this.time - this.time%60
-	return this
+func (this Time) IntegerMin() Time {
+	return this.Add(-this.Duration() % Minute)
 }
 
 // IntegerHour 取整点
-func (this times) IntegerHour() times {
-	this.time = this.time - this.time%(60*60)
-	return this
+func (this Time) IntegerHour() Time {
+	return this.Add(-this.AddHour(8).Duration() % Hour)
 }
 
 // IntegerDay 取整天
-func (this times) IntegerDay() times {
-	this.time = this.time - (this.time+60*60*8)%(60*60*24)
-	return this
+func (this Time) IntegerDay() Time {
+	return this.Add(-this.AddHour(8).Duration() % (Day))
 }
 
 // IntegerWeek 取整周,周一
-func (this times) IntegerWeek() times {
-	t := int(time.Unix(this.time, 0).Weekday())
-	this.time = this.AddDay(-t + 1).IntegerDay().Unix()
-	return this
+func (this Time) IntegerWeek() Time {
+	return this.AddDay(-this.AddHour(8).Weekday() + 1).IntegerDay()
 }
 
 // IntegerMonth 取整月
-func (this times) IntegerMonth() times {
-	year, month, _ := time.Unix(this.time, 0).Date()
-	this.time = time.Date(year, month, 1, 0, 0, 0, 0, time.Local).Unix()
+func (this Time) IntegerMonth() Time {
+	year, month, _, _ := this.Date()
+	this.Time = time.Date(year, Month(month), 1, 0, 0, 0, 0, time.Local)
+	return this
+}
+
+func (this Time) IntegerQuarter() Time {
+	year := this.Year()
+	this.Time = time.Date(year, Month((this.Quarter()-1)*3), 1, 0, 0, 0, 0, time.Local)
 	return this
 }
 
 // IntegerYear 取整年
-func (this times) IntegerYear() times {
-	year := time.Unix(this.time, 0).Year()
-	this.time = time.Date(year, 1, 1, 0, 0, 0, 0, time.Local).Unix()
+func (this Time) IntegerYear() Time {
+	year := this.Year()
+	this.Time = time.Date(year, 1, 1, 0, 0, 0, 0, time.Local)
 	return this
 }
 
 //********************************************************分界线**********************************************************//
 
-// SubSecond 差值秒
-func (this times) SubSecond() int64 {
-	return int64(this.Sub() / time.Second)
-}
-
 // Sub 差值
-func (this times) Sub() time.Duration {
-	return time.Now().Sub(this.start)
-}
-
-func (this times) PrintSub(s ...string) {
-	x := conv.GetDefaultString("耗时", s...)
-	fmt.Printf("[%s] %v\n", x, this.Sub())
+func (this Time) Sub() time.Duration {
+	return time.Now().Sub(this.Time)
 }

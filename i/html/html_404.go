@@ -9,7 +9,7 @@ const PageNotFindRobot = `
 
   <meta charset="UTF-8">
 
-  <title>接口不存在</title>
+  <title>404 page not find</title>
 
    <link rel="stylesheet" href="css/reset.css">
 

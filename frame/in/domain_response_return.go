@@ -2,9 +2,11 @@ package in
 
 import (
 	"fmt"
+	"github.com/injoyai/conv"
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 //========================== 文本 =======================
@@ -84,20 +86,17 @@ func Errf(format string, args ...interface{}) {
 }
 
 //Err 退出,并校验错误
-func Err(data interface{}) {
+func Err(data interface{}, succMsg ...string) {
 	if data == nil {
-		Succ(data)
+		Succ(strings.Join(succMsg, ""))
 	} else {
 		Fail(data)
 	}
 }
 
 //CheckErr 检测错误(遇到错误结束)
-func CheckErr(err error, msg ...string) {
+func CheckErr(err error, failMsg ...string) {
 	if err != nil {
-		if len(msg) > 0 {
-			Err(msg)
-		}
-		Err(err)
+		Err(conv.GetDefaultString(err.Error(), failMsg...))
 	}
 }
