@@ -195,13 +195,13 @@ func (this Time) AddYear(year int) Time {
 
 //************************************************分界线**********************************************//
 
-// IntegerSec 取整秒
-func (this Time) IntegerSec() Time {
+// IntegerSecond 取整秒
+func (this Time) IntegerSecond() Time {
 	return this.Add(-this.Duration() % Second)
 }
 
-// IntegerMin 取整分
-func (this Time) IntegerMin() Time {
+// IntegerMinute 取整分
+func (this Time) IntegerMinute() Time {
 	return this.Add(-this.Duration() % Minute)
 }
 

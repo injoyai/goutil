@@ -7,8 +7,8 @@ import (
 func TestNow(t *testing.T) {
 	now := Now()
 	t.Log(now)
-	t.Log(now.IntegerSec().UnixNano())
-	t.Log(now.IntegerMin())
+	t.Log(now.IntegerSecond().UnixNano())
+	t.Log(now.IntegerMinute())
 	t.Log(now.IntegerHour())
 	t.Log(now.IntegerDay())
 	t.Log(now.IntegerWeek())
