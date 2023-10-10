@@ -5,9 +5,9 @@ import (
 )
 
 func Test_unComprZip(t *testing.T) {
-
+	t.Log(Encode("./output", "./output.zip"))
 }
 
 func TestDecodeZip(t *testing.T) {
-	t.Log(Decode("./test/test.zip", "./test/test2"))
+	t.Log(Decode("./output.zip", "./"))
 }

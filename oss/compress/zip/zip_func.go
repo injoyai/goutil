@@ -38,6 +38,15 @@ func compareZip(file *os.File, zipWriter *zip.Writer, prefix string) error {
 		if err != nil {
 			return err
 		}
+		if len(fileInfoChilds) == 0 {
+			header, err := zip.FileInfoHeader(fileInfo)
+			header.Name = prefix + "/"
+			if err != nil {
+				return err
+			}
+			_, err = zipWriter.CreateHeader(header)
+			return err
+		}
 		for _, fileInfoChild := range fileInfoChilds {
 			fileChild, err := os.Open(file.Name() + "/" + fileInfoChild.Name())
 			if err != nil {
