@@ -20,6 +20,7 @@ func Encode(filePath, zipPath string) error {
 	if err != nil {
 		return err
 	}
+	defer zipFile.Close()
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
 	return compareZip(file, zipWriter, "")
