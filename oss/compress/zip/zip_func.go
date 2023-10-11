@@ -41,10 +41,10 @@ func compareZip(file *os.File, zipWriter *zip.Writer, prefix string) error {
 		}
 		if len(fileInfoChilds) == 0 {
 			header, err := zip.FileInfoHeader(fileInfo)
-			header.Name = prefix + "/"
 			if err != nil {
 				return err
 			}
+			header.Name = prefix + "/"
 			_, err = zipWriter.CreateHeader(header)
 			return err
 		}
