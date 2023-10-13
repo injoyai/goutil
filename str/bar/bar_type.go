@@ -39,6 +39,8 @@ type Interface interface {
 	// Done 结束
 	Done() Interface
 
+	Close() error
+
 	// Run 运行
 	Run() <-chan struct{}
 
