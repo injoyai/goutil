@@ -2,6 +2,7 @@ package js
 
 import (
 	"fmt"
+	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/script"
 	"github.com/robertkrimen/otto"
@@ -41,18 +42,28 @@ func New() *Client {
 
 type Client struct {
 	*otto.Otto
-	mu sync.Mutex
+	mu  sync.Mutex
+	tag *maps.Safe
 }
 
-func (this *Client) Exec(text string) (*conv.Var, error) {
+func (this *Client) Tag() *maps.Safe {
+	if this.tag == nil {
+		this.tag = maps.NewSafe()
+	}
+	return this.tag
+}
+
+func (this *Client) Exec(text string, option ...func(client script.Client)) (interface{}, error) {
+	for _, v := range option {
+		v(this)
+	}
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	value, err := this.Otto.Run(text)
 	if err != nil {
-		return conv.Nil(), err
+		return nil, err
 	}
-	val, _ := value.Export()
-	return conv.New(val), nil
+	return value.Export()
 }
 
 func (this *Client) GetVar(key string) *conv.Var {
