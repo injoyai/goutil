@@ -1,12 +1,19 @@
 package script
 
-import "github.com/injoyai/conv"
+import (
+	"github.com/injoyai/base/maps"
+	"github.com/injoyai/conv"
+)
 
 type Func func(*Args) interface{}
 
+type Client interface {
+	Interface
+	Tag() *maps.Safe
+}
+
 type Interface interface {
-	Exec(text string) (*conv.Var, error)
-	GetVar(key string) *conv.Var
+	Exec(text string, option ...func(i Client)) (interface{}, error)
 	Set(key string, value interface{}) error
 	SetFunc(key string, value Func) error
 	Close() error

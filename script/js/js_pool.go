@@ -10,37 +10,44 @@ var (
 )
 
 func NewPool(num ...int) *Pool {
-	length := conv.GetDefaultInt(1, num...)
-	length = conv.SelectInt(length > 0, length, 1)
-	return &Pool{
-		length:  length,
-		clients: make([]*Client, 0, length),
-		queue:   make(chan *Client, length),
+	length := conv.GetDefaultInt(20, num...)
+	length = conv.SelectInt(length <= 0, 1, length)
+	p := &Pool{
+		length: length,
+		list:   make([]*Client, 0, length),
+		queue:  make(chan *Client, length),
 	}
+	for i := 0; i < p.length; i++ {
+		c := New()
+		p.list = append(p.list, c)
+		p.queue <- c
+	}
+	return p
 }
 
 type Pool struct {
-	length  int
-	clients []*Client
-	queue   chan *Client
+	length int
+	list   []*Client
+	queue  chan *Client
 }
 
-func (this *Pool) getClient() *Client {
+func (this *Pool) get() *Client {
 	return <-this.queue
 }
 
-func (this *Pool) Exec(text string) (*conv.Var, error) {
-	c := this.getClient()
-	return c.Exec(text)
+func (this *Pool) put(c *Client) {
+	this.queue <- c
 }
 
-func (this *Pool) GetVar(key string) *conv.Var {
-	c := this.getClient()
-	return c.GetVar(key)
+func (this *Pool) Exec(text string, option ...func(i script.Client)) (interface{}, error) {
+	c := this.get()
+	val, err := c.Exec(text, option...)
+	this.put(c)
+	return val, err
 }
 
 func (this *Pool) Set(key string, value interface{}) error {
-	for _, v := range this.clients {
+	for _, v := range this.list {
 		if err := v.Set(key, value); err != nil {
 			return err
 		}
@@ -53,7 +60,7 @@ func (this *Pool) SetFunc(key string, value script.Func) error {
 }
 
 func (this *Pool) Close() error {
-	for _, v := range this.clients {
+	for _, v := range this.list {
 		if err := v.Close(); err != nil {
 			return err
 		}

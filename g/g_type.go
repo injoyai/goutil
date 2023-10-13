@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/injoyai/base/bytes"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/script/js"
 	json "github.com/json-iterator/go"
 )
 
@@ -18,6 +19,7 @@ type (
 type KV struct {
 	K string      `json:"key"`
 	V interface{} `json:"value"`
+	L string      `json:"label,omitempty"`
 }
 
 type KVL struct {
@@ -35,6 +37,7 @@ const (
 	Float  Type = "float"
 	Array  Type = "array"
 	Object Type = "object"
+	Script Type = "script"
 )
 
 // Type 数据类型
@@ -54,6 +57,8 @@ func (this Type) Int() int {
 		return 5
 	case Array:
 		return 6
+	case Script:
+		return 7
 	}
 	return 0
 }
@@ -72,6 +77,8 @@ func (this Type) Name() string {
 		return "数组"
 	case Object:
 		return "对象"
+	case Script:
+		return "脚本"
 	}
 	return "未知"
 }
@@ -86,15 +93,21 @@ func (this Type) Value(v interface{}) interface{} {
 		return conv.Int(v)
 	case Float:
 		return conv.Float64(v)
+	case Script:
+		if ScriptPool == nil {
+			ScriptPool = js.NewPool()
+		}
+		val, _ := ScriptPool.Exec(conv.String(v))
+		return val
 	}
 	return v
 }
 
-func (this *Type) Check() error {
-	switch *this {
+var ScriptPool *js.Pool
+
+func (this Type) Check() error {
+	switch this {
 	case String, Bool, Int, Float, Array, Object:
-	case "":
-		*this = String
 	default:
 		return fmt.Errorf("未知数据类型:%s", this)
 	}

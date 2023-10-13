@@ -1,6 +1,7 @@
 package lua
 
 import (
+	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/script"
 	"github.com/yuin/gopher-lua"
@@ -64,6 +65,14 @@ type Client struct {
 	client *lua.LState
 	mu     sync.RWMutex
 	mProto map[string]*lua.FunctionProto
+	tag    *maps.Safe
+}
+
+func (this *Client) Tag() *maps.Safe {
+	if this.tag == nil {
+		this.tag = maps.NewSafe()
+	}
+	return this.tag
 }
 
 /*
@@ -77,7 +86,10 @@ local Param = { ['id'] = n,['name'] = 'jyj' }
 
 不加function运行更方便
 */
-func (this *Client) Exec(text string) (*conv.Var, error) {
+func (this *Client) Exec(text string, option ...func(i script.Client)) (interface{}, error) {
+	for _, v := range option {
+		v(this)
+	}
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	if err := this.client.DoString(text); err != nil {
