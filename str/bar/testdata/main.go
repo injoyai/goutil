@@ -30,5 +30,13 @@ func main() {
 		}
 		<-time.After(time.Second * 5)
 	}
+
+	b = bar.New(100)
+	go func(b bar.Interface) {
+		<-time.After(time.Second * 10)
+		b.Close()
+	}(b)
+	b.Run()
+
 	g.Input("请按回车键退出...")
 }

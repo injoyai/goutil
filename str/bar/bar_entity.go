@@ -92,6 +92,7 @@ func (this *entity) Close() error {
 
 func (this *entity) Run() <-chan struct{} {
 	this.init()
+	this.Add(0)
 	start := time.Now()
 	max := 0
 	cache := maps.NewSafe()
@@ -193,7 +194,6 @@ func (this *entity) init() {
 			)
 		}
 	}
-	this.Add(0)
 }
 
 func (this *entity) Copy(w io.Writer, r io.Reader) error {
