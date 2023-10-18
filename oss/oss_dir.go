@@ -1,6 +1,7 @@
 package oss
 
 import (
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -84,7 +85,7 @@ func DelDir(dir string) error {
 }
 
 // ReadDirFunc 遍历目录
-func ReadDirFunc(dir string, fn func(info os.FileInfo) error) error {
+func ReadDirFunc(dir string, fn func(info fs.FileInfo) error) error {
 	fileInfos, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return err
