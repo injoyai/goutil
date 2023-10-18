@@ -16,6 +16,7 @@ func Encode(filePath, zipPath string) error {
 		return err
 	}
 	defer file.Close()
+
 	zipFile, err := os.Create(zipPath)
 	if err != nil {
 		return err
@@ -23,18 +24,21 @@ func Encode(filePath, zipPath string) error {
 	defer zipFile.Close()
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
-	return compareZip(file, zipWriter, "")
+
+	return compareZip(file, zipWriter, "", true)
 }
 
 //压缩文件
-func compareZip(file *os.File, zipWriter *zip.Writer, prefix string) error {
+func compareZip(file *os.File, zipWriter *zip.Writer, prefix string, top bool) error {
 	defer file.Close()
 	fileInfo, err := file.Stat()
 	if err != nil {
 		return err
 	}
 	if fileInfo.IsDir() {
-		prefix += "/" + fileInfo.Name()
+		if !top {
+			prefix += "/" + fileInfo.Name()
+		}
 		fileInfoChilds, err := file.Readdir(-1)
 		if err != nil {
 			return err
@@ -53,7 +57,7 @@ func compareZip(file *os.File, zipWriter *zip.Writer, prefix string) error {
 			if err != nil {
 				return err
 			}
-			if err := compareZip(fileChild, zipWriter, prefix); err != nil {
+			if err := compareZip(fileChild, zipWriter, prefix, false); err != nil {
 				return err
 			}
 		}
