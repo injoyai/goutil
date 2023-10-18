@@ -48,12 +48,12 @@ func ReadBase64(filename string) (string, error) {
 }
 
 // NewFile 新建文件
-func NewFile(filename string) (io.ReadWriteCloser, error) {
+func NewFile(filename string) (*os.File, error) {
 	return os.Create(filename)
 }
 
 // OpenFile 打开文件
-func OpenFile(filename string) (io.ReadWriteCloser, error) {
+func OpenFile(filename string) (*os.File, error) {
 	return os.Open(filename)
 }
 
@@ -101,16 +101,20 @@ func OpenFunc(filename string, fn func(f *os.File) error) error {
 	return fn(f)
 }
 
-// OpenWithWriter 打开文件,并写入到io.Writer
-func OpenWithWriter(filename string, writer io.Writer) error {
+func WithOpen(filename string, fn func(f *os.File) error) error {
+	return OpenFunc(filename, fn)
+}
+
+// WithCopyTo 打开文件,并写入到io.Writer
+func WithCopyTo(filename string, writer io.Writer) error {
 	return OpenFunc(filename, func(f *os.File) error {
 		_, err := io.Copy(writer, f)
 		return err
 	})
 }
 
-// OpenWithReader 打开文件,并从io.Reader写入
-func OpenWithReader(filename string, reader io.Reader) error {
+// WithCopyFrom 打开文件,并从io.Reader写入
+func WithCopyFrom(filename string, reader io.Reader) error {
 	return OpenFunc(filename, func(f *os.File) error {
 		_, err := io.Copy(f, reader)
 		return err
