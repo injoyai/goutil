@@ -7,7 +7,6 @@
 package times
 
 import (
-	"strings"
 	"time"
 )
 
@@ -85,16 +84,9 @@ func (this Time) String() string {
 	return this.Format(FormatDefault)
 }
 
-// Format 转为字符串,格式比如 "年-月-日 时-分-秒" "2006-01-02 15:04:05"
+// Format 转为字符串,格式比如 "2006-01-02 15:04:05"
 func (this Time) Format(format string) string {
-	format = strings.Replace(format, "年", "2006", -1)
-	format = strings.Replace(format, "月", "01", -1)
-	format = strings.Replace(format, "日", "02", -1)
-	format = strings.Replace(format, "时", "15", -1)
-	format = strings.Replace(format, "分", "04", -1)
-	format = strings.Replace(format, "秒", "05", -1)
-	format = this.Time.Format(format)
-	return format
+	return this.Time.Format(format)
 }
 
 // Date 年月日秒

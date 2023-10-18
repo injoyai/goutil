@@ -113,12 +113,12 @@ func (this *Response) WriteToNewFile(filename string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	return this.WriteToFile(f)
 }
 
 // WriteToFile 写入到文件,并关闭文件
 func (this *Response) WriteToFile(file *os.File) error {
-	defer file.Close()
 	_, err := this.WriteTo(file)
 	return err
 }

@@ -2,18 +2,19 @@ package http
 
 import (
 	"io/ioutil"
+	"net/http"
 )
 
 const (
-	MethodGet     = "GET"
-	MethodHead    = "HEAD"
-	MethodPost    = "POST"
-	MethodPut     = "PUT"
-	MethodPatch   = "PATCH" // RFC 5789
-	MethodDelete  = "DELETE"
-	MethodConnect = "CONNECT"
-	MethodOptions = "OPTIONS"
-	MethodTrace   = "TRACE"
+	MethodGet     = http.MethodGet
+	MethodHead    = http.MethodHead
+	MethodPost    = http.MethodPost
+	MethodPut     = http.MethodPut
+	MethodPatch   = http.MethodPatch
+	MethodDelete  = http.MethodDelete
+	MethodConnect = http.MethodConnect
+	MethodOptions = http.MethodOptions
+	MethodTrace   = http.MethodTrace
 
 	HeaderSpend         = "Injoy-Spend"
 	HeaderTry           = "Injoy-Try"
