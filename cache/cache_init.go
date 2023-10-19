@@ -28,3 +28,13 @@ func NewCycle(num int) *Cycle {
 func NewMap() *maps.Safe {
 	return maps.NewSafe()
 }
+
+/*
+NewFileLog 文件日志
+单文件万次写入速度 0.08s/万次
+单文件百万次写入速度 2.11s/百万次
+多文件千万次写入速度 19.88/千万次
+*/
+func NewFileLog(cfg *FileLogConfig) *FileLog {
+	return newFileLog(cfg)
+}
