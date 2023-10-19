@@ -22,7 +22,7 @@ NewFileLog
 
 
 */
-func NewFileLog(cfg *FileLogConfig) *FileLog {
+func newFileLog(cfg *FileLogConfig) *FileLog {
 	//初始化
 	f := new(FileLog)
 	f.FileLogConfig = cfg.deal()

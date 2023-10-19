@@ -5,37 +5,36 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/oss"
 	"io/ioutil"
-	"os"
 	"path/filepath"
-	"sync"
 )
 
 type File struct {
 	name string
 	tag  string
-	sync bool
-	m    map[string]interface{}
-	mu   sync.RWMutex
+	*maps.Safe
 	conv.Extend
 }
 
-// GetVar 实现接口
 func (this *File) GetVar(key string) *conv.Var {
-	this.mu.RLock()
-	defer this.mu.RUnlock()
-	return conv.New(this.m[key])
+	return conv.New(this.MustGet(key))
 }
 
 func newFile(name, tag string) *File {
-	data := new(File)
-	data.name = name
-	data.tag = tag
+	data := &File{
+		name: name,
+		tag:  tag,
+		Safe: maps.NewSafe(),
+	}
 	bs, _ := ioutil.ReadFile(data.getPath(tag, name))
 	m := make(map[string]interface{})
 	_ = json.Unmarshal(bs, &m)
-	data.m = m
+	for i, v := range m {
+		data.Set(i, v)
+	}
 	data.Extend = conv.NewExtend(data)
 	return data
 }
@@ -47,69 +46,31 @@ func (this *File) Name() string {
 
 // Clear 清空数据
 func (this *File) Clear() *File {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	this.m = make(map[string]interface{})
-	return this
-}
-
-// Sync 同步覆盖更新到缓存,默认手动覆盖更新
-func (this *File) Sync(b ...bool) *File {
-	this.sync = conv.GetDefaultBool(true, b...)
+	this.Safe = maps.NewSafe()
 	return this
 }
 
 // Set 设置参数
-func (this *File) Set(key string, val interface{}, cover ...bool) error {
-	this.mu.Lock()
-	this.m[key] = val
-	this.mu.Unlock()
-	if this.sync || len(cover) > 0 && cover[0] {
-		return this.Cover()
-	}
-	return nil
-}
-
-// Get 获取参数
-func (this *File) Get(key string) *conv.Var {
-	this.mu.RLock()
-	defer this.mu.RUnlock()
-	return conv.New(this.m[key])
+func (this *File) Set(key string, val interface{}) *File {
+	this.Safe.Set(key, val)
+	return this
 }
 
 // Del 删除参数
-func (this *File) Del(key string, cover ...bool) error {
-	this.mu.Lock()
-	delete(this.m, key)
-	this.mu.Unlock()
-	if this.sync || len(cover) > 0 && cover[0] {
-		return this.Cover()
-	}
-	return nil
+func (this *File) Del(key string) *File {
+	this.Safe.Del(key)
+	return this
 }
 
 func (this *File) Save() error {
-	return this.Cover()
+	filename := this.getPath(this.tag, this.name)
+	bs, _ := json.Marshal(this.Safe.GMap())
+	return oss.New(filename, bs)
 }
 
 // Cover 覆盖
 func (this *File) Cover() error {
-	path := this.getPath(this.tag, this.name)
-	dir := filepath.Dir(path)
-	name := filepath.Base(path)
-	if err := os.MkdirAll(dir, 0666); err != nil {
-		return err
-	}
-	if len(name) == 0 {
-		return nil
-	}
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = f.Write(conv.Bytes(this.m))
-	return err
+	return this.Save()
 }
 
 func (this *File) getPath(tag, name string) string {
