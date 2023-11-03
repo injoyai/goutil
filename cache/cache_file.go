@@ -50,6 +50,14 @@ func (this *File) Clear() *File {
 	return this
 }
 
+// GetAndSetByExtend 根据conv.Extend获取数据,不存在则取File中的数据,并设置到File中
+func (this *File) GetAndSetByExtend(key string, extend conv.Extend) interface{} {
+	old := this.GetInterface(key)
+	val := extend.GetInterface(key, old)
+	this.Set(key, val)
+	return val
+}
+
 // Set 设置参数
 func (this *File) Set(key string, val interface{}) *File {
 	this.Safe.Set(key, val)
@@ -64,7 +72,10 @@ func (this *File) Del(key string) *File {
 
 func (this *File) Save() error {
 	filename := this.getPath(this.tag, this.name)
-	bs, _ := json.Marshal(this.Safe.GMap())
+	bs, err := json.Marshal(this.Safe.GMap())
+	if err != nil {
+		return err
+	}
 	return oss.New(filename, bs)
 }
 

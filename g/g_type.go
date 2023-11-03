@@ -28,6 +28,19 @@ type KVL struct {
 	L string      `json:"label"`
 }
 
+type Request struct {
+	Type string      `json:"type"`           //请求类型,例如测试连接ping,写入数据write...
+	UID  string      `json:"uid,omitempty"`  //数据唯一标识
+	Data interface{} `json:"data,omitempty"` //请求的数据
+}
+
+type Response struct {
+	Code int         `json:"code"`           //请求结果,推荐 200成功,500失败... 好记一点
+	Msg  string      `json:"msg,omitempty"`  //请求结果说明
+	UID  string      `json:"uid,omitempty"`  //数据唯一标识
+	Data interface{} `json:"data,omitempty"` //响应的数据
+}
+
 //========================================Type========================================
 
 const (
@@ -107,7 +120,7 @@ var ScriptPool *js.Pool
 
 func (this Type) Check() error {
 	switch this {
-	case String, Bool, Int, Float, Array, Object:
+	case String, Bool, Int, Float, Array, Object, Script:
 	default:
 		return fmt.Errorf("未知数据类型:%s", this)
 	}
