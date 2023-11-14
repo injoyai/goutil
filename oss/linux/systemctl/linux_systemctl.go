@@ -2,7 +2,10 @@ package systemctl
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 const ConfigDir = "/etc/systemd/system/"
@@ -27,6 +30,32 @@ show：列出 unit 的配置。
 mask：注销 unit，注销后你就无法启动这个 unit 了。
 unmask：取消对 unit 的注销。
 */
+
+// Install 安装服务
+func Install(serviceName, dir string) error {
+	f, err := os.Create(ConfigDir + serviceName + ".service")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString(fmt.Sprintf(`
+[Unit]
+Description=%s daemon
+After=network.target
+
+[Service]
+PIDFile=/tmp/%s.pid
+User=root
+Group=root
+WorkingDirectory=%s
+ExecStart=%s
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+`, serviceName, serviceName, dir, filepath.Join(dir, serviceName)))
+	return err
+}
 
 func Run(args ...string) (string, error) {
 	cmd := exec.Command("systemctl", args...)

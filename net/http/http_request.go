@@ -179,6 +179,16 @@ func (this *Request) SetUserAgent(s string) *Request {
 	return this.SetHeader("User-Agent", s)
 }
 
+// SetUserAgentPostman 设置模拟成postman请求
+func (this *Request) SetUserAgentPostman() *Request {
+	return this.SetUserAgent("PostmanRuntime/7.35.0")
+}
+
+// SetUserAgentDefault 设置模拟成浏览器
+func (this *Request) SetUserAgentDefault() *Request {
+	return this.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36")
+}
+
 // SetReferer 设置Referer
 func (this *Request) SetReferer(s string) *Request {
 	return this.SetHeader("Referer", s)
