@@ -194,6 +194,8 @@ func (this *entity) init() {
 			)
 		}
 	}
+	this.current = 0
+	this.currentTime = time.Now()
 }
 
 func (this *entity) Copy(w io.Writer, r io.Reader) error {
@@ -242,9 +244,10 @@ var (
 
 func (this *entity) DownloadHTTP(source, filename string, proxy ...string) error {
 	defaultClient.SetProxy(conv.GetDefaultString("", proxy...))
-	resp, err := defaultClient.Get(source)
-	if err != nil {
-		return err
+	req := http.NewRequest(http.MethodGet, source, "")
+	resp := defaultClient.Do(req)
+	if resp.Err() != nil {
+		return resp.Err()
 	}
 	defer resp.Body.Close()
 	f, err := os.Create(filename)
@@ -252,7 +255,7 @@ func (this *entity) DownloadHTTP(source, filename string, proxy ...string) error
 		return err
 	}
 	defer f.Close()
-	total := conv.Int64(resp.Header.Get("Content-Length"))
+	total := conv.Int64(resp.Header().Get("Content-Length"))
 	this.SetTotal(total)
 	return this.Copy(f, resp.Body)
 }

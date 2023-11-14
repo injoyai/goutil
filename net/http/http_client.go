@@ -1,9 +1,7 @@
 package http
 
 import (
-	"bytes"
 	"crypto/tls"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -67,7 +65,7 @@ func (this *Client) Do(request *Request) (resp *Response) {
 		}
 	}()
 	request.AddTry()
-	request.Request.Body = io.NopCloser(bytes.NewReader(request.body))
+	//request.Request.Body = io.NopCloser(bytes.NewReader(request.body))
 	r, err := this.Client.Do(request.Request)
 	resp = newResponse(request, r, err).setStartTime(start)
 	if resp.Err() != nil && !request.Done() {

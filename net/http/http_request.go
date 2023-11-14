@@ -332,7 +332,7 @@ func (this *Request) dealQuery(url string) string {
 
 // NewRequest 新建请求内容
 func NewRequest(method, url string, body interface{}) *Request {
-	request, err := http.NewRequest(method, url, nil)
+	request, err := http.NewRequest(method, url, bytes.NewReader(conv.Bytes(body)))
 	if request == nil {
 		request = &http.Request{Header: map[string][]string{}}
 	}

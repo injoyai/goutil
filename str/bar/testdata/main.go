@@ -15,7 +15,7 @@ func init() {
 
 func main() {
 
-	bar.Demo()
+	//bar.Demo()
 
 	url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
 	filename := "./downloader.exe"
@@ -23,7 +23,7 @@ func main() {
 	b.SetColor(color.BgCyan)
 	b.SetStyle('#')
 	for {
-		err := b.DownloadHTTP(url, filename, "http://127.0.0.1:1081")
+		err := b.DownloadHTTP(url, filename) //, "http://127.0.0.1:1081")
 		if !logs.PrintErr(err) {
 			os.Remove(filename)
 			break
