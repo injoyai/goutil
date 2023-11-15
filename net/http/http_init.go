@@ -1,7 +1,6 @@
 package http
 
 import (
-	"io/ioutil"
 	"net/http"
 )
 
@@ -23,48 +22,23 @@ const (
 )
 
 func Get(url string, bind ...interface{}) *Response {
-	request := NewRequest("", url, nil)
-	if len(bind) > 0 {
-		request.Bind(bind)
-	}
-	return request.Get()
+	return DefaultClient.Get(url, bind...)
 }
 
 func GetBytes(url string) ([]byte, error) {
-	return GetBody(url)
+	return DefaultClient.GetBytes(url)
 }
 
-func GetBody(uri string) ([]byte, error) {
-	resp, err := DefaultClient.Get(uri)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	return ioutil.ReadAll(resp.Body)
+func Post(url string, body interface{}, bind ...interface{}) *Response {
+	return DefaultClient.Post(url, body, bind...)
 }
 
-func Post(url string, bind ...interface{}) *Response {
-	request := NewRequest("", url, nil)
-	if len(bind) > 0 {
-		request.Bind(bind)
-	}
-	return request.Post()
+func Put(url string, body interface{}, bind ...interface{}) *Response {
+	return DefaultClient.Put(url, body, bind...)
 }
 
-func Put(url string, bind ...interface{}) *Response {
-	request := NewRequest("", url, nil)
-	if len(bind) > 0 {
-		request.Bind(bind)
-	}
-	return request.Put()
-}
-
-func Delete(url string, bind ...interface{}) *Response {
-	request := NewRequest("", url, nil)
-	if len(bind) > 0 {
-		request.Bind(bind)
-	}
-	return request.Delete()
+func Delete(url string, body interface{}, bind ...interface{}) *Response {
+	return DefaultClient.Delete(url, body, bind...)
 }
 
 func Url(url string) *Request {
