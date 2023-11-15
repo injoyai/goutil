@@ -15,11 +15,11 @@ import (
 
 type Response struct {
 	*http.Response
-	*Request
-	body   []byte        //body数据
-	spend  time.Duration //花费时间
-	tryNum uint          //尝试次数
-	err    error         //错误信息
+	Request *Request
+	body    []byte        //body数据
+	spend   time.Duration //花费时间
+	tryNum  uint          //尝试次数
+	err     error         //错误信息
 }
 
 // print 打印输出信息
@@ -71,6 +71,11 @@ func (this *Response) String() string {
 `, this.Request, string(respBs))
 	}
 	return ""
+}
+
+// TryNum 执行的次数,正常请求是1次
+func (this *Response) TryNum() uint {
+	return this.tryNum
 }
 
 // Spend 获取花费时间
@@ -205,7 +210,7 @@ func newResponse(req *Request, resp *http.Response, err ...error) *Response {
 		}(),
 	}
 	if req != nil {
-		r.setTryNum(req.GetTry())
+		r.setTryNum(req.getTry())
 		r.Bind(req.bodyBind)
 	}
 	return r.print()

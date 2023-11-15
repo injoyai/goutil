@@ -1,7 +1,9 @@
 package http
 
 import (
+	"bytes"
 	"crypto/tls"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -39,11 +41,12 @@ type Client struct {
 // SetProxy 设置代理
 func (this *Client) SetProxy(u string) {
 	if val, ok := this.Client.Transport.(*http.Transport); ok {
+		if len(u) == 0 {
+			val.Proxy = nil
+			return
+		}
 		val.Proxy = func(request *http.Request) (*url.URL, error) {
-			if len(u) > 0 {
-				return url.Parse(u)
-			}
-			return request.URL, nil
+			return url.Parse(u)
 		}
 	}
 }
@@ -56,19 +59,76 @@ func (this *Client) SetTimeout(t time.Duration) *Client {
 	return this
 }
 
+func (this *Client) Get(url string, bind ...interface{}) *Response {
+	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	if len(bind) > 0 {
+		resp.Bind(bind[0])
+	}
+	return resp
+}
+
+func (this *Client) GetBytes(url string) ([]byte, error) {
+	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	return resp.GetBodyBytes(), resp.Err()
+}
+
+func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Response {
+	resp := this.Do(NewRequest(http.MethodPost, url, body))
+	if len(bind) > 0 {
+		resp.Bind(bind[0])
+	}
+	return resp
+}
+
+func (this *Client) Put(url string, body interface{}, bind ...interface{}) *Response {
+	resp := this.Do(NewRequest(http.MethodPut, url, body))
+	if len(bind) > 0 {
+		resp.Bind(bind[0])
+	}
+	return resp
+}
+
+func (this *Client) Delete(url string, body interface{}, bind ...interface{}) *Response {
+	resp := this.Do(NewRequest(http.MethodDelete, url, body))
+	if len(bind) > 0 {
+		resp.Bind(bind[0])
+	}
+	return resp
+}
+
+func (this *Client) Head(url string) *Response {
+	return this.Do(NewRequest(http.MethodHead, url, nil))
+}
+
+func (this *Client) Patch(url string) *Response {
+	return this.Do(NewRequest(http.MethodPatch, url, nil))
+}
+
+func (this *Client) Connect(url string) *Response {
+	return this.Do(NewRequest(http.MethodConnect, url, nil))
+}
+
+func (this *Client) Options(url string) *Response {
+	return this.Do(NewRequest(http.MethodOptions, url, nil))
+}
+
+func (this *Client) Trace(url string) *Response {
+	return this.Do(NewRequest(http.MethodTrace, url, nil))
+}
+
 func (this *Client) Do(request *Request) (resp *Response) {
 	start := time.Now()
 	defer func() {
-		if request.Done() {
-			request.Reset()
+		if request.done() {
+			request.reset()
 			request.AddCookie(resp.Cookies()...)
 		}
 	}()
-	request.AddTry()
-	//request.Request.Body = io.NopCloser(bytes.NewReader(request.body))
+	request.addTry()
+	request.Request.Body = io.NopCloser(bytes.NewReader(request.body))
 	r, err := this.Client.Do(request.Request)
 	resp = newResponse(request, r, err).setStartTime(start)
-	if resp.Err() != nil && !request.Done() {
+	if resp.Err() != nil && !request.done() {
 		return this.Do(request)
 	}
 	return

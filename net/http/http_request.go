@@ -31,22 +31,22 @@ type Request struct {
 // 采用指针类型,所以每次新请求参数都需要重新填写
 // 加入预设值,重置之后运行预设方法
 // 解决了客户端复用的问题(引用类型,复制客户端不一致问题)
-func (this *Request) Reset() {
+func (this *Request) reset() {
 	this.try = 0
 }
 
 // Done 判断是否完成,是否需要重试
-func (this *Request) Done() bool {
+func (this *Request) done() bool {
 	return this.try > this.retry
 }
 
 // GetTry 获取重试次数
-func (this *Request) GetTry() uint {
+func (this *Request) getTry() uint {
 	return this.try
 }
 
 // AddTry 增加已重试次数
-func (this *Request) AddTry() *Request {
+func (this *Request) addTry() *Request {
 	this.try++
 	return this
 }

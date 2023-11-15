@@ -15,7 +15,7 @@ func init() {
 
 func main() {
 
-	//bar.Demo()
+	bar.Demo()
 
 	url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
 	filename := "./downloader.exe"
@@ -31,12 +31,15 @@ func main() {
 		<-time.After(time.Second * 5)
 	}
 
-	b = bar.New(100)
-	go func(b bar.Interface) {
-		<-time.After(time.Second * 10)
-		b.Close()
-	}(b)
-	b.Run()
+	{
+		logs.Debug("失败示例:")
+		b = bar.New(100)
+		go func(b bar.Interface) {
+			<-time.After(time.Second * 10)
+			b.Close()
+		}(b)
+		b.Run()
+	}
 
 	g.Input("请按回车键退出...")
 }

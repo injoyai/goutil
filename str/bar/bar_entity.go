@@ -27,6 +27,7 @@ func NewWithContext(ctx context.Context, total int64) Interface {
 		total:  total,
 		ctx:    ctx,
 		cancel: cancel,
+		c:      make(chan int64),
 	}
 }
 
@@ -69,9 +70,6 @@ func (this *entity) SetColor(a color.Attribute) Interface {
 }
 
 func (this *entity) Add(n int64) Interface {
-	if this.c == nil {
-		this.c = make(chan int64, 1)
-	}
 	select {
 	case <-this.ctx.Done():
 	case this.c <- n:
@@ -84,25 +82,22 @@ func (this *entity) Done() Interface {
 }
 
 func (this *entity) Close() error {
-	if this.cancel != nil {
-		this.cancel()
-	}
+	this.cancel()
 	return nil
 }
 
 func (this *entity) Run() <-chan struct{} {
-	this.init()
-	this.Add(0)
-	start := time.Now()
-	max := 0
-	cache := maps.NewSafe()
+	this.init()             //初始化
+	go this.Add(0)          //触发进度条出现
+	start := time.Now()     //开始时间
+	maxLength := 0          //字符串最大长度
+	cache := maps.NewSafe() //缓存,用于缓存最近的下载速度
 	for {
 		select {
 		case <-this.ctx.Done():
 			fmt.Println()
 			return this.ctx.Done()
 		case n := <-this.c:
-
 			spend := float64(n) / time.Now().Sub(this.currentTime).Seconds()
 			this.current += n
 			this.currentTime = time.Now()
@@ -116,7 +111,6 @@ func (this *entity) Run() <-chan struct{} {
 			nowWidth := ""
 			for i := 0; i < int(float64(this.width)*rate); i++ {
 				nowWidth += string(this.style)
-
 			}
 
 			//元素
@@ -140,14 +134,18 @@ func (this *entity) Run() <-chan struct{} {
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
-					data, _ := cache.GetOrSetByHandler("Speed", func() (interface{}, error) {
-						f, unit := ToB(int64(spend))
-						if f < 0 {
-							f, unit = 0, "B"
-						}
-						return fmt.Sprintf("%0.1f%s/s", f, unit), nil
-					}, time.Millisecond*500)
-					return data.(string)
+					if val, ok := cache.Get("Speed"); ok {
+						return val.(string)
+					}
+					f, unit := ToB(int64(spend))
+					if f < 0 {
+						f, unit = 0, "B"
+					}
+					s := fmt.Sprintf("%0.1f%s/s", f, unit)
+					if f > 0 {
+						cache.Set("Speed", s, time.Millisecond*500)
+					}
+					return s
 				}),
 				Used: element(func() string {
 					return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds())
@@ -163,10 +161,10 @@ func (this *entity) Run() <-chan struct{} {
 			}
 
 			s := this.format(f)
-			if len(s) >= max {
-				max = len(s)
+			if len(s) >= maxLength {
+				maxLength = len(s)
 			} else {
-				s += fmt.Sprintf(fmt.Sprintf("%%-%ds", max-len(s)), " ")
+				s += fmt.Sprintf(fmt.Sprintf("%%-%ds", maxLength-len(s)), " ")
 			}
 
 			fmt.Print(s)
@@ -199,11 +197,15 @@ func (this *entity) init() {
 }
 
 func (this *entity) Copy(w io.Writer, r io.Reader) error {
+	return this.CopyN(w, r, 4<<10)
+}
+
+func (this *entity) CopyN(w io.Writer, r io.Reader, num int64) error {
 	defer this.Close()
 	buff := bufio.NewReader(r)
 	go this.Run()
 	for {
-		buf := make([]byte, 2<<20)
+		buf := make([]byte, num)
 		n, err := buff.Read(buf)
 		if err != nil && err != io.EOF {
 			return err
@@ -218,34 +220,13 @@ func (this *entity) Copy(w io.Writer, r io.Reader) error {
 	}
 }
 
-func (this *entity) CopyN(w io.Writer, r io.Reader, num int64) error {
-	buff := bufio.NewReader(r)
-	go this.Run()
-	for {
-		buf := make([]byte, num)
-		n, err := buff.Read(buf)
-		if err != nil && err != io.EOF {
-			return err
-		}
-		this.Add(int64(n))
-		num -= int64(n)
-		if _, err := w.Write(buf[:n]); err != nil {
-			return err
-		}
-		if err == io.EOF || num <= 0 {
-			return nil
-		}
-	}
-}
-
 var (
 	defaultClient = http.NewClient()
 )
 
 func (this *entity) DownloadHTTP(source, filename string, proxy ...string) error {
 	defaultClient.SetProxy(conv.GetDefaultString("", proxy...))
-	req := http.NewRequest(http.MethodGet, source, "")
-	resp := defaultClient.Do(req)
+	resp := defaultClient.Get(source)
 	if resp.Err() != nil {
 		return resp.Err()
 	}
@@ -255,7 +236,7 @@ func (this *entity) DownloadHTTP(source, filename string, proxy ...string) error
 		return err
 	}
 	defer f.Close()
-	total := conv.Int64(resp.Header().Get("Content-Length"))
+	total := conv.Int64(resp.GetHeader("Content-Length"))
 	this.SetTotal(total)
 	return this.Copy(f, resp.Body)
 }
