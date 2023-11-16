@@ -6,6 +6,7 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/script/js"
 	json "github.com/json-iterator/go"
+	"sync"
 )
 
 type (
@@ -22,23 +23,30 @@ type KV struct {
 	L string      `json:"label,omitempty"`
 }
 
-type KVL struct {
-	K string      `json:"key"`
-	V interface{} `json:"value"`
-	L string      `json:"label"`
+type Msg struct {
+	Type string      `json:"type"`           //请求类型,例如测试连接ping,写入数据write... 推荐请求和响应通过code区分
+	Code int         `json:"code,omitempty"` //请求结果,推荐 请求:0(或null)  响应: 200成功,500失败... 同http好记一点
+	UID  string      `json:"uid,omitempty"`  //消息的唯一ID,例如UUID
+	Data interface{} `json:"data,omitempty"` //请求响应的数据
+	Msg  string      `json:"msg,omitempty"`  //消息
 }
 
-type Request struct {
-	Type string      `json:"type"`           //请求类型,例如测试连接ping,写入数据write...
-	UID  string      `json:"uid,omitempty"`  //数据唯一标识
-	Data interface{} `json:"data,omitempty"` //请求的数据
+func (this *Msg) IsRequest() bool {
+	return this.Code == 0
 }
 
-type Response struct {
-	Code int         `json:"code"`           //请求结果,推荐 200成功,500失败... 好记一点
-	Msg  string      `json:"msg,omitempty"`  //请求结果说明
-	UID  string      `json:"uid,omitempty"`  //数据唯一标识
-	Data interface{} `json:"data,omitempty"` //响应的数据
+func (this *Msg) IsResponse() bool {
+	return this.Code != 0
+}
+
+func (this *Msg) Response(code int, data interface{}, msg string) *Msg {
+	return &Msg{
+		Type: this.Type,
+		Code: code,
+		UID:  this.UID,
+		Data: data,
+		Msg:  msg,
+	}
 }
 
 //========================================Type========================================
@@ -107,16 +115,21 @@ func (this Type) Value(v interface{}) interface{} {
 	case Float:
 		return conv.Float64(v)
 	case Script:
-		if ScriptPool == nil {
-			ScriptPool = js.NewPool()
-		}
+		scriptPoolOnce.Do(func() {
+			if ScriptPool == nil {
+				ScriptPool = js.NewPool()
+			}
+		})
 		val, _ := ScriptPool.Exec(conv.String(v))
 		return val
 	}
 	return v
 }
 
-var ScriptPool *js.Pool
+var (
+	ScriptPool     *js.Pool
+	scriptPoolOnce sync.Once
+)
 
 func (this Type) Check() error {
 	switch this {

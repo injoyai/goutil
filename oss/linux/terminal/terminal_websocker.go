@@ -22,7 +22,7 @@ func NewWebsocket(s *ws.Conn, cfg *dial.SSHConfig, options ...io.OptionClient) (
 	if err != nil {
 		return nil, err
 	}
-	c.SetDealFunc(func(msg *io.IMessage) {
+	c.SetDealFunc(func(c *io.Client, msg io.Message) {
 		if err := s.WriteMessage(ws.TextMessage, conv.Bytes(WebsocketMsg{
 			Type: WsTypeCmd,
 			Data: msg.Base64(),
@@ -30,7 +30,7 @@ func NewWebsocket(s *ws.Conn, cfg *dial.SSHConfig, options ...io.OptionClient) (
 			c.Close()
 		}
 	})
-	c.SetCloseFunc(func(ctx context.Context, msg *io.IMessage) {
+	c.SetCloseFunc(func(ctx context.Context, c *io.Client, msg io.Message) {
 		s.WriteMessage(ws.TextMessage, conv.Bytes(&WebsocketMsg{
 			Type: WsTypeErr,
 			Data: msg.String(),
@@ -64,7 +64,7 @@ func (this *websocket) Run() error {
 		case WsTypeResize:
 			//重新设置窗口大小
 			if msg.High > 0 && msg.Wide > 0 {
-				if err := this.Client.ReadWriteCloser().(*dial.Client).WindowChange(msg.High, msg.Wide); err == nil {
+				if err := this.Client.ReadWriteCloser().(*dial.SSHClient).WindowChange(msg.High, msg.Wide); err == nil {
 					if err := this.ws.WriteMessage(ws.TextMessage, data); err != nil {
 						return err
 					}
