@@ -60,8 +60,8 @@ func (this *Response) String() string {
 		return this.err.Error()
 	}
 	if this.Request != nil && this.Response != nil {
-		this.Response.Header.Add(HeaderSpend, this.spend.String())
-		this.Response.Header.Add(HeaderTry, conv.String(this.tryNum))
+		this.Response.Header.Add(HeaderKeySpend, this.spend.String())
+		this.Response.Header.Add(HeaderKeyTry, conv.String(this.tryNum))
 		respBs, _ := httputil.DumpResponse(this.Response, true)
 		return fmt.Sprintf(`----------------------------------------
 %s 

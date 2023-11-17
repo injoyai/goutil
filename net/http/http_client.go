@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 )
 
@@ -39,16 +40,17 @@ type Client struct {
 }
 
 // SetProxy 设置代理
-func (this *Client) SetProxy(u string) {
+func (this *Client) SetProxy(u string) *Client {
 	if val, ok := this.Client.Transport.(*http.Transport); ok {
 		if len(u) == 0 {
 			val.Proxy = nil
-			return
+			return this
 		}
 		val.Proxy = func(request *http.Request) (*url.URL, error) {
 			return url.Parse(u)
 		}
 	}
+	return this
 }
 
 // SetTimeout 设置请求超时时间
@@ -70,6 +72,22 @@ func (this *Client) Get(url string, bind ...interface{}) *Response {
 func (this *Client) GetBytes(url string) ([]byte, error) {
 	resp := this.Do(NewRequest(http.MethodGet, url, nil))
 	return resp.GetBodyBytes(), resp.Err()
+}
+
+func (this *Client) GetToWriter(url string, writer io.Writer) error {
+	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	defer resp.Response.Body.Close()
+	_, err := io.Copy(writer, resp.Response.Body)
+	return err
+}
+
+func (this *Client) GetToFile(url string, filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return this.GetToWriter(url, f)
 }
 
 func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Response {

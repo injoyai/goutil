@@ -141,7 +141,7 @@ func (this *Request) AddHeader(key string, val ...string) *Request {
 }
 
 // AddHeaders 批量添加请求头header
-func (this *Request) AddHeaders(m map[string][]string) *Request {
+func (this *Request) AddHeaders(m http.Header) *Request {
 	for i, v := range m {
 		this.AddHeader(i, v...)
 	}
@@ -157,7 +157,7 @@ func (this *Request) SetHeader(key string, val ...string) *Request {
 }
 
 // SetHeaders 批量设置请求头header,,已存在则覆盖
-func (this *Request) SetHeaders(m map[string][]string) *Request {
+func (this *Request) SetHeaders(m http.Header) *Request {
 	header := http.Header{}
 	for i, v := range m {
 		header[i] = v
@@ -176,27 +176,27 @@ func (this *Request) AddCookie(cookies ...*http.Cookie) *Request {
 
 // SetUserAgent 设置User-Agent
 func (this *Request) SetUserAgent(s string) *Request {
-	return this.SetHeader("User-Agent", s)
+	return this.SetHeader(HeaderKeyUserAgent, s)
 }
 
 // SetUserAgentPostman 设置模拟成postman请求
 func (this *Request) SetUserAgentPostman() *Request {
-	return this.SetUserAgent("PostmanRuntime/7.35.0")
+	return this.SetUserAgent(UserAgentPostman7_35_0)
 }
 
 // SetUserAgentDefault 设置模拟成浏览器
 func (this *Request) SetUserAgentDefault() *Request {
-	return this.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36")
+	return this.SetUserAgent(UserAgentDefault)
 }
 
 // SetReferer 设置Referer
 func (this *Request) SetReferer(s string) *Request {
-	return this.SetHeader("Referer", s)
+	return this.SetHeader(HeaderKeyReferer, s)
 }
 
 // SetAuthorization 设置请求头Authorization
 func (this *Request) SetAuthorization(s string) *Request {
-	return this.SetHeader(HeaderAuthorization, s)
+	return this.SetHeader(HeaderKeyAuthorization, s)
 }
 
 // SetToken 设置请求头Authorization,别名
@@ -206,7 +206,7 @@ func (this *Request) SetToken(s string) *Request {
 
 // SetContentType 设置请求头Content-Type
 func (this *Request) SetContentType(s string) *Request {
-	return this.SetHeader(HeaderContentType, s)
+	return this.SetHeader(HeaderKeyContentType, s)
 }
 
 // FormFile form-data file
@@ -343,11 +343,6 @@ func NewRequest(method, url string, body interface{}) *Request {
 		body:    conv.Bytes(body),
 		err:     err,
 	}
-	data.AddHeaders(map[string][]string{
-		"User-Agent":   {"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36"},
-		"Content-Type": {"application/json;charset=utf-8"}, //发送的数据格式
-		"Accept":       {"application/json"},               //希望接收的数据格式
-		"Connection":   {"close"},                          //短连接
-	})
+	data.AddHeaders(HeaderBase)
 	return data
 }
