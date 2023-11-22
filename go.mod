@@ -1,16 +1,17 @@
 module github.com/injoyai/goutil
 
-go 1.17
+go 1.19
 
 require (
-	github.com/injoyai/base v1.0.5
-	github.com/injoyai/conv v1.0.5
+	github.com/injoyai/base v1.0.6
+	github.com/injoyai/conv v1.0.6
+	github.com/injoyai/io v0.1.0
 	github.com/injoyai/logs v1.0.2
-	github.com/injoyai/io v0.0.9
 )
 
 require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.349
+	github.com/compose-spec/compose-go v1.20.0
 	github.com/ctessum/polyclip-go v1.1.0
 	github.com/denisenkom/go-mssqldb v0.10.0
 	github.com/docker/compose/v2 v2.23.0
@@ -55,7 +56,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/clbanning/mxj v1.8.5-0.20200714211355-ff02cfb8ea28 // indirect
-	github.com/compose-spec/compose-go v1.20.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/containerd/containerd v1.7.7 // indirect
 	github.com/containerd/continuity v0.4.2 // indirect
