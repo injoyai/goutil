@@ -40,28 +40,29 @@ func RandString(length int, str ...string) string {
 //========================================Context========================================
 
 // Ctx context.Background
-func Ctx() context.Context { return context.Background() }
+func Ctx(ctx ...context.Context) context.Context {
+	if len(ctx) > 0 && ctx[0] != nil {
+		return ctx[0]
+	}
+	return context.Background()
+}
 
 // WithCancel context.WithCancel
 func WithCancel(ctx ...context.Context) (context.Context, context.CancelFunc) {
-	var c context.Context
-	if len(ctx) > 0 && ctx[0] != nil {
-		c = ctx[0]
-	} else {
-		c = context.Background()
-	}
-	return context.WithCancel(c)
+	return context.WithCancel(Ctx(ctx...))
 }
 
 // WithTimeout context.WithTimeout
 func WithTimeout(timeout time.Duration, ctx ...context.Context) (context.Context, context.CancelFunc) {
-	var c context.Context
-	if len(ctx) > 0 && ctx[0] != nil {
-		c = ctx[0]
-	} else {
-		c = context.Background()
-	}
-	return context.WithTimeout(c, timeout)
+	return context.WithTimeout(Ctx(ctx...), timeout)
+}
+
+func WithDeadline(deadline time.Time, ctx ...context.Context) (context.Context, context.CancelFunc) {
+	return context.WithDeadline(Ctx(ctx...), deadline)
+}
+
+func WithValue(key, val interface{}, ctx ...context.Context) context.Context {
+	return context.WithValue(Ctx(ctx...), key, val)
 }
 
 //========================================Time========================================

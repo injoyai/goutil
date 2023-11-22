@@ -3,6 +3,8 @@ package shell
 import (
 	"errors"
 	"fmt"
+	"github.com/injoyai/goutil/oss/linux/bash"
+	"github.com/injoyai/goutil/oss/linux/systemctl"
 	"github.com/injoyai/goutil/str"
 	"io"
 	"os"
@@ -50,12 +52,7 @@ func Run(args ...string) error {
 		cmd.Stdin = os.Stdin
 		return cmd.Run()
 	case "linux":
-		list[0] = "-c"
-		cmd := exec.Command("bash", list...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		return cmd.Run()
+		return bash.Run(args...)
 	}
 	return errors.New("未知操作系统:" + runtime.GOOS)
 }
@@ -70,12 +67,7 @@ func IO(w io.ReadWriter, args ...string) error {
 		cmd.Stdin = w
 		return cmd.Run()
 	case "linux":
-		list[0] = "-c"
-		cmd := exec.Command("bash", list...)
-		cmd.Stdout = w
-		cmd.Stderr = w
-		cmd.Stdin = w
-		return cmd.Run()
+		return bash.IO(w, args...)
 	}
 	return errors.New("未知操作系统:" + runtime.GOOS)
 }
@@ -91,11 +83,7 @@ func Stop(name string) error {
 			return errors.New(result)
 		}
 	case "linux":
-		result, err := Execf("systemctl stop %s.service", name)
-		if err != nil {
-			return err
-		}
-		_ = result
+		return systemctl.Stop(name)
 	}
 	return nil
 }
@@ -107,11 +95,7 @@ func Start(filename string) error {
 	case "windows":
 		return exec.Command("cmd", "/c", "start "+filename).Start()
 	case "linux":
-		result, err := Execf("systemctl restart %s.service", filename)
-		if err != nil {
-			return err
-		}
-		_ = result
+		return systemctl.Restart(filename)
 	}
 	return nil
 }

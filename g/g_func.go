@@ -123,7 +123,7 @@ func UserDefaultDir() string { return oss.UserDefaultDir() }
 
 //========================================Math========================================
 
-// Decimals 保留小数点
+// Decimals 保留小数点,默认2位
 func Decimals(f float64, d ...int) float64 {
 	b := math.Pow10(conv.GetDefaultInt(2, d...))
 	return float64(int64(f*b)) / b

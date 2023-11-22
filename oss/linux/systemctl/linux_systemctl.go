@@ -1,10 +1,9 @@
 package systemctl
 
 import (
-	"errors"
 	"fmt"
+	"github.com/injoyai/goutil/oss/linux/bash"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
 
@@ -58,39 +57,37 @@ WantedBy=multi-user.target
 }
 
 func Run(args ...string) (string, error) {
-	cmd := exec.Command("systemctl", args...)
-	output, err := cmd.CombinedOutput()
-	return string(output), err
+	return bash.Exec(append([]string{"systemctl"}, args...)...)
 }
 
 func Start(serviceName string) error {
-	out, err := Run("start", serviceName)
-	return dealErr(out, err)
+	_, err := Run("start", serviceName)
+	return err
 }
 
 func Restart(serviceName string) error {
-	out, err := Run("restart", serviceName)
-	return dealErr(out, err)
+	_, err := Run("restart", serviceName)
+	return err
 }
 
 func Stop(serviceName string) error {
-	out, err := Run("stop", serviceName)
-	return dealErr(out, err)
+	_, err := Run("stop", serviceName)
+	return err
 }
 
 func Reload(serviceName string) error {
-	out, err := Run("stop", serviceName)
-	return dealErr(out, err)
+	_, err := Run("stop", serviceName)
+	return err
 }
 
 func Enable(serviceName string) error {
-	out, err := Run("enable", serviceName)
-	return dealErr(out, err)
+	_, err := Run("enable", serviceName)
+	return err
 }
 
 func Disable(serviceName string) error {
-	out, err := Run("disable", serviceName)
-	return dealErr(out, err)
+	_, err := Run("disable", serviceName)
+	return err
 }
 
 func Status(serviceName string) (string, error) {
@@ -107,14 +104,4 @@ func IsActive(serviceName string) (bool, error) {
 		return false, err
 	}
 	return out == "active\n", nil
-}
-
-func dealErr(out string, err error) error {
-	if err != nil {
-		if len(out) > 0 {
-			return errors.New(out)
-		}
-		return err
-	}
-	return nil
 }
