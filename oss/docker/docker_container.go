@@ -3,6 +3,8 @@ package docker
 import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
+	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"strings"
 )
 
@@ -78,8 +80,54 @@ func (c Client) ContainerList(req *ContainerSearch) (result []types.Container, c
 }
 
 // ContainerCreate 容器创建
-func (c Client) ContainerCreate() error {
-	return nil
+func (c Client) ContainerCreate(req *ContainerCreateReq) (container.CreateResponse, error) {
+	config := &container.Config{
+		Image:           req.Image,
+		Cmd:             req.Cmd,
+		Entrypoint:      req.Entrypoint,
+		Env:             req.Env,
+		Labels:          req.Labels,
+		ExposedPorts:    req.GetPortSet(),
+		OpenStdin:       req.OpenStdin,
+		Tty:             req.TTY,
+		NetworkDisabled: req.NetworkDisabled,
+		Volumes:         req.GetVolumesMap(),
+	}
+	hostConf := &container.HostConfig{
+		Binds:           req.GetVolumes(),
+		LogConfig:       req.LogConfig.Get(),
+		PortBindings:    req.GetPortMap(),
+		RestartPolicy:   req.RestartPolicy.Get(),
+		AutoRemove:      req.AutoRemove,
+		Privileged:      req.Privileged,
+		PublishAllPorts: req.PublishAllPorts,
+		Resources: container.Resources{
+			Memory:    int64(req.MemoryShares * 1024 * 1024),
+			NanoCPUs:  int64(req.NanoCPUs * 1e9),
+			CPUShares: int64(req.CPUShares),
+		},
+	}
+
+	//网络配置
+	networkConf := &network.NetworkingConfig{}
+	switch req.Network {
+	case "host", "none", "bridge":
+		hostConf.NetworkMode = container.NetworkMode(req.Network)
+		networkConf.EndpointsConfig = map[string]*network.EndpointSettings{req.Network: {}}
+	case "":
+	default:
+		//自定义网络
+		networkConf.EndpointsConfig = map[string]*network.EndpointSettings{req.Network: {}}
+	}
+
+	//创建容器
+	resp, err := c.Client.ContainerCreate(c.ctx, config, hostConf, networkConf, &v1.Platform{}, req.Name)
+	if err != nil {
+		c.Client.ContainerRemove(c.ctx, resp.ID, types.ContainerRemoveOptions{RemoveVolumes: true, Force: true})
+		return container.CreateResponse{}, err
+	}
+
+	return resp, nil
 }
 
 func (c Client) ContainerStart(id string) error {
@@ -95,7 +143,8 @@ func (c Client) ContainerKill(id string) error {
 }
 
 func (c Client) ContainerRemove(id string) error {
-	return c.Client.ContainerRemove(c.ctx, id, types.ContainerRemoveOptions{})
+	return c.Client.ContainerRemove(c.ctx, id, types.ContainerRemoveOptions{
+		RemoveVolumes: true, RemoveLinks: true, Force: true})
 }
 
 func (c Client) ContainerPause(id string) error {
@@ -106,6 +155,6 @@ func (c Client) ContainerUnpause(id string) error {
 	return c.Client.ContainerUnpause(c.ctx, id)
 }
 
-func (c Client) ContainerInspect(id string) (*types.ContainerJSON, error) {
-	return nil, nil
+func (c Client) ContainerInspect(id string) (types.ContainerJSON, error) {
+	return c.Client.ContainerInspect(c.ctx, id)
 }
