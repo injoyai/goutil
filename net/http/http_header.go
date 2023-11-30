@@ -31,3 +31,5 @@ var (
 
 	CORS = HeaderCORS
 )
+
+type Header = http.Header

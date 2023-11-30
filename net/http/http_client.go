@@ -151,3 +151,12 @@ func (this *Client) Do(request *Request) (resp *Response) {
 	}
 	return
 }
+
+func Proxy(req *http.Request) *Response {
+	request := &Request{
+		Request: req,
+		client:  DefaultClient,
+		url:     req.URL.String(),
+	}
+	return DefaultClient.Do(request)
+}
