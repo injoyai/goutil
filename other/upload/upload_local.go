@@ -7,29 +7,31 @@ import (
 	"path/filepath"
 )
 
-func NewLocal(dir string, rename ...bool) (Interface, error) {
-	err := os.MkdirAll(dir, 0777)
-	return &Local{
-		dir:    dir,
-		rename: len(rename) > 0 && rename[0],
-	}, err
+var DefaultLocal = NewLocal()
+
+func NewLocal(rename ...bool) Interface {
+	return &Local{rename: len(rename) > 0 && rename[0]}
 }
 
 type Local struct {
-	dir    string
 	rename bool
 }
 
 func (this *Local) Save(filename string, reader io.Reader) (string, error) {
-	if this.rename {
-		filename = md5.Encrypt(filename)
+	dir, name := filepath.Split(filename)
+	if err := os.MkdirAll(filepath.Dir(filename), os.ModePerm); err != nil {
+		return "", err
 	}
-	filename = filepath.Join(this.dir, filename)
+	if this.rename {
+		filename = filepath.Join(dir, md5.Encrypt(name))
+	}
 	f, err := os.Create(filename)
 	if err != nil {
 		return "", err
 	}
 	defer f.Close()
-	_, err = io.Copy(f, reader)
+	if reader != nil {
+		_, err = io.Copy(f, reader)
+	}
 	return filename, err
 }
