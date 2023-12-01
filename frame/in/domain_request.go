@@ -56,7 +56,6 @@ func getFile(r interface{}, name string) (bs []byte) {
 	case *http.Request:
 		f, _, err := v.FormFile(name)
 		CheckErr(err)
-		CheckErr(err)
 		bs, err = ioutil.ReadAll(f)
 		CheckErr(err)
 	case *ghttp.Request:

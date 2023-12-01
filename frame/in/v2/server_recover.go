@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gogf/gf/frame/gins"
 	"github.com/gogf/gf/net/ghttp"
-	"github.com/injoyai/conv"
 	"io"
 	"net/http"
 )
@@ -14,7 +13,7 @@ func (this *Client) InitGo(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				this.MiddleRecover([]byte(conv.String(err)), w)
+				this.MiddleRecover(err, w)
 			}
 		}()
 		if r.URL.Path == this.PingPath {
@@ -40,8 +39,7 @@ func (this *Client) InitGf(name ...interface{}) *ghttp.Server {
 // InitGin 初始化Gin
 func (this *Client) InitGin(s *gin.Engine) *gin.Engine {
 	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recover interface{}) {
-		body := []byte(conv.String(recover))
-		this.MiddleRecover(body, c.Writer)
+		this.MiddleRecover(recover, c.Writer)
 	}))
 	s.Any(this.PingPath, func(c *gin.Context) { this.Succ(nil) })
 	return s
