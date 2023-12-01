@@ -7,8 +7,6 @@ import (
 	"os"
 )
 
-var DefaultClient = New(WithDefault())
-
 //=================================Return=================================//
 
 func Return(code int, data interface{}) { DefaultClient.Exit(code, data) }

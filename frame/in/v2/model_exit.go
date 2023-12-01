@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultExitMark = "EXIT_MARK"
+	DefaultExitMark = "EXITMARK"
 )
 
 type ExitOption func(e *Exit)
