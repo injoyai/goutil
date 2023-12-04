@@ -1,7 +1,6 @@
 package bar
 
 import (
-	"github.com/fatih/color"
 	"io"
 	"time"
 )
@@ -9,7 +8,7 @@ import (
 func Demo() <-chan struct{} {
 	x := New(60)
 	x.SetStyle('>')
-	x.SetColor(color.BgCyan)
+	x.SetColor(BgCyan)
 	go func() {
 		for {
 			time.Sleep(time.Millisecond * 100)
@@ -19,14 +18,14 @@ func Demo() <-chan struct{} {
 	return x.Run()
 }
 
-func Download(url, filename string, proxy ...string) error {
+func Download(url, filename string, proxy ...string) (int, error) {
 	return New(0).DownloadHTTP(url, filename, proxy...)
 }
 
-func DownloadHTTP(url, filename string, proxy ...string) error {
+func DownloadHTTP(url, filename string, proxy ...string) (int, error) {
 	return New(0).DownloadHTTP(url, filename, proxy...)
 }
 
-func Copy(w io.Writer, r io.Reader, total int64) error {
+func Copy(w io.Writer, r io.Reader, total int64) (int, error) {
 	return New(total).Copy(w, r)
 }
