@@ -196,26 +196,28 @@ func (this *entity) init() {
 	this.currentTime = time.Now()
 }
 
-func (this *entity) Copy(w io.Writer, r io.Reader) error {
+func (this *entity) Copy(w io.Writer, r io.Reader) (int, error) {
 	return this.CopyN(w, r, 4<<10)
 }
 
-func (this *entity) CopyN(w io.Writer, r io.Reader, num int64) error {
+func (this *entity) CopyN(w io.Writer, r io.Reader, bufSize int64) (int, error) {
 	defer this.Close()
 	buff := bufio.NewReader(r)
 	go this.Run()
+	total := 0
 	for {
-		buf := make([]byte, num)
+		buf := make([]byte, bufSize)
 		n, err := buff.Read(buf)
 		if err != nil && err != io.EOF {
-			return err
+			return total, err
 		}
+		total += n
 		this.Add(int64(n))
 		if _, err := w.Write(buf[:n]); err != nil {
-			return err
+			return total, err
 		}
 		if err == io.EOF {
-			return nil
+			return total, nil
 		}
 	}
 }
@@ -224,16 +226,16 @@ var (
 	defaultClient = http.NewClient()
 )
 
-func (this *entity) DownloadHTTP(source, filename string, proxy ...string) error {
+func (this *entity) DownloadHTTP(source, filename string, proxy ...string) (int, error) {
 	defaultClient.SetProxy(conv.GetDefaultString("", proxy...))
 	resp := defaultClient.Get(source)
 	if resp.Err() != nil {
-		return resp.Err()
+		return 0, resp.Err()
 	}
 	defer resp.Body.Close()
 	f, err := os.Create(filename)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer f.Close()
 	total := conv.Int64(resp.GetHeader("Content-Length"))

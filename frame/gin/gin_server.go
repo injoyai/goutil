@@ -7,6 +7,10 @@ import (
 	"github.com/injoyai/logs"
 )
 
+type (
+	Context = gin.Context
+)
+
 type Server struct {
 	*gin.Engine
 	Port int

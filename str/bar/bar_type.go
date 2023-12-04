@@ -47,13 +47,13 @@ type Interface interface {
 	//衍生功能,
 
 	// Copy 复制数据加入进度条
-	Copy(w io.Writer, r io.Reader) error
+	Copy(w io.Writer, r io.Reader) (int, error)
 
 	// CopyN 复制数据加入进度条
-	CopyN(w io.Writer, r io.Reader, num int64) error
+	CopyN(w io.Writer, r io.Reader, num int64) (int, error)
 
 	// DownloadHTTP 下载http
-	DownloadHTTP(url, filename string, proxy ...string) error
+	DownloadHTTP(url, filename string, proxy ...string) (int, error)
 }
 
 type Element interface {
