@@ -39,5 +39,14 @@ func main() {
 			"body": string(bs),
 		})
 	})
+	s.Any("/proxy", func(context *gin.Context) {
+		in.Proxy(context.Writer, context.Request, "https://www.baidu.com")
+	})
+	s.Any("/file", func(context *gin.Context) {
+		in.FileLocal("test.txt", "./main.go")
+	})
+	s.Any("/text", func(context *gin.Context) {
+		in.Text(200, "666")
+	})
 	s.Run(":8080")
 }

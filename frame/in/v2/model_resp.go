@@ -2,6 +2,7 @@ package in
 
 import (
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/g"
 	"net/http"
 )
 
@@ -19,11 +20,11 @@ type Resp struct {
 	Count []int64
 }
 
-func (this *Resp) Default() (int, []byte) {
-	return http.StatusOK, this.Bytes()
+func (this *Resp) Default() (int, g.Map) {
+	return http.StatusOK, this.Map()
 }
 
-func (this *Resp) Bytes() []byte {
+func (this *Resp) Map() g.Map {
 	m := map[string]interface{}{
 		"code": this.Code,
 		"data": this.Data,
@@ -37,5 +38,22 @@ func (this *Resp) Bytes() []byte {
 		m["msg"] = errMsg
 		m["data"] = errMsg
 	}
-	return conv.Bytes(m)
+	return m
+}
+
+func NewRespMap(code interface{}, data interface{}, count ...int64) g.Map {
+	m := map[string]interface{}{
+		"code": code,
+		"data": data,
+	}
+	if len(count) > 0 {
+		m["count"] = count[0]
+	}
+	switch val := data.(type) {
+	case error:
+		errMsg := conv.String(val)
+		m["msg"] = errMsg
+		m["data"] = errMsg
+	}
+	return m
 }
