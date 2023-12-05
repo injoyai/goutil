@@ -1,32 +1,36 @@
 package in
 
 import (
-	"github.com/injoyai/conv"
+	"encoding/json"
+	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/net/http"
-	json "github.com/json-iterator/go"
 	"strings"
 )
 
 const (
-	DefaultExitMark = "EXITMARK"
+	DefaultExitMark = "未初始化!!!,例如gin框架,使用in.InitGin(s)" // "EXITMARK"
 )
 
 type ExitOption func(e *Exit)
 
-func NewExit(code int, body interface{}) *Exit {
-	return &Exit{
+func NewExit(httpCode int, i IMarshal) *Exit {
+	bs, err := i.Bytes()
+	g.PanicErr(err)
+	e := &Exit{
 		Mark:   DefaultExitMark,
-		Code:   code,
+		Code:   httpCode,
 		Header: http.Header{},
-		Body:   conv.Bytes(body),
+		Body:   bs,
 	}
+	e.TrySetContentType(i.ContentType()...)
+	return e
 }
 
 type Exit struct {
-	Mark   string      //退出标识
-	Code   int         //响应状态码
-	Header http.Header //响应请求头
-	Body   []byte      //响应内容,body
+	Mark   string      `json:"-"`      //退出标识
+	Code   int         `json:"code"`   //响应状态码
+	Header http.Header `json:"header"` //响应请求头
+	Body   []byte      `json:"body"`   //响应内容,body
 }
 
 func (this *Exit) SetMark(mark string) *Exit {
@@ -53,9 +57,38 @@ func (this *Exit) SetHeader(i string, v ...string) *Exit {
 	return this
 }
 
+// TrySetHeader 尝试设置请求头
+func (this *Exit) TrySetHeader(i string, v ...string) *Exit {
+	if this.Header.Get(i) == "" {
+		return this.SetHeader(i, v...)
+	}
+	return this
+}
+
+// SetContentType 设置请求头Content-Type
+func (this *Exit) SetContentType(ct ...string) *Exit {
+	return this.SetHeader(http.HeaderKeyContentType, ct...)
+}
+
+// TrySetContentType 尝试设置请求头Content-Type
+func (this *Exit) TrySetContentType(ct ...string) *Exit {
+	if this.Header.Get(http.HeaderKeyContentType) == "" {
+		return this.SetContentType(ct...)
+	}
+	return this
+}
+
 // SetHeaderJson 设置请求头Content-Type
 func (this *Exit) SetHeaderJson() *Exit {
 	return this.SetHeader(http.HeaderKeyContentType, "application/json;charset=utf-8")
+}
+
+// TrySetHeaderJson 尝试设置请求头Content-Type
+func (this *Exit) TrySetHeaderJson() *Exit {
+	if this.Header.Get(http.HeaderKeyContentType) == "" {
+		return this.SetHeaderJson()
+	}
+	return this
 }
 
 // SetHeaderCORS 设置跨域
@@ -66,16 +99,14 @@ func (this *Exit) SetHeaderCORS() *Exit {
 	return this
 }
 
-func (this *Exit) String() string {
-	bs, _ := json.Marshal(this)
-	return string(bs)
-}
-
 // Exit 退出程序,中断执行,需要和recover配合使用
 func (this *Exit) Exit() {
-	panic(this.String())
+	bs, err := json.Marshal(this)
+	g.PanicErr(err)
+	panic(this.Mark + string(bs))
 }
 
+// WriteTo 写入响应
 func (this *Exit) WriteTo(w http.Writer) {
 	w.WriteHeader(this.Code)
 	for i, v := range this.Header {

@@ -2,4 +2,7 @@ package http
 
 import "net/http"
 
-type Writer http.ResponseWriter
+type (
+	ResponseWriter = http.ResponseWriter
+	Writer         = http.ResponseWriter
+)
