@@ -231,7 +231,10 @@ func (this *Client) MiddleRecover(err interface{}, w http.ResponseWriter) {
 	this.NewExit(http.StatusInternalServerError, &TEXT{Data: err}).WriteTo(w)
 }
 
-func (this *Client) GetPageSize(r interface{}) (int, int) {
-	return Get(r, this.FiledPage, 1).Int() - 1,
-		Get(r, this.FiledSize, this.DefaultSize).Int()
+func (this *Client) GetPageNum(r interface{}) int {
+	return Get(r, this.FiledPage, 1).Int() - 1
+}
+
+func (this *Client) GetPageSize(r interface{}) int {
+	return Get(r, this.FiledSize, this.DefaultSize).Int()
 }
