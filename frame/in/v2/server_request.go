@@ -217,6 +217,10 @@ func GetFloat(r interface{}, key string, def ...interface{}) float64 {
 	return Get(r, key, def...).Float64()
 }
 
-func GetPageSize(r interface{}) (int, int) {
+func GetPageNum(r interface{}) int {
+	return DefaultClient.GetPageNum(r)
+}
+
+func GetPageSize(r interface{}) int {
 	return DefaultClient.GetPageSize(r)
 }
