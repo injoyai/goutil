@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gogf/gf/net/ghttp"
 	"github.com/injoyai/goutil/frame/gf/swagger"
-	"github.com/injoyai/goutil/frame/in/v2"
+	"github.com/injoyai/goutil/frame/in"
 	"github.com/injoyai/goutil/i/html"
 	"github.com/injoyai/goutil/net/ip"
 	"time"
