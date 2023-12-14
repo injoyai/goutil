@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	in "github.com/injoyai/goutil/frame/in/v2"
+	"github.com/injoyai/goutil/frame/in"
 	"github.com/injoyai/goutil/g"
 	"io"
 )
