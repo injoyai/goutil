@@ -3,7 +3,7 @@ package gi
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/injoyai/goutil/frame/in"
+	"github.com/injoyai/goutil/frame/in/v2"
 	"github.com/injoyai/logs"
 )
 
