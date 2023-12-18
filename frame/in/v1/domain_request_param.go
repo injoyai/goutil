@@ -6,12 +6,12 @@ import (
 	"net/http"
 )
 
-//Read 解析json数据
+// Read 解析json数据
 func Read(r interface{}, ptr interface{}) {
 	read(r, ptr)
 }
 
-//ReadJson 解析json数据
+// ReadJson 解析json数据
 func ReadJson(r interface{}, ptr interface{}) {
 	Read(r, ptr)
 }
