@@ -28,6 +28,7 @@ func (this *Client) InitGf(name ...interface{}) *ghttp.Server {
 	s := gins.Server(name...)
 	s.BindStatusHandler(http.StatusInternalServerError, func(r *ghttp.Request) {
 		body := r.Response.Buffer()
+		r.Response.ClearBuffer()
 		this.MiddleRecover(body, r.Response.Writer)
 	})
 	s.Group("", func(group *ghttp.RouterGroup) {
