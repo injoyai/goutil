@@ -14,7 +14,7 @@ require (
 	github.com/compose-spec/compose-go v1.20.0
 	github.com/ctessum/polyclip-go v1.1.0
 	github.com/denisenkom/go-mssqldb v0.10.0
-	github.com/docker/compose/v2 v2.23.0
+	github.com/docker/compose/v2 v2.0.0
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/fatih/color v1.14.1
