@@ -34,7 +34,7 @@ func (s *ComposeService) ComposeUp() error {
 			Timeout: getComposeTimeout(),
 		},
 		Start: api.StartOptions{
-			WaitTimeout: *getComposeTimeout(),
+			//WaitTimeout: *getComposeTimeout(),
 		},
 	})
 }
@@ -44,15 +44,15 @@ func (s *ComposeService) ComposeDown() error {
 }
 
 func (s *ComposeService) ComposeStart() error {
-	return s.Start(context.Background(), s.project.Name, api.StartOptions{})
+	return s.Start(context.Background(), s.project, api.StartOptions{})
 }
 
 func (s *ComposeService) ComposeRestart() error {
-	return s.Restart(context.Background(), s.project.Name, api.RestartOptions{})
+	return s.Restart(context.Background(), s.project, api.RestartOptions{})
 }
 
 func (s *ComposeService) ComposeStop() error {
-	return s.Stop(context.Background(), s.project.Name, api.StopOptions{})
+	return s.Stop(context.Background(), s.project, api.StopOptions{})
 }
 
 func (s *ComposeService) ComposeCreate() error {
