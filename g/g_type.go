@@ -153,6 +153,14 @@ func (this Map) Conv() conv.Extend {
 	return conv.NewExtend(this)
 }
 
+//========================================Key========================================
+
+type Key string
+
+func (this *Key) SetKey(key string) { *this = Key(key) }
+
+func (this *Key) GetKey() string { return string(*this) }
+
 //========================================Debugger========================================
 
 type Debugger bool
