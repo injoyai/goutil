@@ -153,6 +153,14 @@ func (this Map) Conv() conv.Extend {
 	return conv.NewExtend(this)
 }
 
+//========================================Debugger========================================
+
+type Debugger bool
+
+func (this *Debugger) Debug(b ...bool) {
+	*this = Debugger(len(b) == 0 || b[0])
+}
+
 //========================================Interface========================================
 
 type Stringer interface{ String() string }
