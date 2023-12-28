@@ -3,6 +3,7 @@ package g
 import (
 	"context"
 	"github.com/injoyai/base/chans"
+	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
 	"math/rand"
@@ -104,3 +105,6 @@ func Cfg(paths ...string) *cfg.Entity { return cfg.New(paths...) }
 
 // Chan chans.NewEntity
 func Chan(num int, cap ...int) *chans.Entity { return chans.NewEntity(num, cap...) }
+
+// NewCloser 安全的关闭,原子操作
+func NewCloser() *safe.Closer { return safe.NewCloser() }
