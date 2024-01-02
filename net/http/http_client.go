@@ -75,8 +75,35 @@ func (this *Client) GetBytes(url string) ([]byte, error) {
 	return resp.GetBodyBytes(), resp.Err()
 }
 
+func (this *Client) GetBytesWith(url string, f func([]byte)) ([]byte, error) {
+	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	if resp.Err() != nil {
+		return nil, resp.Err()
+	}
+	buf := bytes.NewBuffer(nil)
+	if _, err := resp.CopyWith(buf, f); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (this *Client) GetBytesWithPlan(url string, f func(p *Plan)) ([]byte, error) {
+	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	if resp.Err() != nil {
+		return nil, resp.Err()
+	}
+	buf := bytes.NewBuffer(nil)
+	if _, err := resp.CopyWithPlan(buf, f); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 func (this *Client) GetToWriter(url string, writer io.Writer) error {
 	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	if resp.Err() != nil {
+		return resp.Err()
+	}
 	defer resp.Response.Body.Close()
 	_, err := io.Copy(writer, resp.Response.Body)
 	return err
