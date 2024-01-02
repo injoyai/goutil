@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -124,11 +123,14 @@ func (this *Response) CopyWith(w io.Writer, fn func(bs []byte)) (int, error) {
 
 // CopyWithPlan 复制数据并监听进度
 func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int, error) {
+	if this.Err() != nil {
+		return 0, this.Err()
+	}
 	p := &Plan{
 		Current: 0,
 		Total:   conv.Int64(this.GetContentLength()),
 	}
-	return io.CopyWith(w, this.Body, func(buf []byte) {
+	return this.CopyWith(w, func(buf []byte) {
 		p.Current += int64(len(buf))
 		fn(p)
 	})
@@ -166,10 +168,10 @@ func (this *Response) GetReadCloser() io.ReadCloser {
 // GetBody 一次性读取全部字节(适用于小数据)
 func (this *Response) GetBody() []byte {
 	if this.body == nil && this.Response != nil {
-		this.body, _ = ioutil.ReadAll(this.Response.Body)
+		this.body, _ = io.ReadAll(this.Response.Body)
 		this.Response.Body.Close()
 		//保持body可读
-		this.Body = ioutil.NopCloser(bytes.NewBuffer(this.body))
+		this.Body = io.NopCloser(bytes.NewBuffer(this.body))
 	}
 	return this.body
 }
