@@ -36,6 +36,16 @@ func GetBytes(url string) ([]byte, error) {
 	return DefaultClient.GetBytes(url)
 }
 
+// GetBytesWith 获取数据并监听
+func GetBytesWith(url string, f func([]byte)) ([]byte, error) {
+	return DefaultClient.GetBytesWith(url, f)
+}
+
+// GetByteWithPlan 获取数据并监听
+func GetByteWithPlan(url string, fn func(p *Plan)) ([]byte, error) {
+	return DefaultClient.GetBytesWithPlan(url, fn)
+}
+
 // GetToWriter 使用GET请求获取响应字节写入writer,适用于下载请求
 func GetToWriter(url string, writer io.Writer) error {
 	return DefaultClient.GetToWriter(url, writer)
