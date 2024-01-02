@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/injoyai/conv"
-	"io"
+	"github.com/injoyai/io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -104,12 +104,34 @@ func (this *Response) GetHeader(key string) string {
 	return this.Header().Get(key)
 }
 
+// GetContentLength 获取Content-Length
+func (this *Response) GetContentLength() string {
+	return this.GetHeader("Content-Length")
+}
+
 // Cookies 获取cookie信息
 func (this *Response) Cookies() (cookie []*http.Cookie) {
 	if this.Response != nil {
 		return this.Response.Cookies()
 	}
 	return
+}
+
+// CopyWith 复制数据,并监听
+func (this *Response) CopyWith(w io.Writer, fn func(bs []byte)) (int, error) {
+	return io.CopyWith(w, this.Body, fn)
+}
+
+// CopyWithPlan 复制数据并监听进度
+func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int, error) {
+	p := &Plan{
+		Current: 0,
+		Total:   conv.Int64(this.GetContentLength()),
+	}
+	return io.CopyWith(w, this.Body, func(buf []byte) {
+		p.Current += int64(len(buf))
+		fn(p)
+	})
 }
 
 // WriteToNewFile 写入新文件,会覆盖原文件(如果存在)
@@ -214,4 +236,9 @@ func newResponse(req *Request, resp *http.Response, err ...error) *Response {
 		r.Bind(req.bodyBind)
 	}
 	return r.print()
+}
+
+type Plan struct {
+	Current int64 //当前数量
+	Total   int64 //总数量
 }

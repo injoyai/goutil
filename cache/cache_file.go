@@ -64,6 +64,14 @@ func (this *File) Set(key string, val interface{}) *File {
 	return this
 }
 
+// SetMap 批量设置参数
+func (this *File) SetMap(m map[string]interface{}) *File {
+	for k, v := range m {
+		this.Set(k, v)
+	}
+	return this
+}
+
 // Del 删除参数
 func (this *File) Del(key string) *File {
 	this.Safe.Del(key)
