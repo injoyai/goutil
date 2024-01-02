@@ -42,12 +42,13 @@ type Client struct {
 // SetProxy 设置代理
 func (this *Client) SetProxy(u string) *Client {
 	if val, ok := this.Client.Transport.(*http.Transport); ok {
-		if len(u) == 0 {
+		uri, err := url.Parse(u)
+		if err != nil {
 			val.Proxy = nil
 			return this
 		}
 		val.Proxy = func(request *http.Request) (*url.URL, error) {
-			return url.Parse(u)
+			return uri, nil
 		}
 	}
 	return this
@@ -152,11 +153,9 @@ func (this *Client) Do(request *Request) (resp *Response) {
 	return
 }
 
-func Proxy(req *http.Request) *Response {
-	request := &Request{
+func (this *Client) Forward(req *http.Request) *Response {
+	return this.Do(&Request{
 		Request: req,
-		client:  DefaultClient,
 		url:     req.URL.String(),
-	}
-	return DefaultClient.Do(request)
+	})
 }
