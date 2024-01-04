@@ -43,7 +43,7 @@ type Client struct {
 func (this *Client) SetProxy(u string) *Client {
 	if val, ok := this.Client.Transport.(*http.Transport); ok {
 		uri, err := url.Parse(u)
-		if err != nil {
+		if err != nil || len(u) == 0 || len(uri.Host) == 0 {
 			val.Proxy = nil
 			return this
 		}
