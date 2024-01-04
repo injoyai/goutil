@@ -52,6 +52,7 @@ func Open(filename string) (image.Image, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	defer file.Close()
 	return image.Decode(file)
 }
 
@@ -60,6 +61,7 @@ func OpenJpeg(filename string) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 	return jpeg.Decode(file)
 }
 
@@ -68,6 +70,7 @@ func OpenPng(filename string) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 	return png.Decode(file)
 }
 
