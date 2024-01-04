@@ -13,25 +13,24 @@ import (
 	"time"
 )
 
-var _ Interface = new(entity)
-
-func New(total int64) Interface {
+func New(total int64) *Bar {
 	return NewWithContext(context.Background(), total)
 }
 
-func NewWithContext(ctx context.Context, total int64) Interface {
+func NewWithContext(ctx context.Context, total int64) *Bar {
 	ctx, cancel := context.WithCancel(ctx)
-	return &entity{
+	return &Bar{
 		width:  50,
 		style:  '>',
 		total:  total,
 		ctx:    ctx,
 		cancel: cancel,
 		c:      make(chan int64),
+		writer: os.Stdout,
 	}
 }
 
-type entity struct {
+type Bar struct {
 	format      Formatter          //格式化
 	width       int                //宽度
 	current     int64              //当前
@@ -42,34 +41,53 @@ type entity struct {
 	c           chan int64         //实时数据通道
 	ctx         context.Context    //
 	cancel      context.CancelFunc //
+	writer      io.Writer
 }
 
-func (this *entity) SetFormatter(f Formatter) Interface {
+/*
+SetFormatter 自定义格式
+
+	func(e *Entity) string {
+		return fmt.Sprintf("\r%s%s %s %s %s %s",
+			this.prefix,
+			e.Bar,
+			e.Rate,
+			e.Size,
+			e.Remain,
+			this.suffix,
+		)
+*/
+func (this *Bar) SetFormatter(f Formatter) *Bar {
 	this.format = f
 	return this
 }
 
-func (this *entity) SetWidth(width int) Interface {
+func (this *Bar) SetWidth(width int) *Bar {
 	this.width = width
 	return this
 }
 
-func (this *entity) SetTotal(total int64) Interface {
+func (this *Bar) SetTotal(total int64) *Bar {
 	this.total = total
 	return this
 }
 
-func (this *entity) SetStyle(style byte) Interface {
+func (this *Bar) SetStyle(style byte) *Bar {
 	this.style = style
 	return this
 }
 
-func (this *entity) SetColor(a color.Attribute) Interface {
+func (this *Bar) SetColor(a color.Attribute) *Bar {
 	this.color = color.New(a)
 	return this
 }
 
-func (this *entity) Add(n int64) Interface {
+func (this *Bar) SetWriter(w io.Writer) *Bar {
+	this.writer = w
+	return this
+}
+
+func (this *Bar) Add(n int64) *Bar {
 	select {
 	case <-this.ctx.Done():
 	case this.c <- n:
@@ -77,16 +95,16 @@ func (this *entity) Add(n int64) Interface {
 	return this
 }
 
-func (this *entity) Done() Interface {
+func (this *Bar) Done() *Bar {
 	return this.Add(this.total)
 }
 
-func (this *entity) Close() error {
+func (this *Bar) Close() error {
 	this.cancel()
 	return nil
 }
 
-func (this *entity) Run() <-chan struct{} {
+func (this *Bar) Run() <-chan struct{} {
 	this.init()             //初始化
 	go this.Add(0)          //触发进度条出现
 	start := time.Now()     //开始时间
@@ -114,7 +132,7 @@ func (this *entity) Run() <-chan struct{} {
 			}
 
 			//元素
-			f := &Entity{
+			f := &Format{
 				Bar: element(func() string {
 					bar := fmt.Sprintf(fmt.Sprintf("[%%-%ds]", this.width), nowWidth)
 					if this.color != nil {
@@ -167,13 +185,15 @@ func (this *entity) Run() <-chan struct{} {
 				s += fmt.Sprintf(fmt.Sprintf("%%-%ds", maxLength-len(s)), " ")
 			}
 
-			fmt.Print(s)
+			if this.writer != nil {
+				this.writer.Write([]byte(s))
+			}
 
 		}
 	}
 }
 
-func (this *entity) init() {
+func (this *Bar) init() {
 	if this.width == 0 {
 		this.width = 40
 	}
@@ -184,7 +204,7 @@ func (this *entity) init() {
 		this.ctx, this.cancel = context.WithCancel(context.Background())
 	}
 	if this.format == nil {
-		this.format = func(e *Entity) string {
+		this.format = func(e *Format) string {
 			return fmt.Sprintf("\r%s  %s  %s",
 				e.Bar,
 				e.SizeUnit,
@@ -196,11 +216,11 @@ func (this *entity) init() {
 	this.currentTime = time.Now()
 }
 
-func (this *entity) Copy(w io.Writer, r io.Reader) (int, error) {
+func (this *Bar) Copy(w io.Writer, r io.Reader) (int, error) {
 	return this.CopyN(w, r, 4<<10)
 }
 
-func (this *entity) CopyN(w io.Writer, r io.Reader, bufSize int64) (int, error) {
+func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int, error) {
 	defer this.Close()
 	buff := bufio.NewReader(r)
 	go this.Run()
@@ -226,7 +246,7 @@ var (
 	defaultClient = http.NewClient()
 )
 
-func (this *entity) DownloadHTTP(source, filename string, proxy ...string) (int, error) {
+func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int, error) {
 	defaultClient.SetProxy(conv.GetDefaultString("", proxy...))
 	resp := defaultClient.Get(source)
 	if resp.Err() != nil {
