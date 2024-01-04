@@ -10,6 +10,7 @@ import (
 
 type (
 	Image = image.Image
+	Point = image.Point
 	Color = color.Color
 )
 
