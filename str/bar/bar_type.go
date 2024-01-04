@@ -1,61 +1,5 @@
 package bar
 
-import (
-	"github.com/fatih/color"
-	"io"
-)
-
-type Interface interface {
-
-	/*
-		SetFormatter 自定义格式
-		func(e *Entity) string {
-			return fmt.Sprintf("\r%s%s %s %s %s %s",
-				this.prefix,
-				e.Bar,
-				e.Rate,
-				e.Size,
-				e.Remain,
-				this.suffix,
-			)
-	*/
-	SetFormatter(f Formatter) Interface
-
-	// SetWidth 设置宽度
-	SetWidth(width int) Interface
-
-	// SetTotal 设置总数据大小
-	SetTotal(total int64) Interface
-
-	// SetStyle 设置进度条风格
-	SetStyle(style byte) Interface
-
-	// SetColor 设置颜色
-	SetColor(color color.Attribute) Interface
-
-	// Add 添加数据
-	Add(n int64) Interface
-
-	// Done 结束
-	Done() Interface
-
-	Close() error
-
-	// Run 运行
-	Run() <-chan struct{}
-
-	//衍生功能,
-
-	// Copy 复制数据加入进度条
-	Copy(w io.Writer, r io.Reader) (int, error)
-
-	// CopyN 复制数据加入进度条
-	CopyN(w io.Writer, r io.Reader, num int64) (int, error)
-
-	// DownloadHTTP 下载http
-	DownloadHTTP(url, filename string, proxy ...string) (int, error)
-}
-
 type Element interface {
 	String() string
 }
@@ -64,7 +8,7 @@ type element func() string
 
 func (this element) String() string { return this() }
 
-type Entity struct {
+type Format struct {
 	Bar      Element
 	Rate     Element
 	Size     Element
@@ -74,7 +18,7 @@ type Entity struct {
 	Remain   Element
 }
 
-type Formatter func(e *Entity) string
+type Formatter func(e *Format) string
 
 func ToB(b int64) (float64, string) {
 	var mapB = map[int]string{
