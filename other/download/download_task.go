@@ -5,6 +5,7 @@ import (
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/goutil/g"
 	"io"
+	"time"
 )
 
 func NewTask() *Task {
@@ -20,15 +21,15 @@ func NewTaskWithContext(ctx context.Context) *Task {
 }
 
 type Task struct {
-	queue    []GetBytes             //分片队列
-	limit    uint                   //协程数
-	retry    uint                   //重试次数
-	offset   int                    //偏移量
-	writer   io.Writer              //
-	doneItem func(i int, err error) //
-	doneAll  func()                 //
-	ctx      context.Context        //
-	cancel   context.CancelFunc     //
+	queue    []GetBytes              //分片队列
+	limit    uint                    //协程数
+	retry    uint                    //重试次数
+	offset   int                     //偏移量
+	writer   io.Writer               //
+	doneItem func(i int, err error)  //
+	doneAll  func(resp *DoneAllResp) //
+	ctx      context.Context         //
+	cancel   context.CancelFunc      //
 }
 
 func (this *Task) Len() int {
@@ -60,12 +61,13 @@ func (this *Task) SetDoneItem(doneItem func(i int, err error)) *Task {
 	return this
 }
 
-func (this *Task) SetDoneAll(doneAll func()) *Task {
+func (this *Task) SetDoneAll(doneAll func(resp *DoneAllResp)) *Task {
 	this.doneAll = doneAll
 	return this
 }
 
 func (this *Task) Download() {
+	start := time.Now()
 	wg := chans.NewWaitLimit(this.limit)
 	cache := make([][]byte, this.Len())
 	for i, v := range this.queue {
@@ -86,7 +88,11 @@ func (this *Task) Download() {
 		this.writer.Write(bs)
 	}
 	if this.doneAll != nil {
-		this.doneAll()
+		this.doneAll(&DoneAllResp{
+			Start: start,
+			Spend: time.Now().Sub(start),
+			Size:  0,
+		})
 	}
 }
 
@@ -109,4 +115,10 @@ func (this *Task) getBytes(v GetBytes) (bytes []byte, err error) {
 
 type GetBytes interface {
 	GetBytes(ctx context.Context) ([]byte, error)
+}
+
+type DoneAllResp struct {
+	Start time.Time
+	Spend time.Duration
+	Size  int64
 }
