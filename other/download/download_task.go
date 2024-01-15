@@ -17,12 +17,11 @@ func NewTask() *Task {
 }
 
 type Task struct {
-	queue    []GetBytes                                         //分片队列
-	limit    uint                                               //协程数
-	retry    uint                                               //重试次数
-	offset   int                                                //偏移量
-	doneItem func(ctx context.Context, resp *DoneItemResp)      //分片下载完成事件
-	doneAll  func(ctx context.Context, resp *DoneAllResp) error //全部下载完成事件
+	queue    []GetBytes                                    //分片队列
+	limit    uint                                          //协程数
+	retry    uint                                          //重试次数
+	offset   int                                           //偏移量
+	doneItem func(ctx context.Context, resp *DoneItemResp) //分片下载完成事件
 }
 
 func (this *Task) Len() int {
@@ -49,49 +48,15 @@ func (this *Task) SetDoneItem(doneItem func(ctx context.Context, resp *DoneItemR
 	return this
 }
 
-func (this *Task) SetDoneAll(doneAll func(ctx context.Context, resp *DoneAllResp) error) *Task {
-	this.doneAll = doneAll
-	return this
-}
-
-func (this *Task) SetDoneAllWithWriter(w io.Writer) *Task {
-	return this.SetDoneAll(func(ctx context.Context, resp *DoneAllResp) error {
-		for _, bs := range resp.Bytes {
-			if w != nil {
-				if _, err := w.Write(bs); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	})
-}
-
-func (this *Task) SetDoneAllWithFile(filename string) *Task {
-	return this.SetDoneAll(func(ctx context.Context, resp *DoneAllResp) error {
-		f, err := os.Create(filename)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		for _, bs := range resp.Bytes {
-			if _, err := f.Write(bs); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
 // Download 下载任务开始下载
-func (this *Task) Download(ctx context.Context) error {
+func (this *Task) Download(ctx context.Context) *TaskResp {
 	start := time.Now()
 	wg := chans.NewWaitLimit(this.limit)
 	cache := make([][]byte, this.Len())
 	for i, v := range this.queue {
 		select {
 		case <-ctx.Done():
-			return nil
+			return &TaskResp{}
 		default:
 			wg.Add()
 			go func(ctx context.Context, i int, t *Task, v GetBytes) {
@@ -111,14 +76,10 @@ func (this *Task) Download(ctx context.Context) error {
 		}
 	}
 	wg.Wait()
-	resp := &DoneAllResp{
+	return &TaskResp{
 		Start: start,
 		Bytes: cache,
 	}
-	if this.doneAll != nil {
-		return this.doneAll(ctx, resp)
-	}
-	return nil
 }
 
 func (this *Task) getBytes(ctx context.Context, v GetBytes) (bytes []byte, err error) {
@@ -152,14 +113,40 @@ func (this *DoneItemResp) Error() string {
 	return ""
 }
 
-type DoneAllResp struct {
+type TaskResp struct {
 	Start time.Time //任务开始时间
 	Bytes [][]byte  //任务分片字节
 	size  *int64
 	spend *time.Duration
 }
 
-func (this *DoneAllResp) GetSpend() time.Duration {
+func (this *TaskResp) WriteTo(w io.Writer) (int64, error) {
+	co := int64(0)
+	for _, bs := range this.Bytes {
+		if w != nil && bs != nil {
+			n, err := w.Write(bs)
+			if err != nil {
+				return co, err
+			}
+			co += int64(n)
+		}
+	}
+	if this.size == nil {
+		this.size = &co
+	}
+	return co, nil
+}
+
+func (this *TaskResp) WriteToFile(filename string) (int64, error) {
+	f, err := os.Create(filename)
+	if err != nil {
+		return 0, err
+	}
+	defer f.Close()
+	return this.WriteTo(f)
+}
+
+func (this *TaskResp) GetSpend() time.Duration {
 	if this.spend != nil {
 		return *this.spend
 	}
@@ -168,7 +155,7 @@ func (this *DoneAllResp) GetSpend() time.Duration {
 	return spend
 }
 
-func (this *DoneAllResp) GetBytes() []byte {
+func (this *TaskResp) GetBytes() []byte {
 	bs := []byte(nil)
 	for _, v := range this.Bytes {
 		bs = append(bs, v...)
@@ -176,7 +163,7 @@ func (this *DoneAllResp) GetBytes() []byte {
 	return bs
 }
 
-func (this *DoneAllResp) GetSize() int64 {
+func (this *TaskResp) GetSize() int64 {
 	if this.size != nil {
 		return *this.size
 	}
