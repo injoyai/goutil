@@ -31,7 +31,7 @@ func newImageInfo(info types.ImageSummary) *ImageInfo {
 		ID:       info.ID,
 		Tags:     info.RepoTags,
 		Size:     info.Size,
-		SizeText: oss.SizeString(uint64(info.Size)),
+		SizeText: oss.SizeString(info.Size),
 		CreateAt: info.Created,
 	}
 }
