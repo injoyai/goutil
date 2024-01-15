@@ -4,8 +4,6 @@ import (
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
 	"github.com/injoyai/goutil/g"
-	"github.com/injoyai/goutil/notice"
-
 	"sync"
 )
 
@@ -42,40 +40,40 @@ type local struct {
 	cfg *LocalConfig
 }
 
-func (this *local) Publish(msg *notice.Message) error {
-	mu.Lock()
-	defer mu.Unlock()
-	if err := ole.CoInitialize(0); err != nil {
-		return err
-	}
-	unknown, err := oleutil.CreateObject("SAPI.SpVoice")
-	if err != nil {
-		return err
-	}
-	voice, err := unknown.QueryInterface(ole.IID_IDispatch)
-	if err != nil {
-		return err
-	}
-	_, err = oleutil.PutProperty(voice, "Rate", this.cfg.Rate)
-	if err != nil {
-		return err
-	}
-	_, err = oleutil.PutProperty(voice, "Volume", this.cfg.Volume)
-	if err != nil {
-		return err
-	}
-	_, err = oleutil.CallMethod(voice, "Speak", msg.Content)
-	if err != nil {
-		return err
-	}
-	_, err = oleutil.CallMethod(voice, "WaitUntilDone", 0)
-	if err != nil {
-		return err
-	}
-	voice.Release()
-	ole.CoUninitialize()
-	return nil
-}
+//func (this *local) Publish(msg *notice.Message) error {
+//	mu.Lock()
+//	defer mu.Unlock()
+//	if err := ole.CoInitialize(0); err != nil {
+//		return err
+//	}
+//	unknown, err := oleutil.CreateObject("SAPI.SpVoice")
+//	if err != nil {
+//		return err
+//	}
+//	voice, err := unknown.QueryInterface(ole.IID_IDispatch)
+//	if err != nil {
+//		return err
+//	}
+//	_, err = oleutil.PutProperty(voice, "Rate", this.cfg.Rate)
+//	if err != nil {
+//		return err
+//	}
+//	_, err = oleutil.PutProperty(voice, "Volume", this.cfg.Volume)
+//	if err != nil {
+//		return err
+//	}
+//	_, err = oleutil.CallMethod(voice, "Speak", msg.Content)
+//	if err != nil {
+//		return err
+//	}
+//	_, err = oleutil.CallMethod(voice, "WaitUntilDone", 0)
+//	if err != nil {
+//		return err
+//	}
+//	voice.Release()
+//	ole.CoUninitialize()
+//	return nil
+//}
 
 func (this *local) Call(msg *Message) error {
 	mu.Lock()
