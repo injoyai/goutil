@@ -27,7 +27,7 @@ func main() {
 		return fmt.Print(string(p))
 	}))
 	for {
-		_, err := b.DownloadHTTP(url, filename) //, "http://127.0.0.1:1081")
+		_, err := b.DownloadHTTP(url, filename, "http://127.0.0.1:1081")
 		if !logs.PrintErr(err) {
 			os.Remove(filename)
 			break

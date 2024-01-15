@@ -8,6 +8,7 @@ import (
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
+	"github.com/injoyai/goutil/oss"
 	"io"
 	"os"
 	"time"
@@ -147,15 +148,15 @@ func (this *Bar) Run() <-chan struct{} {
 					return fmt.Sprintf("%d/%d", this.current, this.total)
 				}),
 				SizeUnit: element(func() string {
-					currentNum, currentUnit := ToB(this.current)
-					totalNum, totalUnit := ToB(this.total)
+					currentNum, currentUnit := oss.Size(this.current)
+					totalNum, totalUnit := oss.Size(this.total)
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
 					if val, ok := cache.Get("Speed"); ok {
 						return val.(string)
 					}
-					f, unit := ToB(int64(spend))
+					f, unit := oss.Size(int64(spend))
 					if f < 0 {
 						f, unit = 0, "B"
 					}

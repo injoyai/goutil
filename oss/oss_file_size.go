@@ -3,6 +3,7 @@ package oss
 import (
 	"fmt"
 	"github.com/injoyai/conv"
+	"time"
 )
 
 var mapSizeUnit = map[int]string{
@@ -22,16 +23,32 @@ var mapSizeUnit = map[int]string{
 	130: "XB",
 }
 
-// SizeString 字节数量字符表现方式
-func SizeString(size uint64, decimal ...int) string {
-	base := 0
-	for base = 0; base <= 130; base += 10 {
-		if size < 1<<(base+10) {
-			break
+func Size(b int64) (float64, string) {
+	for n := 0; n <= 130; n += 10 {
+		if b < 1<<(n+10) {
+			if n == 0 {
+				return float64(b), mapSizeUnit[n]
+			}
+			return float64(b) / float64(int64(1)<<n), mapSizeUnit[n]
 		}
 	}
-	unit := mapSizeUnit[base]
-	f := float64(size) / float64(int(1)<<base)
-	d := conv.GetDefaultInt(2, decimal...)
-	return fmt.Sprintf(fmt.Sprintf("%%.%df%%s", d), f, unit)
+	return float64(b), mapSizeUnit[0]
+}
+
+// SizeString 字节数量字符表现方式
+func SizeString(b int64, decimal ...int) string {
+	size, unit := Size(b)
+	d := conv.GetDefaultInt(1, decimal...)
+	return fmt.Sprintf(fmt.Sprintf("%%.%df%%s", d), size, unit)
+}
+
+func SizeSpend(b int64, d time.Duration) (float64, string) {
+	size, unit := Size(b)
+	return size / d.Seconds(), unit
+}
+
+func SizeSpendString(b int64, sub time.Duration, decimal ...int) string {
+	spend, unit := SizeSpend(b, sub)
+	d := conv.GetDefaultInt(1, decimal...)
+	return fmt.Sprintf(fmt.Sprintf("%%.%df%%s/s", d), spend, unit)
 }

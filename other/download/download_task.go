@@ -96,6 +96,12 @@ type GetBytes interface {
 	GetBytes(ctx context.Context) ([]byte, error)
 }
 
+type GetBytesFunc func(ctx context.Context) ([]byte, error)
+
+func (this GetBytesFunc) GetBytes(ctx context.Context) ([]byte, error) {
+	return this(ctx)
+}
+
 type DoneItemResp struct {
 	Index int
 	Bytes []byte
