@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+type Handler func(ctx context.Context) (interface{}, error)
+
 func NewRange() *Range {
 	return &Range{
 		limit: 1,
@@ -16,10 +18,10 @@ func NewRange() *Range {
 }
 
 type Range struct {
-	queue    []Handler              //分片队列
-	limit    uint                   //协程数
-	retry    uint                   //重试次数
-	doneItem func(i int, err error) //子项执行完成
+	queue    []Handler                                 //分片队列
+	limit    uint                                      //协程数
+	retry    uint                                      //重试次数
+	doneItem func(ctx context.Context, resp *ItemResp) //子项执行完成
 }
 
 func (this *Range) Len() int {
@@ -41,7 +43,7 @@ func (this *Range) SetRetry(retry uint) *Range {
 	return this
 }
 
-func (this *Range) SetDoneItem(f func(i int, err error)) *Range {
+func (this *Range) SetDoneItem(f func(ctx context.Context, resp *ItemResp)) *Range {
 	this.doneItem = f
 	return this
 }
@@ -55,13 +57,17 @@ func (this *Range) Run(ctx context.Context) *Resp {
 			return &Resp{Err: errors.New("上下文关闭")}
 		default:
 			wg.Add()
-			go func(i int, f Handler) {
+			go func(ctx context.Context, i int, f Handler) {
 				defer wg.Done()
-				err := g.Retry(f, int(this.retry))
+				resp := &ItemResp{Index: i}
+				_ = g.Retry(func() error {
+					resp.Data, resp.Err = f(ctx)
+					return resp.Err
+				}, int(this.retry))
 				if this.doneItem != nil {
-					this.doneItem(i, err)
+					this.doneItem(ctx, resp)
 				}
-			}(i, f)
+			}(ctx, i, f)
 		}
 	}
 	wg.Wait()
@@ -70,9 +76,16 @@ func (this *Range) Run(ctx context.Context) *Resp {
 	}
 }
 
+type ItemResp struct {
+	Index int
+	Data  interface{}
+	Err   error
+}
+
 type Resp struct {
-	Start time.Time //任务开始时间
-	Err   error     //错误信息
+	Start time.Time     //任务开始时间
+	Data  []interface{} //任务分片数据
+	Err   error         //错误信息
 	spend *time.Duration
 }
 
