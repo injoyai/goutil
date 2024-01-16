@@ -97,6 +97,9 @@ func Done(key string, value interface{}) { wait.Done(key, value) }
 // Input 监听用户输入
 func Input(hint ...interface{}) string { return oss.Input(hint...) }
 
+// InputVar 监听用户输入,返回*conv.Var
+func InputVar(hint ...interface{}) *conv.Var { return oss.InputVar(hint...) }
+
 // ListenExit 监听退出信号
 func ListenExit(fn ...func()) { oss.ListenExit(fn...) }
 

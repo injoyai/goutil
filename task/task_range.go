@@ -2,57 +2,92 @@ package task
 
 import (
 	"context"
+	"errors"
 	"github.com/injoyai/base/chans"
-	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/g"
+	"time"
 )
 
-func NewRange(limit int, retry ...int) *Range {
+func NewRange() *Range {
 	return &Range{
-		Retry: conv.GetDefaultInt(3, retry...),
-		Limit: limit,
+		limit: 1,
+		retry: 3,
 	}
 }
 
 type Range struct {
-	Retry    int                    //重试次数
-	Limit    int                    //并发数量
-	DoneFunc func(i int, err error) //子项执行完成
+	queue    []Handler              //分片队列
+	limit    uint                   //协程数
+	retry    uint                   //重试次数
+	doneItem func(i int, err error) //子项执行完成
 }
 
-func (this *Range) SetRetry(retry int) *Range {
-	this.Retry = retry
+func (this *Range) Len() int {
+	return len(this.queue)
+}
+
+func (this *Range) Append(v Handler) *Range {
+	this.queue = append(this.queue, v)
 	return this
 }
 
-func (this *Range) SetLimit(limit int) *Range {
-	this.Limit = limit
+func (this *Range) SetLimit(limit uint) *Range {
+	this.limit = limit
 	return this
 }
 
-func (this *Range) SetDoneFunc(f func(i int, err error)) *Range {
-	this.DoneFunc = f
+func (this *Range) SetRetry(retry uint) *Range {
+	this.retry = retry
 	return this
 }
 
-func (this *Range) Run(ctx context.Context, list []Handler) []error {
-	errList := []error(nil)
-	limit := chans.NewWaitLimit(uint(this.Limit))
-	for i, f := range list {
+func (this *Range) SetDoneItem(f func(i int, err error)) *Range {
+	this.doneItem = f
+	return this
+}
+
+func (this *Range) Run(ctx context.Context) *Resp {
+	start := time.Now()
+	wg := chans.NewWaitLimit(this.limit)
+	for i, f := range this.queue {
 		select {
 		case <-ctx.Done():
-			break
+			return &Resp{Err: errors.New("上下文关闭")}
 		default:
-			limit.Add()
-			go func(i int, f Handler, errList []error) {
-				defer limit.Done()
-				err := g.Retry(f, this.Retry)
-				if err != nil {
-					errList = append(errList, err)
+			wg.Add()
+			go func(i int, f Handler) {
+				defer wg.Done()
+				err := g.Retry(f, int(this.retry))
+				if this.doneItem != nil {
+					this.doneItem(i, err)
 				}
-				this.DoneFunc(i, err)
-			}(i, f, errList)
+			}(i, f)
 		}
 	}
-	return errList
+	wg.Wait()
+	return &Resp{
+		Start: start,
+	}
+}
+
+type Resp struct {
+	Start time.Time //任务开始时间
+	Err   error     //错误信息
+	spend *time.Duration
+}
+
+func (this *Resp) GetSpend() time.Duration {
+	if this.spend != nil {
+		return *this.spend
+	}
+	spend := time.Since(this.Start)
+	this.spend = &spend
+	return spend
+}
+
+func (this *Resp) Error() string {
+	if this.Err != nil {
+		return this.Err.Error()
+	}
+	return ""
 }

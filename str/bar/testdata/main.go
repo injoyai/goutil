@@ -5,6 +5,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/str/bar"
+	"github.com/injoyai/io"
 	"github.com/injoyai/logs"
 	"os"
 	"time"
@@ -23,7 +24,7 @@ func main() {
 	b := bar.New(0)
 	b.SetColor(color.BgCyan)
 	b.SetStyle('#')
-	b.SetWriter(Writer(func(p []byte) (int, error) {
+	b.SetWriter(io.WriteFunc(func(p []byte) (int, error) {
 		return fmt.Print(string(p))
 	}))
 	for {
@@ -46,10 +47,4 @@ func main() {
 	}
 
 	g.Input("请按回车键退出...")
-}
-
-type Writer func(p []byte) (int, error)
-
-func (this Writer) Write(p []byte) (int, error) {
-	return this(p)
 }
