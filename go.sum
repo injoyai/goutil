@@ -710,11 +710,11 @@ github.com/injoyai/base v1.0.6/go.mod h1:JtIjMb07LDnhyOaSr4PUstpLOxMRsZVk/PUrNdN
 github.com/injoyai/conv v1.0.4/go.mod h1:rqBoiZt/YSKjGYEH4F6z+56djYLFkgKt/kWK5/1X640=
 github.com/injoyai/conv v1.0.6 h1:F2mYlLaiaXvIRkq6EljPkIl5PfQbqYPeOJ3Vqnv68hU=
 github.com/injoyai/conv v1.0.6/go.mod h1:rqBoiZt/YSKjGYEH4F6z+56djYLFkgKt/kWK5/1X640=
-github.com/injoyai/io v0.1.0 h1:tvlvLQjWpolIyJZNnrLXW8G6M131p0ARQsdAlMXM+IY=
-github.com/injoyai/io v0.1.0/go.mod h1:g4oJcg15xJHxe5GsrrlVPTTO5xz7Xk378mOy75+Lxfo=
+github.com/injoyai/io v0.1.6 h1:9ze8aLpLm0WsCZnB80AoNcAnLZEjHl1xjd1wZoGm/fA=
+github.com/injoyai/io v0.1.6/go.mod h1:g4oJcg15xJHxe5GsrrlVPTTO5xz7Xk378mOy75+Lxfo=
 github.com/injoyai/logs v1.0.2/go.mod h1:CLchJCGhb39Obyrci816R+KMtbxZhgPs0FuikhyixK4=
-github.com/injoyai/logs v1.0.6 h1:Ha+JIKfDQX75SycYvD4v6dpdkFVkxno1xXL58Ac1oKU=
-github.com/injoyai/logs v1.0.6/go.mod h1:CLchJCGhb39Obyrci816R+KMtbxZhgPs0FuikhyixK4=
+github.com/injoyai/logs v1.0.7 h1:pVBB8/rJ/nsnlSvxZoBfCfu+kL84q2pqEx5oN4qPG7I=
+github.com/injoyai/logs v1.0.7/go.mod h1:CLchJCGhb39Obyrci816R+KMtbxZhgPs0FuikhyixK4=
 github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07/go.mod h1:co9pwDoBCm1kGxawmb4sPq0cSIOOWNPT4KnHotMP1Zg=
 github.com/j-keck/arping v0.0.0-20160618110441-2cf9dc699c56/go.mod h1:ymszkNOg6tORTn+6F6j+Jc8TOr5osrynvN6ivFWZ2GA=
 github.com/jackc/chunkreader v1.0.0/go.mod h1:RT6O25fNZIuasFJRyZ4R/Y2BbhasbmZXF9QQ7T3kePo=
