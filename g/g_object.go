@@ -38,6 +38,17 @@ func RandString(length int, str ...string) string {
 	return string(s)
 }
 
+func RandInt(min, max int) int {
+	r := Rand()
+	return r.Intn(max-min) + min
+}
+
+func RandFloat(min, max float64, d ...int) float64 {
+	r := Rand()
+	f := r.Float64()*(max-min) + min
+	return Decimals(f, d...)
+}
+
 //========================================Context========================================
 
 // Ctx context.Background
