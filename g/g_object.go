@@ -14,14 +14,13 @@ import (
 
 var (
 	r  *rand.Rand
-	rs string
+	rs = "abcdefghigklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ0123456789"
 )
 
-// Rand 随机数
+// Rand 随机数,单例模式,惰性加载
 func Rand() *rand.Rand {
 	if r == nil {
 		r = rand.New(rand.NewSource(time.Now().UnixNano()))
-		rs = "abcdefghigklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ0123456789"
 	}
 	return r
 }
@@ -38,14 +37,19 @@ func RandString(length int, str ...string) string {
 	return string(s)
 }
 
+// RandInt 随机整数
 func RandInt(min, max int) int {
-	r := Rand()
-	return r.Intn(max-min) + min
+	return Rand().Intn(max-min) + min
 }
 
+// RandInt64 随机64位整数
+func RandInt64(min, max int64) int64 {
+	return Rand().Int63n(max-min) + min
+}
+
+// RandFloat 随机浮点数
 func RandFloat(min, max float64, d ...int) float64 {
-	r := Rand()
-	f := r.Float64()*(max-min) + min
+	f := Rand().Float64()*(max-min) + min
 	return Decimals(f, d...)
 }
 

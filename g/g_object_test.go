@@ -12,4 +12,5 @@ func TestRandString(t *testing.T) {
 func TestRandFloat(t *testing.T) {
 	t.Log(RandInt(0, 10))
 	t.Log(RandFloat(0, 10))
+	t.Log(RandFloat(0, 10, 1))
 }
