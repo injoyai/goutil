@@ -1,16 +1,17 @@
 package js
 
 import (
+	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/script"
 )
 
 var (
-	_ script.Interface = &Pool{}
+	_ script.Client = &Pool{}
 )
 
-func NewPool(num ...int) *Pool {
-	length := conv.GetDefaultInt(20, num...)
+func NewPool(num int, option ...func(c script.Client)) *Pool {
+	length := conv.SelectInt(num <= 0, 1, num)
 	length = conv.SelectInt(length <= 0, 1, length)
 	p := &Pool{
 		length: length,
@@ -18,7 +19,7 @@ func NewPool(num ...int) *Pool {
 		queue:  make(chan *Client, length),
 	}
 	for i := 0; i < p.length; i++ {
-		c := New()
+		c := New(option...)
 		p.list = append(p.list, c)
 		p.queue <- c
 	}
@@ -29,6 +30,14 @@ type Pool struct {
 	length int
 	list   []*Client
 	queue  chan *Client
+	tag    *maps.Safe
+}
+
+func (this *Pool) Tag() *maps.Safe {
+	if this.tag == nil {
+		this.tag = maps.NewSafe()
+	}
+	return this.tag
 }
 
 func (this *Pool) get() *Client {

@@ -6,23 +6,19 @@ import (
 )
 
 type Func func(*Args) interface{}
+type Option func(c Client)
 
 type Client interface {
-	Interface
-	Tag() *maps.Safe
-}
-
-type Interface interface {
 	Exec(text string, option ...func(i Client)) (interface{}, error)
 	Set(key string, value interface{}) error
 	SetFunc(key string, value Func) error
 	Close() error
+	Tag() *maps.Safe
 }
 
 type Args struct {
-	This Interface
+	This Client
 	Args []*conv.Var
-	//Interface
 }
 
 func (this *Args) Len() int {

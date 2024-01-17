@@ -85,7 +85,7 @@ func (this Type) Value(v interface{}) interface{} {
 	case Script:
 		scriptPoolOnce.Do(func() {
 			if ScriptPool == nil {
-				ScriptPool = js.NewPool()
+				ScriptPool = js.NewPool(20)
 			}
 		})
 		val, _ := ScriptPool.Exec(conv.String(v))
