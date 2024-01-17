@@ -11,10 +11,10 @@ import (
 
 var (
 	Nil = otto.NullValue()
-	_   = script.Interface(new(Client))
+	_   = script.Client(new(Client))
 )
 
-func New() *Client {
+func New(option ...func(c script.Client)) *Client {
 	vm := otto.New()
 	cli := &Client{
 		Otto: vm,
@@ -37,6 +37,9 @@ func New() *Client {
 		return nil
 	})
 	cli.Exec("var console={\nlog:function(any){\nprint(any)\n}\n}")
+	for _, v := range option {
+		v(cli)
+	}
 	return cli
 }
 

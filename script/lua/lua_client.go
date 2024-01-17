@@ -40,7 +40,7 @@ table	Lua 中的表（table）其实是一个"关联数组"（associative arrays
 
 var (
 	Nil = lua.LNil
-	_   = script.Interface(new(Client))
+	_   = script.Client(new(Client))
 )
 
 type Option = lua.Options
