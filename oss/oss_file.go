@@ -59,8 +59,10 @@ func OpenFile(filename string) (*os.File, error) {
 
 // New 新建文件,会覆盖
 func New(filename string, v ...interface{}) error {
-	dir := filepath.Dir(filename)
-	name := filepath.Base(filename)
+	if len(v) == 0 {
+		return os.MkdirAll(filename, defaultPerm)
+	}
+	dir, name := filepath.Split(filename)
 	if err := os.MkdirAll(dir, defaultPerm); err != nil {
 		return err
 	}
