@@ -36,7 +36,7 @@ func New(option ...func(c script.Client)) *Client {
 		}
 		return nil
 	})
-	cli.Exec("var console={\nlog:function(any){\nprint(any)\n}\n}")
+	//cli.Exec("var console={\nlog:function(any){\nprint(any)\n}\n}")
 	for _, v := range option {
 		v(cli)
 	}

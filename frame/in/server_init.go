@@ -19,3 +19,11 @@ func InitGf(name ...interface{}) *ghttp.Server {
 func InitGin(s *gin.Engine) *gin.Engine {
 	return DefaultClient.InitGin(s)
 }
+
+func SetSuccFailCode(succ, fail interface{}) *Client {
+	return DefaultClient.SetSuccFailCode(succ, fail)
+}
+
+func SetSuccFail(f func(c *Client, succ bool, data interface{}, count ...int64)) *Client {
+	return DefaultClient.SetSuccFail(f)
+}
