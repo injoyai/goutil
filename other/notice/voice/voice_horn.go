@@ -3,7 +3,6 @@ package voice
 import (
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
-	"github.com/injoyai/goutil/g"
 	"sync"
 )
 
@@ -110,33 +109,56 @@ func (this *local) Call(msg *Message) error {
 	return nil
 }
 
-func (this *local) Save(path, msg string) (err error) {
+func (this *local) Save(path, msg string) error {
 	mu.Lock()
 	defer mu.Unlock()
-	defer g.Recover(&err)
-	g.PanicErr(ole.CoInitialize(0))
+	if err := ole.CoInitialize(0); err != nil {
+		return err
+	}
 	unknown, err := oleutil.CreateObject("SAPI.SpVoice")
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	voice, err := unknown.QueryInterface(ole.IID_IDispatch)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	saveFile, err := oleutil.CreateObject("SAPI.SpFileStream")
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	ff, err := saveFile.QueryInterface(ole.IID_IDispatch)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.CallMethod(ff, "Open", path, 3, true)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.PutPropertyRef(voice, "AudioOutputStream", ff)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.PutProperty(voice, "Rate", this.cfg.Rate)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.PutProperty(voice, "Volume", this.cfg.Volume)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.CallMethod(voice, "Speak", msg)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.CallMethod(voice, "WaitUntilDone", 0)
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	_, err = oleutil.CallMethod(ff, "Close")
-	g.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	ff.Release()
 	voice.Release()
 	ole.CoUninitialize()
