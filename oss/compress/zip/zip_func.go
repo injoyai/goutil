@@ -3,8 +3,10 @@ package zip
 import (
 	"archive/zip"
 	"github.com/injoyai/goutil/oss"
+	"github.com/injoyai/logs"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 // Encode 压缩文件
@@ -28,7 +30,7 @@ func Encode(filePath, zipPath string) error {
 	return compareZip(file, zipWriter, "", true)
 }
 
-//压缩文件
+// 压缩文件
 func compareZip(file *os.File, zipWriter *zip.Writer, prefix string, top bool) error {
 	defer file.Close()
 	fileInfo, err := file.Stat()
@@ -87,11 +89,15 @@ func Decode(zipPath, filePath string) error {
 	for _, k := range r.Reader.File {
 		var err error
 		if k.FileInfo().IsDir() {
-			oss.New(filePath + k.Name[1:])
+			logs.Debug("创建文件夹", filepath.Join(filePath, k.Name))
+			if err := oss.New(filepath.Join(filePath, k.Name)); err != nil {
+				return err
+			}
 		} else {
 			r, err := k.Open()
 			if err == nil {
-				err = oss.New(filePath+"/"+k.Name, r)
+				logs.Debug("创建文件", filepath.Join(filePath, k.Name))
+				err = oss.New(filepath.Join(filePath, k.Name), r)
 			}
 		}
 		if err != nil {
