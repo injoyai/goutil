@@ -58,7 +58,11 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 	for i, v := range this.queue {
 		select {
 		case <-ctx.Done():
-			return &DownloadResp{Err: errors.New("上下文关闭")}
+			return &DownloadResp{
+				Start: start,
+				Bytes: cache,
+				Err:   errors.New("上下文关闭"),
+			}
 		default:
 			wg.Add()
 			go func(ctx context.Context, i int, t *Download, v GetBytes) {
