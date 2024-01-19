@@ -13,9 +13,9 @@ func TestDecodeZip(t *testing.T) {
 }
 
 func Test_unComprZip2(t *testing.T) {
-	t.Log(Encode("./chrome", "./output.zip"))
+	t.Log(Encode("./1/chrome/", "./output.zip"))
 }
 
 func TestDecodeZip2(t *testing.T) {
-	t.Log(Decode("./chrome.zip", "."))
+	t.Log(Decode("./output.zip", "./2"))
 }
