@@ -41,8 +41,8 @@ func GetBytesWith(url string, f func([]byte)) ([]byte, error) {
 	return DefaultClient.GetBytesWith(url, f)
 }
 
-// GetByteWithPlan 获取数据并监听
-func GetByteWithPlan(url string, fn func(p *Plan)) ([]byte, error) {
+// GetBytesWithPlan 获取数据并监听
+func GetBytesWithPlan(url string, fn func(p *Plan)) ([]byte, error) {
 	return DefaultClient.GetBytesWithPlan(url, fn)
 }
 

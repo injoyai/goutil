@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/net/http"
 	"io"
 	"os"
 	"time"
@@ -31,7 +32,9 @@ func (this *Download) Len() int {
 }
 
 func (this *Download) Append(v GetBytes) *Download {
-	this.queue = append(this.queue, v)
+	if v != nil {
+		this.queue = append(this.queue, v)
+	}
 	return this
 }
 
@@ -52,6 +55,9 @@ func (this *Download) SetDoneItem(doneItem func(ctx context.Context, resp *Downl
 
 // Download 下载任务开始下载
 func (this *Download) Download(ctx context.Context) *DownloadResp {
+	if len(this.queue) == 1 {
+		return this.downloadOne(ctx, this.queue[0])
+	}
 	start := time.Now()
 	wg := chans.NewWaitLimit(this.limit)
 	cache := make([][]byte, this.Len())
@@ -88,9 +94,26 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 	}
 }
 
+func (this *Download) downloadOne(ctx context.Context, i GetBytes) *DownloadResp {
+	start := time.Now()
+	bytes, err := i.GetBytes(ctx, func(p *http.Plan) {
+		if this.doneItem != nil {
+			this.doneItem(ctx, &DownloadItemResp{
+				Index: p.Index,
+				Bytes: p.Bytes,
+			})
+		}
+	})
+	return &DownloadResp{
+		Start: start,
+		Bytes: [][]byte{bytes},
+		Err:   err,
+	}
+}
+
 func (this *Download) getBytes(ctx context.Context, v GetBytes) (bytes []byte, err error) {
 	for i := uint(0); i < this.retry; i++ {
-		bytes, err = v.GetBytes(ctx)
+		bytes, err = v.GetBytes(ctx, nil)
 		if err == nil {
 			return
 		}
@@ -99,13 +122,13 @@ func (this *Download) getBytes(ctx context.Context, v GetBytes) (bytes []byte, e
 }
 
 type GetBytes interface {
-	GetBytes(ctx context.Context) ([]byte, error)
+	GetBytes(ctx context.Context, f func(p *http.Plan)) ([]byte, error)
 }
 
-type GetBytesFunc func(ctx context.Context) ([]byte, error)
+type GetBytesFunc func(ctx context.Context, f func(p *http.Plan)) ([]byte, error)
 
-func (this GetBytesFunc) GetBytes(ctx context.Context) ([]byte, error) {
-	return this(ctx)
+func (this GetBytesFunc) GetBytes(ctx context.Context, f func(p *http.Plan)) ([]byte, error) {
+	return this(ctx, f)
 }
 
 /*
