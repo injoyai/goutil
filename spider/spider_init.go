@@ -43,7 +43,7 @@ func New(browserPath, driverPath string, option ...Option) *Entity {
 		browserPath:   browserPath,
 		driverPath:    driverPath,
 		seleniumPort:  20165,
-		seleniumDebug: true,
+		seleniumDebug: false,
 		userAgent:     http.UserAgentDefault,
 		retry:         3,
 	}
@@ -135,7 +135,7 @@ func (this *Entity) Run(f func(w *WebDriver) error, option ...selenium.ServiceOp
 	defer service.Stop()
 
 	//链接本地的浏览器 chrome
-	caps := selenium.Capabilities{"browserName": Chrome}
+	caps := selenium.Capabilities{"browserName": string(Chrome)}
 	//设置浏览器参数
 	caps.AddChrome(chrome.Capabilities{
 		Path: this.browserPath,
@@ -143,10 +143,13 @@ func (this *Entity) Run(f func(w *WebDriver) error, option ...selenium.ServiceOp
 			//是否禁止图片加载，加快渲染速度
 			"profile.managed_default_content_settings.images": conv.SelectInt(this.showWindow && this.showImg, 1, 2),
 		},
-		Args: []string{
-			"--user-agent=" + this.userAgent,
-			conv.SelectString(!oss.IsWindows() || !this.showWindow, "--headless", ""),
-		},
+		Args: func() []string {
+			list := []string{"--user-agent=" + this.userAgent}
+			if !oss.IsWindows() || !this.showWindow {
+				list = append(list, "--headless")
+			}
+			return list
+		}(),
 	})
 
 	// 调起chrome浏览器

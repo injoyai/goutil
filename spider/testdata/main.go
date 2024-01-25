@@ -8,8 +8,8 @@ import (
 
 func main() {
 	logs.PrintErr(spider.New(
-		oss.UserInjoyDir("/downloader/browser/chrome.exe"),
-		oss.UserInjoyDir("/downloader/browser/chromedriver.exe"),
+		oss.UserInjoyDir("/downloader/browser/chrome/chrome.exe"),
+		oss.UserInjoyDir("/downloader/browser/chrome/chromedriver.exe"),
 	).Run(func(w *spider.WebDriver) error {
 		w.Open("http://www.baidu.com")
 		w.WaitMin(2)
