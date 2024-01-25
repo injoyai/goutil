@@ -57,6 +57,7 @@ require (
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/qiniu/x v7.0.8+incompatible // indirect
+	github.com/tebeka/selenium v0.9.9
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	qiniupkg.com/x v7.0.8+incompatible // indirect
 )
