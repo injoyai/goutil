@@ -127,12 +127,17 @@ func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int, error) {
 		return 0, this.Err()
 	}
 	p := &Plan{
+		Index:   0,
 		Current: 0,
 		Total:   conv.Int64(this.GetContentLength()),
 	}
 	return this.CopyWith(w, func(buf []byte) {
+		p.Index++
 		p.Current += int64(len(buf))
-		fn(p)
+		p.Bytes = buf
+		if fn != nil {
+			fn(p)
+		}
 	})
 }
 
@@ -241,6 +246,8 @@ func newResponse(req *Request, resp *http.Response, err ...error) *Response {
 }
 
 type Plan struct {
-	Current int64 //当前数量
-	Total   int64 //总数量
+	Index   int    //操作次数
+	Current int64  //当前数量
+	Total   int64  //总数量
+	Bytes   []byte //字节内容
 }
