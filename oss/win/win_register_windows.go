@@ -7,8 +7,8 @@ import (
 	"sync"
 )
 
-// AppPath 获取软件路径 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
-func AppPath(appName string) []string {
+// APPPath 获取软件路径 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
+func APPPath(appName string) []string {
 	queryKey := func(w *sync.WaitGroup, startKey registry.Key, res *[]string) {
 		defer w.Done()
 		queryPath := "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\"

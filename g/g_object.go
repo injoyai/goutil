@@ -39,11 +39,17 @@ func RandString(length int, str ...string) string {
 
 // RandInt 随机整数
 func RandInt(min, max int) int {
+	if max < min {
+		return 0
+	}
 	return Rand().Intn(max-min) + min
 }
 
 // RandInt64 随机64位整数
 func RandInt64(min, max int64) int64 {
+	if max < min {
+		return 0
+	}
 	return Rand().Int63n(max-min) + min
 }
 
