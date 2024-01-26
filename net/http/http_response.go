@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/io"
 	"net/http"
 	"net/http/httputil"
@@ -167,7 +166,7 @@ func (this *Response) GetReadCloser() io.ReadCloser {
 }
 
 // GetBody 一次性读取全部字节(适用于小数据)
-func (this *Response) GetBody() g.Bytes {
+func (this *Response) GetBody() []byte {
 	if this.body == nil && this.Response != nil {
 		this.body, _ = io.ReadAll(this.Response.Body)
 		this.Response.Body.Close()
@@ -179,12 +178,12 @@ func (this *Response) GetBody() g.Bytes {
 
 // GetBodyBytes 获取body内容,,返回字节
 func (this *Response) GetBodyBytes() []byte {
-	return this.GetBody().Bytes()
+	return this.GetBody()
 }
 
 // GetBodyString 获取body内容,返回字符串
 func (this *Response) GetBodyString() string {
-	return this.GetBody().String()
+	return string(this.GetBody())
 }
 
 // GetBodyMap 获取body内容,解析成map[string]interface{}返回
