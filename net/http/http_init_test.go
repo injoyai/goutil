@@ -12,6 +12,7 @@ func TestGetBytes(t *testing.T) {
 		return
 	}
 	t.Log(len(resp.GetBodyBytes()))
+	t.Log(resp.GetBodyString())
 }
 
 func TestUrl(t *testing.T) {

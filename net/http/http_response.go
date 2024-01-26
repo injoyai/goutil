@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/io"
 	"net/http"
 	"net/http/httputil"
@@ -20,14 +21,6 @@ type Response struct {
 	tryNum  uint          //尝试次数
 	err     error         //错误信息
 }
-
-//// print 打印输出信息
-//func (this *Response) print() *Response {
-//	if this.Request != nil && this.Request.debug && this.Response != nil {
-//		fmt.Print(this.String())
-//	}
-//	return this
-//}
 
 // setTryNum 设置已重试的次数
 func (this *Response) setTryNum(num uint) *Response {
@@ -150,20 +143,14 @@ func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int, error) {
 	})
 }
 
-// WriteToNewFile 写入新文件,会覆盖原文件(如果存在)
-func (this *Response) WriteToNewFile(filename string) error {
+// WriteToFile 写入新文件,会覆盖原文件(如果存在)
+func (this *Response) WriteToFile(filename string) (int64, error) {
 	f, err := os.Create(filename)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer f.Close()
-	return this.WriteToFile(f)
-}
-
-// WriteToFile 写入到文件,并关闭文件
-func (this *Response) WriteToFile(file *os.File) error {
-	_, err := this.WriteTo(file)
-	return err
+	return this.WriteTo(f)
 }
 
 // WriteTo 写入到writer,例如文件下载,写入到文件
@@ -180,7 +167,7 @@ func (this *Response) GetReadCloser() io.ReadCloser {
 }
 
 // GetBody 一次性读取全部字节(适用于小数据)
-func (this *Response) GetBody() []byte {
+func (this *Response) GetBody() g.Bytes {
 	if this.body == nil && this.Response != nil {
 		this.body, _ = io.ReadAll(this.Response.Body)
 		this.Response.Body.Close()
@@ -192,12 +179,12 @@ func (this *Response) GetBody() []byte {
 
 // GetBodyBytes 获取body内容,,返回字节
 func (this *Response) GetBodyBytes() []byte {
-	return this.GetBody()
+	return this.GetBody().Bytes()
 }
 
 // GetBodyString 获取body内容,返回字符串
 func (this *Response) GetBodyString() string {
-	return string(this.GetBodyBytes())
+	return this.GetBody().String()
 }
 
 // GetBodyMap 获取body内容,解析成map[string]interface{}返回
