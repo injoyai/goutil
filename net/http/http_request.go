@@ -269,7 +269,7 @@ func (this *Request) SetClient(client *Client) *Request {
 }
 
 // GetClient 获取客户端
-func (this *Request) GetClient() *Client {
+func (this *Request) getClient() *Client {
 	if this.client == nil {
 		this.client = DefaultClient
 	}
@@ -309,7 +309,7 @@ func (this *Request) Do() *Response {
 	if this.err != nil {
 		return newResponse(nil, nil, this.err)
 	}
-	return this.GetClient().Do(this)
+	return this.getClient().Do(this)
 }
 
 func (this *Request) dealQuery(url string) string {

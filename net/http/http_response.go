@@ -21,13 +21,13 @@ type Response struct {
 	err     error         //错误信息
 }
 
-// print 打印输出信息
-func (this *Response) print() *Response {
-	if this.Request != nil && this.Request.debug && this.Response != nil {
-		fmt.Print(this.String())
-	}
-	return this
-}
+//// print 打印输出信息
+//func (this *Response) print() *Response {
+//	if this.Request != nil && this.Request.debug && this.Response != nil {
+//		fmt.Print(this.String())
+//	}
+//	return this
+//}
 
 // setTryNum 设置已重试的次数
 func (this *Response) setTryNum(num uint) *Response {
@@ -55,13 +55,22 @@ func (this *Response) setErr(err error) {
 
 // String 实现系统接口,默认输出
 func (this *Response) String() string {
+	if this == nil || this.Response == nil {
+		return ""
+	}
 	if this.err != nil {
 		return this.err.Error()
 	}
 	if this.Request != nil && this.Response != nil {
 		this.Response.Header.Add(HeaderKeySpend, this.spend.String())
 		this.Response.Header.Add(HeaderKeyTry, conv.String(this.tryNum))
-		respBs, _ := httputil.DumpResponse(this.Response, true)
+		respBs, err := httputil.DumpResponse(this.Response, true)
+		if err != nil {
+			respBs, _ = httputil.DumpResponse(this.Response, false)
+		}
+		/*
+			http: ContentLength=7356416 with Body length 4701759
+		*/
 		return fmt.Sprintf(`----------------------------------------
 %s 
 ----------------------------------------
@@ -104,8 +113,8 @@ func (this *Response) GetHeader(key string) string {
 }
 
 // GetContentLength 获取Content-Length
-func (this *Response) GetContentLength() string {
-	return this.GetHeader("Content-Length")
+func (this *Response) GetContentLength() int64 {
+	return this.ContentLength
 }
 
 // Cookies 获取cookie信息
@@ -129,7 +138,7 @@ func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int, error) {
 	p := &Plan{
 		Index:   0,
 		Current: 0,
-		Total:   conv.Int64(this.GetContentLength()),
+		Total:   this.GetContentLength(),
 	}
 	return this.CopyWith(w, func(buf []byte) {
 		p.Index++
@@ -242,7 +251,7 @@ func newResponse(req *Request, resp *http.Response, err ...error) *Response {
 		r.setTryNum(req.getTry())
 		r.Bind(req.bodyBind)
 	}
-	return r.print()
+	return r
 }
 
 type Plan struct {

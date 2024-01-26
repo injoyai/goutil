@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -174,6 +175,9 @@ func (this *Client) Do(request *Request) (resp *Response) {
 	request.Request.Body = io.NopCloser(bytes.NewReader(request.body))
 	r, err := this.Client.Do(request.Request)
 	resp = newResponse(request, r, err).setStartTime(start)
+	if request.debug {
+		fmt.Println(resp.String())
+	}
 	if resp.Err() != nil && !request.done() {
 		return this.Do(request)
 	}

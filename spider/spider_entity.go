@@ -34,6 +34,7 @@ const (
 // 新建实例需要下载chromedriver
 // 查看浏览器版本Chrome://version
 // http://chromedriver.storage.googleapis.com/index.html
+// https://www.chromedownloads.net/chrome64win/
 func New(browserPath, driverPath string, option ...Option) *Entity {
 	e := &Entity{
 		showWindow:    oss.IsWindows(),
