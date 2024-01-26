@@ -45,7 +45,7 @@ func New(browserPath, driverPath string, option ...Option) *Entity {
 		seleniumPort:  20165,
 		seleniumDebug: false,
 		userAgent:     http.UserAgentDefault,
-		retry:         3,
+		retry:         1,
 	}
 	for _, v := range option {
 		v(e)
