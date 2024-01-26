@@ -1,16 +1,17 @@
 package http
 
 import (
+	"net/http"
 	"testing"
 )
 
 func TestGetBytes(t *testing.T) {
-	//DefaultClient //.Debug() //.SetTimeout(time.Millisecond)
-	bs, err := GetBytes("http://www.baidu.com")
-	if err != nil {
-		t.Error(err)
+	resp := NewRequest(http.MethodGet, "https://gitee.com/injoyai/file/releases/download/v0.0.1/in.exe", nil).SetHeader("Connection", "keep-alive").Debug().Get()
+	if resp.Err() != nil {
+		t.Error(resp.Err())
+		return
 	}
-	t.Log(string(bs))
+	t.Log(len(resp.GetBodyBytes()))
 }
 
 func TestUrl(t *testing.T) {
