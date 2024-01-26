@@ -9,7 +9,6 @@ import (
 	"github.com/injoyai/logs"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
-	"time"
 )
 
 const (
@@ -67,25 +66,36 @@ type Entity struct {
 	retry         uint    //重试次数
 }
 
+// SetRetry 设置重试次数
 func (this *Entity) SetRetry(n uint) *Entity {
 	this.retry = n
 	return this
 }
 
+// SetBrowser 设置浏览器,目前只支持chrome
 func (this *Entity) SetBrowser(b Browser) *Entity {
 	this.browser = b
 	return this
 }
 
+// SetBrowserPath 设置浏览器目录
+func (this *Entity) SetBrowserPath(p string) *Entity {
+	this.browserPath = p
+	return this
+}
+
+// SetUserAgent 设置UserAgent
 func (this *Entity) SetUserAgent(ua string) *Entity {
 	this.userAgent = ua
 	return this
 }
 
+// SetUserAgentDefault 设置UserAgent到默认值
 func (this *Entity) SetUserAgentDefault() *Entity {
 	return this.SetUserAgent(http.UserAgentDefault)
 }
 
+// SetUserAgentRand 设置随机UserAgent
 func (this *Entity) SetUserAgentRand() *Entity {
 	idx := g.RandInt(0, len(http.UserAgentList)-1)
 	return this.SetUserAgent(http.UserAgentList[idx])
@@ -120,7 +130,7 @@ func (this *Entity) Run(f func(w *WebDriver) error, option ...selenium.ServiceOp
 
 	selenium.SetDebug(this.seleniumDebug)
 	serviceOption := []selenium.ServiceOption{
-		selenium.Output(logs.DefaultErr), // Output debug information to STDERR.
+		selenium.Output(logs.DefaultErr),
 	}
 	serviceOption = append(serviceOption, option...)
 	//新建seleniumServer
@@ -152,106 +162,12 @@ func (this *Entity) Run(f func(w *WebDriver) error, option ...selenium.ServiceOp
 		}(),
 	})
 
-	// 调起chrome浏览器
+	// 调起浏览器
 	web, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", this.seleniumPort))
 	if err != nil {
 		return err
 	}
 	defer web.Close()
 
-	return g.Retry(func() error {
-		return f(&WebDriver{web})
-	}, int(this.retry))
-}
-
-/*
-
-
-
- */
-
-type WebDriver struct {
-	selenium.WebDriver
-}
-
-func (this *WebDriver) Wait(t time.Duration) *WebDriver {
-	<-time.After(t)
-	return this
-}
-
-func (this *WebDriver) WaitSec(n ...int) *WebDriver {
-	return this.Wait(time.Duration(conv.GetDefaultInt(1, n...)) * time.Second)
-}
-
-func (this *WebDriver) WaitMin(n ...int) *WebDriver {
-	return this.Wait(time.Duration(conv.GetDefaultInt(1, n...)) * time.Minute)
-}
-
-// Text 返回页面数据
-func (this *WebDriver) Text() (string, error) {
-	return this.PageSource()
-}
-
-// Open 打开网页
-func (this *WebDriver) Open(url string) error {
-	return this.Get(url)
-}
-
-// FindXPaths 查找所有XPath
-func (this *WebDriver) FindXPaths(path string) ([]*Element, error) {
-	es, err := this.FindElements(ByXPATH, path)
-	if err != nil {
-		return nil, err
-	}
-	list := []*Element(nil)
-	for _, v := range es {
-		list = append(list, &Element{v})
-	}
-	return list, nil
-}
-
-// FindXPath 查找所有XPath
-func (this *WebDriver) FindXPath(path string) (*Element, error) {
-	e, err := this.FindElement(ByXPATH, path)
-	return &Element{e}, err
-}
-
-// FindSelects 查找所有Select
-func (this *WebDriver) FindSelects(path string) ([]*Element, error) {
-	es, err := this.FindElements(ByCSSSelector, path)
-	if err != nil {
-		return nil, err
-	}
-	list := []*Element(nil)
-	for _, v := range es {
-		list = append(list, &Element{v})
-	}
-	return list, nil
-}
-
-// FindSelect 查找所有Select
-func (this *WebDriver) FindSelect(path string) (*Element, error) {
-	e, err := this.FindElement(ByCSSSelector, path)
-	return &Element{e}, err
-}
-
-type Element struct {
-	selenium.WebElement
-}
-
-func (this *Element) Wait(t time.Duration) *Element {
-	<-time.After(t)
-	return this
-}
-
-func (this *Element) WaitSec(n ...int) *Element {
-	return this.Wait(time.Duration(conv.GetDefaultInt(1, n...)) * time.Second)
-}
-
-func (this *Element) WaitMin(n ...int) *Element {
-	return this.Wait(time.Duration(conv.GetDefaultInt(1, n...)) * time.Minute)
-}
-
-func (this *Element) Write(s string) error {
-	return this.WebElement.SendKeys(s)
+	return g.Retry(func() error { return f(&WebDriver{web}) }, this.retry)
 }

@@ -1,12 +1,10 @@
 package g
 
 import (
-	"errors"
 	"fmt"
 	"github.com/injoyai/base/bytes/crypt/md5"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/maps/wait"
-	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
 	uuid "github.com/satori/go.uuid"
@@ -53,23 +51,38 @@ func Recover(err *error, stack ...bool) {
 	if er := recover(); er != nil {
 		if err != nil {
 			if len(stack) > 0 && stack[0] {
-				*err = errors.New(fmt.Sprintln(er) + string(debug.Stack()))
+				*err = fmt.Errorf("%v\n%v", er, string(debug.Stack()))
 			} else {
-				*err = errors.New(fmt.Sprintln(er))
+				*err = fmt.Errorf("%v", er)
 			}
 		}
 	}
 }
 
+// RecoverFunc 捕捉错误并执行函数
+func RecoverFunc(fn func(err error, stack string)) {
+	if er := recover(); er != nil {
+		if fn != nil {
+			fn(fmt.Errorf("%v", er), string(debug.Stack()))
+		}
+	}
+}
+
 // Try 尝试运行,捕捉错误 其他语言的try catch
-func Try(fn func() error, catch ...func(err error)) *safe.TryErr {
-	return safe.Try(fn).Catch(catch...)
+func Try(fn func() error, catch ...func(err error)) (err error) {
+	defer RecoverFunc(func(er error, stack string) {
+		err = er
+		for _, v := range catch {
+			v(er)
+		}
+	})
+	return fn()
 }
 
 // Retry 重试,默认3次
-func Retry(fn func() error, nums ...int) (err error) {
-	num := conv.GetDefaultInt(3, nums...)
-	for i := 0; i < num; i++ {
+func Retry(fn func() error, nums ...uint) (err error) {
+	num := conv.GetDefaultUint(3, nums...)
+	for i := uint(0); i < num; i++ {
 		if err = Try(fn); err == nil {
 			return
 		}

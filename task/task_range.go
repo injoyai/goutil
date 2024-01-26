@@ -63,7 +63,7 @@ func (this *Range) Run(ctx context.Context) *Resp {
 				_ = g.Retry(func() error {
 					resp.Data, resp.Err = f(ctx)
 					return resp.Err
-				}, int(this.retry))
+				}, this.retry)
 				if this.doneItem != nil {
 					this.doneItem(ctx, resp)
 				}
