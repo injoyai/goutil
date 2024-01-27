@@ -12,7 +12,7 @@ type Cycle struct {
 	offset int           //当前数据位置下标
 	length int           //列表长度
 	cycle  bool          //循环使用,数据量已经超过列表的长度,覆盖了老数据
-	listen chans.Listen
+	listen *chans.Listen
 }
 
 // Subscribe 开启一个订阅数据的通道
