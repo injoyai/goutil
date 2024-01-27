@@ -3,8 +3,8 @@ module github.com/injoyai/goutil
 go 1.16
 
 require (
-	github.com/injoyai/base v1.0.6
-	github.com/injoyai/conv v1.0.6
+	github.com/injoyai/base v1.0.7
+	github.com/injoyai/conv v1.1.2
 	github.com/injoyai/io v0.1.6
 	github.com/injoyai/logs v1.0.7
 )
@@ -32,7 +32,7 @@ require (
 	github.com/mojocn/base64Captcha v1.3.5
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/opencontainers/image-spec v1.1.0-rc5
-	github.com/pelletier/go-toml/v2 v2.0.5
+	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/robertkrimen/otto v0.2.1
 	github.com/robfig/cron/v3 v3.0.1
@@ -42,7 +42,7 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.667
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.667
 	github.com/tuotoo/qrcode v0.0.0-20220425170535-52ccc2bebf5d
-	github.com/ugorji/go/codec v1.1.7
+	github.com/ugorji/go/codec v1.2.12
 	github.com/yuin/gopher-lua v1.1.0
 	golang.org/x/image v0.11.0
 	golang.org/x/sys v0.11.0
