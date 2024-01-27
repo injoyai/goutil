@@ -13,7 +13,7 @@ func main() {
 		oss.UserInjoyDir("/browser/chrome/chrome.exe"),
 		oss.UserInjoyDir("/browser/chrome/chromedriver.exe"),
 		func(e *spider.Entity) {
-			e.ShowWindow(false)
+			//e.ShowWindow(false)
 			e.ShowImg(false)
 		},
 	).Run(func(w *spider.WebDriver) error {
@@ -25,7 +25,7 @@ func main() {
 		logs.Debug(strings.Join(list, "\n"))
 		bs, _ := w.Screenshot()
 		oss.New("./build.png", bs)
-		w.WaitSecond(2)
+		w.WaitSecond(20)
 		return nil
 	}))
 }
