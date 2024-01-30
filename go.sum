@@ -721,8 +721,8 @@ github.com/injoyai/conv v1.0.4/go.mod h1:rqBoiZt/YSKjGYEH4F6z+56djYLFkgKt/kWK5/1
 github.com/injoyai/conv v1.0.6/go.mod h1:rqBoiZt/YSKjGYEH4F6z+56djYLFkgKt/kWK5/1X640=
 github.com/injoyai/conv v1.1.2 h1:xQth1Y/x+XGIw6xv0kr3+pMJUa7bxDJ8Z8rcbFd8fOI=
 github.com/injoyai/conv v1.1.2/go.mod h1:PYoJcbqaz4eyQUovzErRFCuDSPGB4L07AvdmFsTrTew=
-github.com/injoyai/io v0.1.7 h1:GgHQBGS6FiqoXFpRZ3/G+Ev4NItGvWDbLBSooUPsOx0=
-github.com/injoyai/io v0.1.7/go.mod h1:khts/5VvSJVm8Dl1fp0C+D8L0pmRrXtWsp+SJqlTgpw=
+github.com/injoyai/io v0.1.8 h1:C+pt2LLUNhCu80EVuzCs6+vetHf6Ny5ANAIOH8QUAco=
+github.com/injoyai/io v0.1.8/go.mod h1:khts/5VvSJVm8Dl1fp0C+D8L0pmRrXtWsp+SJqlTgpw=
 github.com/injoyai/logs v1.0.7 h1:pVBB8/rJ/nsnlSvxZoBfCfu+kL84q2pqEx5oN4qPG7I=
 github.com/injoyai/logs v1.0.7/go.mod h1:CLchJCGhb39Obyrci816R+KMtbxZhgPs0FuikhyixK4=
 github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07/go.mod h1:co9pwDoBCm1kGxawmb4sPq0cSIOOWNPT4KnHotMP1Zg=
