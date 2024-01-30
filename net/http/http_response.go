@@ -118,12 +118,12 @@ func (this *Response) Cookies() (cookie []*http.Cookie) {
 }
 
 // CopyWith 复制数据,并监听
-func (this *Response) CopyWith(w io.Writer, fn func(bs []byte)) (int, error) {
+func (this *Response) CopyWith(w io.Writer, fn func(bs []byte)) (int64, error) {
 	return io.CopyWith(w, this.Body, fn)
 }
 
 // CopyWithPlan 复制数据并监听进度
-func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int, error) {
+func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int64, error) {
 	if this.Err() != nil {
 		return 0, this.Err()
 	}
