@@ -70,8 +70,8 @@ func CropLast(str, crop string, retain ...bool) string {
 	return str
 }
 
-// GetLine 按行分割 获取第几行数据
-func GetLine(s string, idx int) string {
+// GetSplitLine 按行分割 获取第几行数据
+func GetSplitLine(s string, idx int) string {
 	return GetSplit(s, "\n", idx)
 }
 
