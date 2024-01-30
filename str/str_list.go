@@ -1,6 +1,7 @@
 package str
 
 import (
+	"math/rand"
 	"sort"
 	"strings"
 )
@@ -118,6 +119,13 @@ func (this List) Cut(start, end int) List {
 
 func (this List) Copy() List {
 	return append(List{}, this...)
+}
+
+func (this List) Rand() string {
+	if this.Len() == 0 {
+		return ""
+	}
+	return this[rand.Intn(this.Len())]
 }
 
 func (this List) Exist(idx int) bool {

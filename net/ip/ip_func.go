@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/injoyai/conv"
 	"net"
+	"strconv"
 	"strings"
 )
 
@@ -18,14 +19,23 @@ func RangeFunc(start, end net.IP, f func(ip net.IP) bool) {
 }
 
 func ParseV4(s string) (net.IP, uint16, error) {
-	list := strings.Split(s, ":")
-	ip := net.ParseIP(list[0])
+	host, portStr, err := net.SplitHostPort(s)
+	if err != nil {
+		if strings.HasSuffix(err.Error(), "missing port in address") {
+			host, portStr, err = net.SplitHostPort(s + ":80")
+		}
+	}
+	if err != nil {
+		return nil, 0, err
+	}
+
+	ip := net.ParseIP(host)
 	if ip == nil {
 		return nil, 0, errors.New("无效地址: " + s)
 	}
-	port := uint16(80)
-	if len(list) > 1 {
-		port = conv.Uint16(list[1])
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ip, port, nil
+	return ip, uint16(port), nil
 }
