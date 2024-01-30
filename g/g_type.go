@@ -5,16 +5,18 @@ import (
 	"github.com/injoyai/base/bytes"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/script/js"
+	"github.com/injoyai/goutil/str"
 	json "github.com/json-iterator/go"
 	"sync"
 )
 
 type (
-	Var   = conv.Var
-	DMap  = conv.Map
-	Any   = interface{}
-	List  []interface{}
-	Bytes = bytes.Entity
+	Var     = conv.Var
+	DMap    = conv.Map
+	Any     = interface{}
+	List    []interface{}
+	Bytes   = bytes.Entity
+	Strings = str.List
 )
 
 //========================================Type========================================
