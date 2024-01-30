@@ -21,7 +21,7 @@ var (
 	Select  = conv.SelectString
 )
 
-func Interface(s string) interface{} {
+func DecodeJson(s string) interface{} {
 	s = `{"data":` + s + `}`
 	m := make(map[string]interface{})
 	_ = json.Unmarshal([]byte(s), &m)
