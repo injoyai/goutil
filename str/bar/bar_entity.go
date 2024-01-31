@@ -248,7 +248,9 @@ var (
 )
 
 func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int, error) {
-	defaultClient.SetProxy(conv.GetDefaultString("", proxy...))
+	if err := defaultClient.SetProxy(conv.GetDefaultString("", proxy...)); err != nil {
+		return 0, err
+	}
 	resp := defaultClient.Get(source)
 	if resp.Err() != nil {
 		return 0, resp.Err()

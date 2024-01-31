@@ -18,7 +18,7 @@ const (
 )
 
 // SetProxy 设置默认客户端的代理地址
-func SetProxy(proxy string) *Client {
+func SetProxy(proxy string) error {
 	return DefaultClient.SetProxy(proxy)
 }
 
