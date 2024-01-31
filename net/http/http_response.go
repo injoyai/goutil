@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/io"
 	"net/http"
@@ -15,43 +16,26 @@ import (
 type Response struct {
 	*http.Response
 	Request *Request
-	body    []byte        //body数据
-	spend   time.Duration //花费时间
-	tryNum  uint          //尝试次数
-	err     error         //错误信息
+	body    []byte            //body数据
+	spend   time.Duration     //花费时间
+	tryNum  uint              //尝试次数
+	Error   error             //错误信息
+	doc     *goquery.Document //解析内容
 }
 
-// setTryNum 设置已重试的次数
-func (this *Response) setTryNum(num uint) *Response {
-	this.tryNum = num
-	return this
-}
-
-// setStartTime 设置已花费的时间
-func (this *Response) setStartTime(start time.Time) *Response {
-	this.spend = time.Now().Sub(start)
-	return this
-}
-
-// setErr 设置错误
 func (this *Response) setErr(err error) {
-	if err != nil && this.err == nil {
-		this.err = err
+	if err != nil && this.Error == nil {
+		this.Error = err
 	}
 }
-
-/*
-
-
- */
 
 // String 实现系统接口,默认输出
 func (this *Response) String() string {
 	if this == nil || this.Response == nil {
 		return ""
 	}
-	if this.err != nil {
-		return this.err.Error()
+	if this.Error != nil {
+		return this.Error.Error()
 	}
 	if this.Request != nil && this.Response != nil {
 		this.Response.Header.Add(HeaderKeySpend, this.spend.String())
@@ -123,22 +107,10 @@ func (this *Response) CopyWith(w io.Writer, fn func(bs []byte)) (int64, error) {
 }
 
 // CopyWithPlan 复制数据并监听进度
-func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int64, error) {
-	if this.Err() != nil {
-		return 0, this.Err()
-	}
-	p := &Plan{
-		Index:   0,
-		Current: 0,
-		Total:   this.GetContentLength(),
-	}
-	return this.CopyWith(w, func(buf []byte) {
-		p.Index++
-		p.Current += int64(len(buf))
-		p.Bytes = buf
-		if fn != nil {
-			fn(p)
-		}
+func (this *Response) CopyWithPlan(w io.Writer, fn func(p *io.Plan)) (int64, error) {
+	return io.CopyWithPlan(w, this.Body, func(p *io.Plan) {
+		p.Total = this.GetContentLength()
+		fn(p)
 	})
 }
 
@@ -154,9 +126,6 @@ func (this *Response) WriteToFile(filename string) (int64, error) {
 
 // WriteTo 写入到writer,例如文件下载,写入到文件
 func (this *Response) WriteTo(writer io.Writer) (int64, error) {
-	if this.Err() != nil {
-		return 0, this.Err()
-	}
 	return io.Copy(writer, this.Response.Body)
 }
 
@@ -198,6 +167,19 @@ func (this *Response) GetBodyMaps() (m []map[string]interface{}) {
 	return
 }
 
+// Execute 执行,方便操作
+func (this *Response) Execute(f ...func(r *Response) error) (err error) {
+	if this.Error != nil {
+		return this.Error
+	}
+	for _, v := range f {
+		if err := v(this); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Bind 绑定body数据,目前支持字符串,字节和json,需要指针
 func (this *Response) Bind(ptr interface{}) *Response {
 	body := this.GetBodyBytes()
@@ -217,32 +199,29 @@ func (this *Response) Bind(ptr interface{}) *Response {
 
 // Err 错误信息,如果错误则Response为nil
 func (this *Response) Err() error {
-	return this.err
+	if this.Error != nil {
+		return this.Error
+	}
+	if this.Response != nil && this.Response.StatusCode/100 != 2 {
+		return fmt.Errorf("状态码错误:%d\n%s", this.Response.StatusCode, this.GetBodyString())
+	}
+	return nil
 }
 
-func newResponse(req *Request, resp *http.Response, err ...error) *Response {
+func newResponseErr(err error) *Response {
+	return &Response{Error: err}
+}
+
+func newResponse(req *Request, resp *http.Response, start time.Time, err error) *Response {
 	r := &Response{
 		Request:  req,
 		Response: resp,
-		err: func() error {
-			if len(err) > 0 && err[0] != nil {
-				return err[0]
-			} else if resp != nil && resp.StatusCode/100 != 2 {
-				return fmt.Errorf("状态码错误:%d", resp.StatusCode)
-			}
-			return nil
-		}(),
+		spend:    time.Now().Sub(start),
+		Error:    err,
 	}
 	if req != nil {
-		r.setTryNum(req.getTry())
+		r.tryNum = req.try
 		r.Bind(req.bodyBind)
 	}
 	return r
-}
-
-type Plan struct {
-	Index   int    //操作次数
-	Current int64  //当前数量
-	Total   int64  //总数量
-	Bytes   []byte //字节内容
 }

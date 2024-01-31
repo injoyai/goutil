@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"github.com/injoyai/io"
 	"golang.org/x/net/proxy"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -67,6 +67,7 @@ func (this *Client) SetProxy(u string) error {
 		default:
 			transport.Proxy = http.ProxyURL(proxyUrl)
 		}
+		return nil
 	}
 	return fmt.Errorf("http.Transport类型错误: 预期(*http.Transport),得到(%T)", this.Client.Transport)
 }
@@ -80,7 +81,7 @@ func (this *Client) SetTimeout(t time.Duration) *Client {
 }
 
 func (this *Client) Get(url string, bind ...interface{}) *Response {
-	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	resp := this.DoRequest(http.MethodGet, url, nil)
 	if len(bind) > 0 {
 		resp.Bind(bind[0])
 	}
@@ -88,12 +89,12 @@ func (this *Client) Get(url string, bind ...interface{}) *Response {
 }
 
 func (this *Client) GetBytes(url string) ([]byte, error) {
-	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	resp := this.DoRequest(http.MethodGet, url, nil)
 	return resp.GetBodyBytes(), resp.Err()
 }
 
 func (this *Client) GetBytesWith(url string, f func([]byte)) ([]byte, error) {
-	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	resp := this.DoRequest(http.MethodGet, url, nil)
 	if resp.Err() != nil {
 		return nil, resp.Err()
 	}
@@ -104,8 +105,8 @@ func (this *Client) GetBytesWith(url string, f func([]byte)) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (this *Client) GetBytesWithPlan(url string, f func(p *Plan)) ([]byte, error) {
-	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+func (this *Client) GetBytesWithPlan(url string, f func(p *io.Plan)) ([]byte, error) {
+	resp := this.DoRequest(http.MethodGet, url, nil)
 	if resp.Err() != nil {
 		return nil, resp.Err()
 	}
@@ -117,7 +118,7 @@ func (this *Client) GetBytesWithPlan(url string, f func(p *Plan)) ([]byte, error
 }
 
 func (this *Client) GetToWriter(url string, writer io.Writer) error {
-	resp := this.Do(NewRequest(http.MethodGet, url, nil))
+	resp := this.DoRequest(http.MethodGet, url, nil)
 	if resp.Err() != nil {
 		return resp.Err()
 	}
@@ -136,7 +137,7 @@ func (this *Client) GetToFile(url string, filename string) error {
 }
 
 func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Response {
-	resp := this.Do(NewRequest(http.MethodPost, url, body))
+	resp := this.DoRequest(http.MethodPost, url, body)
 	if len(bind) > 0 {
 		resp.Bind(bind[0])
 	}
@@ -144,7 +145,7 @@ func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Res
 }
 
 func (this *Client) Put(url string, body interface{}, bind ...interface{}) *Response {
-	resp := this.Do(NewRequest(http.MethodPut, url, body))
+	resp := this.DoRequest(http.MethodPut, url, body)
 	if len(bind) > 0 {
 		resp.Bind(bind[0])
 	}
@@ -152,7 +153,7 @@ func (this *Client) Put(url string, body interface{}, bind ...interface{}) *Resp
 }
 
 func (this *Client) Delete(url string, body interface{}, bind ...interface{}) *Response {
-	resp := this.Do(NewRequest(http.MethodDelete, url, body))
+	resp := this.DoRequest(http.MethodDelete, url, body)
 	if len(bind) > 0 {
 		resp.Bind(bind[0])
 	}
@@ -160,23 +161,31 @@ func (this *Client) Delete(url string, body interface{}, bind ...interface{}) *R
 }
 
 func (this *Client) Head(url string) *Response {
-	return this.Do(NewRequest(http.MethodHead, url, nil))
+	return this.DoRequest(http.MethodHead, url, nil)
 }
 
 func (this *Client) Patch(url string) *Response {
-	return this.Do(NewRequest(http.MethodPatch, url, nil))
+	return this.DoRequest(http.MethodPatch, url, nil)
 }
 
 func (this *Client) Connect(url string) *Response {
-	return this.Do(NewRequest(http.MethodConnect, url, nil))
+	return this.DoRequest(http.MethodConnect, url, nil)
 }
 
 func (this *Client) Options(url string) *Response {
-	return this.Do(NewRequest(http.MethodOptions, url, nil))
+	return this.DoRequest(http.MethodOptions, url, nil)
 }
 
 func (this *Client) Trace(url string) *Response {
-	return this.Do(NewRequest(http.MethodTrace, url, nil))
+	return this.DoRequest(http.MethodTrace, url, nil)
+}
+
+func (this *Client) DoRequest(method, url string, body interface{}) *Response {
+	req := NewRequest(method, url, body)
+	if req.err != nil {
+		return newResponseErr(req.err)
+	}
+	return this.Do(req)
 }
 
 func (this *Client) Do(request *Request) (resp *Response) {
@@ -187,10 +196,10 @@ func (this *Client) Do(request *Request) (resp *Response) {
 			request.AddCookie(resp.Cookies()...)
 		}
 	}()
-	request.addTry()
+	request.try++
 	request.Request.Body = io.NopCloser(bytes.NewReader(request.body))
 	r, err := this.Client.Do(request.Request)
-	resp = newResponse(request, r, err).setStartTime(start)
+	resp = newResponse(request, r, start, err)
 	if request.debug {
 		fmt.Println(resp.String())
 	}
@@ -198,11 +207,4 @@ func (this *Client) Do(request *Request) (resp *Response) {
 		return this.Do(request)
 	}
 	return
-}
-
-func (this *Client) Forward(req *http.Request) *Response {
-	return this.Do(&Request{
-		Request: req,
-		url:     req.URL.String(),
-	})
 }
