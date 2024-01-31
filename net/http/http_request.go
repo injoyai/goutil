@@ -181,7 +181,7 @@ func (this *Request) SetUserAgent(s string) *Request {
 
 // SetUserAgentPostman 设置模拟成postman请求
 func (this *Request) SetUserAgentPostman() *Request {
-	return this.SetUserAgent(UserAgentPostman7_35_0)
+	return this.SetUserAgent(UserAgentPostman)
 }
 
 // SetUserAgentDefault 设置模拟成浏览器

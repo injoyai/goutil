@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"golang.org/x/net/proxy"
 	"io"
 	"net/http"
 	"net/url"
@@ -41,18 +42,33 @@ type Client struct {
 }
 
 // SetProxy 设置代理
-func (this *Client) SetProxy(u string) *Client {
-	if val, ok := this.Client.Transport.(*http.Transport); ok {
-		uri, err := url.Parse(u)
-		if err != nil || len(u) == 0 || len(uri.Host) == 0 {
-			val.Proxy = nil
-			return this
+func (this *Client) SetProxy(u string) error {
+	if transport, ok := this.Client.Transport.(*http.Transport); ok {
+		//为空表示取消代理
+		if len(u) == 0 {
+			transport.Proxy = nil
+			return nil
 		}
-		val.Proxy = func(request *http.Request) (*url.URL, error) {
-			return uri, nil
+		proxyUrl, err := url.Parse(u)
+		if err != nil {
+			transport.Proxy = nil
+			return err
+		}
+		switch proxyUrl.Scheme {
+		case "http", "https":
+			transport.Proxy = http.ProxyURL(proxyUrl)
+		case "socks5":
+			dialer, err := proxy.FromURL(proxyUrl, proxy.Direct)
+			if err != nil {
+				return err
+			}
+			//transport.DialContext
+			transport.Dial = dialer.Dial
+		default:
+			transport.Proxy = http.ProxyURL(proxyUrl)
 		}
 	}
-	return this
+	return fmt.Errorf("http.Transport类型错误: 预期(*http.Transport),得到(%T)", this.Client.Transport)
 }
 
 // SetTimeout 设置请求超时时间
