@@ -27,6 +27,10 @@ type Request struct {
 	err      error
 }
 
+func (this *Request) Err() error {
+	return this.err
+}
+
 // Reset 重置参数
 // 采用指针类型,所以每次新请求参数都需要重新填写
 // 加入预设值,重置之后运行预设方法
@@ -38,17 +42,6 @@ func (this *Request) reset() {
 // Done 判断是否完成,是否需要重试
 func (this *Request) done() bool {
 	return this.try > this.retry
-}
-
-// GetTry 获取重试次数
-func (this *Request) getTry() uint {
-	return this.try
-}
-
-// AddTry 增加已重试次数
-func (this *Request) addTry() *Request {
-	this.try++
-	return this
 }
 
 // Retry 重试次数默认不重试
@@ -307,7 +300,7 @@ func (this *Request) Delete() *Response {
 
 func (this *Request) Do() *Response {
 	if this.err != nil {
-		return newResponse(nil, nil, this.err)
+		return newResponseErr(this.err)
 	}
 	return this.getClient().Do(this)
 }
@@ -336,13 +329,13 @@ func NewRequest(method, url string, body interface{}) *Request {
 	if request == nil {
 		request = &http.Request{Header: map[string][]string{}}
 	}
-	data := &Request{
+	req := &Request{
 		Request: request,
 		url:     url,
 		query:   make(map[string]interface{}),
 		body:    conv.Bytes(body),
 		err:     err,
 	}
-	data.AddHeaders(HeaderBase)
-	return data
+	req.SetUserAgentDefault()
+	return req
 }

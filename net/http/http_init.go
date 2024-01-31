@@ -1,7 +1,7 @@
 package http
 
 import (
-	"io"
+	"github.com/injoyai/io"
 	"net/http"
 )
 
@@ -42,7 +42,7 @@ func GetBytesWith(url string, f func([]byte)) ([]byte, error) {
 }
 
 // GetBytesWithPlan 获取数据并监听
-func GetBytesWithPlan(url string, fn func(p *Plan)) ([]byte, error) {
+func GetBytesWithPlan(url string, fn func(p *io.Plan)) ([]byte, error) {
 	return DefaultClient.GetBytesWithPlan(url, fn)
 }
 
