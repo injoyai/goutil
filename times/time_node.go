@@ -1,9 +1,3 @@
-/*****************************************************************************
-*名称:	时间工具包
-*功能:	获取时间的节点以及时间的时间段加减操作
-*作者:	钱纯净
-******************************************************************************/
-
 package times
 
 import (
@@ -76,17 +70,8 @@ func ParseDefault(s string) (Time, error) {
 	return Time{Time: t}, err
 }
 
-func Date(year, month, day, hour, min, second int) Time {
-	return Time{Time: time.Date(year, time.Month(month), day, hour, min, second, 0, time.Local)}
-}
-
 func (this Time) String() string {
 	return this.Format(FormatDefault)
-}
-
-// Format 转为字符串,格式比如 "2006-01-02 15:04:05"
-func (this Time) Format(format string) string {
-	return this.Time.Format(format)
 }
 
 // Date 年月日秒
@@ -95,44 +80,9 @@ func (this Time) Date() (int, int, int, int) {
 	return year, int(month), day, this.Second()
 }
 
-// Year 年
-func (this Time) Year() int {
-	return this.Time.Year()
-}
-
 // Quarter 1-4季,当年
 func (this Time) Quarter() int {
-	return (this.Month()-1)/3 + 1
-}
-
-// Month 1-12月,当年
-func (this Time) Month() int {
-	return int(this.Time.Month())
-}
-
-// Day 1-31日,当月
-func (this Time) Day() int {
-	return this.Time.Day()
-}
-
-// Weekday 0-6星期,星期天是0
-func (this Time) Weekday() int {
-	return int(this.Time.Weekday())
-}
-
-// Hour 0-23时,当天
-func (this Time) Hour() int {
-	return this.Time.Hour()
-}
-
-// Minute 0-59分,时
-func (this Time) Minute() int {
-	return this.Time.Minute()
-}
-
-// Second 0-59秒,分
-func (this Time) Second() int {
-	return this.Time.Second()
+	return Quarter(this.Time)
 }
 
 func (this Time) Duration() time.Duration {
@@ -189,52 +139,47 @@ func (this Time) AddYear(year int) Time {
 
 // IntegerSecond 取整秒
 func (this Time) IntegerSecond() Time {
-	return this.Add(-this.Duration() % Second)
+	this.Time = IntegerSecond(this.Time)
+	return this
 }
 
 // IntegerMinute 取整分
 func (this Time) IntegerMinute() Time {
-	return this.Add(-this.Duration() % Minute)
+	this.Time = IntegerMinute(this.Time)
+	return this
 }
 
 // IntegerHour 取整点
 func (this Time) IntegerHour() Time {
-	return this.Add(-this.AddHour(8).Duration() % Hour)
+	this.Time = IntegerHour(this.Time)
+	return this
 }
 
 // IntegerDay 取整天
 func (this Time) IntegerDay() Time {
-	return this.Add(-this.AddHour(8).Duration() % (Day))
+	this.Time = IntegerDay(this.Time)
+	return this
 }
 
 // IntegerWeek 取整周,周一
 func (this Time) IntegerWeek() Time {
-	return this.AddDay(-this.AddHour(8).Weekday() + 1).IntegerDay()
+	this.Time = IntegerWeek(this.Time)
+	return this
 }
 
 // IntegerMonth 取整月
 func (this Time) IntegerMonth() Time {
-	year, month, _, _ := this.Date()
-	this.Time = time.Date(year, Month(month), 1, 0, 0, 0, 0, time.Local)
+	this.Time = IntegerMonth(this.Time)
 	return this
 }
 
 func (this Time) IntegerQuarter() Time {
-	year := this.Year()
-	this.Time = time.Date(year, Month((this.Quarter()-1)*3), 1, 0, 0, 0, 0, time.Local)
+	this.Time = IntegerQuarter(this.Time)
 	return this
 }
 
 // IntegerYear 取整年
 func (this Time) IntegerYear() Time {
-	year := this.Year()
-	this.Time = time.Date(year, 1, 1, 0, 0, 0, 0, time.Local)
+	this.Time = IntegerYear(this.Time)
 	return this
-}
-
-//********************************************************分界线**********************************************************//
-
-// Sub 差值
-func (this Time) Sub() time.Duration {
-	return time.Now().Sub(this.Time)
 }

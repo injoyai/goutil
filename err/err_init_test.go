@@ -6,6 +6,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	logs.SetWriter(logs.Stdout)
 	er := newErr2()
 	if er != nil {
 		logs.Err(er)
