@@ -57,6 +57,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
+	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4
+	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/qiniu/x v7.0.8+incompatible // indirect
 	github.com/tebeka/selenium v0.9.9
 	golang.org/x/net v0.7.0

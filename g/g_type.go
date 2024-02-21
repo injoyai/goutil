@@ -86,9 +86,7 @@ func (this Type) Value(v interface{}) interface{} {
 		return conv.Float64(v)
 	case Script:
 		scriptPoolOnce.Do(func() {
-			if ScriptPool == nil {
-				ScriptPool = js.NewPool(20)
-			}
+			ScriptPool = js.NewPool(20)
 		})
 		val, _ := ScriptPool.Exec(conv.String(v))
 		return val
@@ -161,7 +159,11 @@ type Key string
 
 func (this *Key) SetKey(key string) { *this = Key(key) }
 
+func (this *Key) Set(key string) { *this = Key(key) }
+
 func (this *Key) GetKey() string { return string(*this) }
+
+func (this *Key) Get() string { return string(*this) }
 
 //========================================Debugger========================================
 
@@ -170,9 +172,3 @@ type Debugger bool
 func (this *Debugger) Debug(b ...bool) {
 	*this = Debugger(len(b) == 0 || b[0])
 }
-
-//========================================Interface========================================
-
-type Stringer interface{ String() string }
-
-type GoStringer interface{ GoString() string }
