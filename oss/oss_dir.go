@@ -88,9 +88,9 @@ func DelDir(dir string) error {
 // ReadFileInfos 获取目录下的所有文件信息(包括文件夹)
 func ReadFileInfos(dir string) ([]os.FileInfo, error) {
 	files := []os.FileInfo(nil)
-	err := RangeFileInfo(dir, func(info os.FileInfo) bool {
+	err := RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
 		files = append(files, info)
-		return true
+		return true, nil
 	})
 	return files, err
 }
@@ -98,11 +98,11 @@ func ReadFileInfos(dir string) ([]os.FileInfo, error) {
 // ReadFilenames 获取目录下的所有文件名称
 func ReadFilenames(dir string) ([]string, error) {
 	filenames := []string(nil)
-	err := RangeFileInfo(dir, func(info os.FileInfo) bool {
+	err := RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
 		if !info.IsDir() {
 			filenames = append(filenames, filepath.Join(dir, info.Name()))
 		}
-		return true
+		return true, nil
 	})
 	return filenames, err
 }
@@ -110,23 +110,27 @@ func ReadFilenames(dir string) ([]string, error) {
 // ReadDirNames 获取目录下的所有目录
 func ReadDirNames(dir string) ([]string, error) {
 	dirNames := []string(nil)
-	err := RangeFileInfo(dir, func(info os.FileInfo) bool {
+	err := RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
 		if info.IsDir() {
 			dirNames = append(dirNames, filepath.Join(dir, info.Name()))
 		}
-		return true
+		return true, nil
 	})
 	return dirNames, err
 }
 
 // RangeFileInfo 遍历目录
-func RangeFileInfo(dir string, fn func(info fs.FileInfo) bool) error {
+func RangeFileInfo(dir string, fn func(info fs.FileInfo) (bool, error)) error {
 	fileInfos, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return err
 	}
 	for _, info := range fileInfos {
-		if !fn(info) {
+		next, err := fn(info)
+		if err != nil {
+			return err
+		}
+		if !next {
 			break
 		}
 	}
@@ -135,27 +139,17 @@ func RangeFileInfo(dir string, fn func(info fs.FileInfo) bool) error {
 
 // RangeFile 遍历目录的文件
 func RangeFile(dir string, fn func(info os.FileInfo, f *os.File) (bool, error)) error {
-	fileInfos, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return err
-	}
-	for _, info := range fileInfos {
+	return RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
 		if !info.IsDir() {
 			f, err := os.Open(filepath.Join(dir, info.Name()))
 			if err != nil {
-				return err
+				return false, err
 			}
-			next, err := fn(info, f)
-			f.Close()
-			if err != nil {
-				return err
-			}
-			if !next {
-				break
-			}
+			defer f.Close()
+			return fn(info, f)
 		}
-	}
-	return nil
+		return true, nil
+	})
 }
 
 // RangeFileBytes 遍历目录的文件字节
