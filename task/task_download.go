@@ -13,17 +13,17 @@ import (
 // NewDownload 新建下载任务
 func NewDownload() *Download {
 	return &Download{
-		limit: 1,
-		retry: 3,
+		coroutine: 1,
+		retry:     3,
 	}
 }
 
 type Download struct {
-	queue    []GetBytes                                        //分片队列
-	limit    uint                                              //协程数
-	retry    uint                                              //重试次数
-	offset   int                                               //偏移量
-	doneItem func(ctx context.Context, resp *DownloadItemResp) //分片下载完成事件
+	queue     []GetBytes                                        //分片队列
+	coroutine uint                                              //协程数
+	retry     uint                                              //重试次数
+	offset    int                                               //偏移量
+	doneItem  func(ctx context.Context, resp *DownloadItemResp) //分片下载完成事件
 }
 
 func (this *Download) Len() int {
@@ -37,8 +37,8 @@ func (this *Download) Append(v GetBytes) *Download {
 	return this
 }
 
-func (this *Download) SetLimit(limit uint) *Download {
-	this.limit = conv.SelectUint(limit == 0, 1, limit)
+func (this *Download) SetCoroutine(limit uint) *Download {
+	this.coroutine = conv.SelectUint(limit == 0, 1, limit)
 	return this
 }
 
@@ -58,7 +58,7 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 		return this.downloadOne(ctx, this.queue[0])
 	}
 	start := time.Now()
-	wg := chans.NewWaitLimit(this.limit)
+	wg := chans.NewWaitLimit(this.coroutine)
 	size := int64(0)
 	for i, v := range this.queue {
 		select {
