@@ -6,8 +6,7 @@ import (
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
-	"io"
-	"os"
+	"github.com/injoyai/goutil/oss"
 	"time"
 )
 
@@ -60,13 +59,13 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 	}
 	start := time.Now()
 	wg := chans.NewWaitLimit(this.limit)
-	cache := make([][]byte, this.Len())
+	size := int64(0)
 	for i, v := range this.queue {
 		select {
 		case <-ctx.Done():
 			return &DownloadResp{
 				Start: start,
-				Bytes: cache,
+				Size:  0,
 				Err:   errors.New("上下文关闭"),
 			}
 		default:
@@ -75,7 +74,7 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 				defer wg.Done()
 				bytes, err := t.getBytes(ctx, v)
 				if err == nil {
-					cache[i] = bytes
+					size += int64(len(bytes))
 				}
 				if this.doneItem != nil {
 					this.doneItem(ctx, &DownloadItemResp{
@@ -90,7 +89,7 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 	wg.Wait()
 	return &DownloadResp{
 		Start: start,
-		Bytes: cache,
+		Size:  size,
 	}
 }
 
@@ -106,7 +105,7 @@ func (this *Download) downloadOne(ctx context.Context, i GetBytes) *DownloadResp
 	})
 	return &DownloadResp{
 		Start: start,
-		Bytes: [][]byte{bytes},
+		Size:  int64(len(bytes)),
 		Err:   err,
 	}
 }
@@ -154,39 +153,44 @@ func (this *DownloadItemResp) Error() string {
 	return ""
 }
 
+func (this *DownloadItemResp) Save(filename string) error {
+	return oss.New(filename, this.Bytes)
+}
+
+// DownloadResp 下载响应,去除字节,避免内存占用过大
 type DownloadResp struct {
-	Start time.Time //任务开始时间
-	Bytes [][]byte  //任务分片字节
-	Err   error     //错误信息
-	size  *int64
-	spend *time.Duration
+	Start time.Time      //任务开始时间
+	Size  int64          //实际下载字节大小
+	Err   error          //错误信息
+	spend *time.Duration //下载耗时
+	//Bytes [][]byte  //任务分片字节
 }
 
-func (this *DownloadResp) WriteTo(w io.Writer) (int64, error) {
-	co := int64(0)
-	for _, bs := range this.Bytes {
-		if w != nil && bs != nil {
-			n, err := w.Write(bs)
-			if err != nil {
-				return co, err
-			}
-			co += int64(n)
-		}
-	}
-	if this.size == nil {
-		this.size = &co
-	}
-	return co, nil
-}
-
-func (this *DownloadResp) WriteToFile(filename string) (int64, error) {
-	f, err := os.Create(filename)
-	if err != nil {
-		return 0, err
-	}
-	defer f.Close()
-	return this.WriteTo(f)
-}
+//func (this *DownloadResp) WriteTo(w io.Writer) (int64, error) {
+//	co := int64(0)
+//	for _, bs := range this.Bytes {
+//		if w != nil && bs != nil {
+//			n, err := w.Write(bs)
+//			if err != nil {
+//				return co, err
+//			}
+//			co += int64(n)
+//		}
+//	}
+//	if this.size == nil {
+//		this.size = &co
+//	}
+//	return co, nil
+//}
+//
+//func (this *DownloadResp) WriteToFile(filename string) (int64, error) {
+//	f, err := os.Create(filename)
+//	if err != nil {
+//		return 0, err
+//	}
+//	defer f.Close()
+//	return this.WriteTo(f)
+//}
 
 func (this *DownloadResp) GetSpend() time.Duration {
 	if this.spend != nil {
@@ -197,25 +201,25 @@ func (this *DownloadResp) GetSpend() time.Duration {
 	return spend
 }
 
-func (this *DownloadResp) GetBytes() []byte {
-	bs := []byte(nil)
-	for _, v := range this.Bytes {
-		bs = append(bs, v...)
-	}
-	return bs
-}
-
-func (this *DownloadResp) GetSize() int64 {
-	if this.size != nil {
-		return *this.size
-	}
-	var size int64
-	for _, v := range this.Bytes {
-		size += int64(len(v))
-	}
-	this.size = &size
-	return size
-}
+//func (this *DownloadResp) GetBytes() []byte {
+//	bs := []byte(nil)
+//	for _, v := range this.Bytes {
+//		bs = append(bs, v...)
+//	}
+//	return bs
+//}
+//
+//func (this *DownloadResp) GetSize() int64 {
+//	if this.size != nil {
+//		return *this.size
+//	}
+//	var size int64
+//	for _, v := range this.Bytes {
+//		size += int64(len(v))
+//	}
+//	this.size = &size
+//	return size
+//}
 
 func (this *DownloadResp) Error() string {
 	if this.Err != nil {
