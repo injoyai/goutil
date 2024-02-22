@@ -134,7 +134,7 @@ func RangeFileInfo(dir string, fn func(info fs.FileInfo) bool) error {
 }
 
 // RangeFile 遍历目录的文件
-func RangeFile(dir string, fn func(f *os.File) (bool, error)) error {
+func RangeFile(dir string, fn func(info os.FileInfo, f *os.File) (bool, error)) error {
 	fileInfos, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return err
@@ -145,7 +145,7 @@ func RangeFile(dir string, fn func(f *os.File) (bool, error)) error {
 			if err != nil {
 				return err
 			}
-			next, err := fn(f)
+			next, err := fn(info, f)
 			f.Close()
 			if err != nil {
 				return err
@@ -159,12 +159,12 @@ func RangeFile(dir string, fn func(f *os.File) (bool, error)) error {
 }
 
 // RangeFileBytes 遍历目录的文件字节
-func RangeFileBytes(dir string, fn func(bs []byte) bool) error {
-	return RangeFile(dir, func(f *os.File) (bool, error) {
+func RangeFileBytes(dir string, fn func(info os.FileInfo, bs []byte) bool) error {
+	return RangeFile(dir, func(info os.FileInfo, f *os.File) (bool, error) {
 		bs, err := io.ReadAll(f)
 		if err != nil {
 			return false, err
 		}
-		return fn(bs), nil
+		return fn(info, bs), nil
 	})
 }
