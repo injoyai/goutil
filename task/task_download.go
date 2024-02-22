@@ -30,9 +30,12 @@ func (this *Download) Len() int {
 	return len(this.queue)
 }
 
-func (this *Download) Append(v GetBytes) *Download {
+func (this *Download) Append(i int, v GetBytes) *Download {
 	if v != nil {
-		this.queue = append(this.queue, v)
+		for len(this.queue) <= i {
+			this.queue = append(this.queue, nil)
+		}
+		this.queue[i] = v
 	}
 	return this
 }
@@ -61,6 +64,9 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 	wg := chans.NewWaitLimit(this.coroutine)
 	size := int64(0)
 	for i, v := range this.queue {
+		if v == nil {
+			continue
+		}
 		select {
 		case <-ctx.Done():
 			return &DownloadResp{
