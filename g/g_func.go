@@ -97,6 +97,16 @@ func PanicErr(err error) {
 	}
 }
 
+// StopWithErr 按顺序执行函数,遇到错误结束,并返回错误
+func StopWithErr(fn ...func() error) error {
+	for _, v := range fn {
+		if err := v(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 //========================================Wait========================================
 
 // Wait 等待
