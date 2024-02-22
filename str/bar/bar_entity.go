@@ -28,6 +28,7 @@ func NewWithContext(ctx context.Context, total int64) *Bar {
 		cancel: cancel,
 		c:      make(chan int64),
 		writer: os.Stdout,
+		cache:  maps.NewSafe(),
 	}
 }
 
@@ -43,6 +44,7 @@ type Bar struct {
 	ctx         context.Context    //
 	cancel      context.CancelFunc //
 	writer      io.Writer
+	cache       *maps.Safe //可优化
 }
 
 /*
@@ -105,12 +107,29 @@ func (this *Bar) Close() error {
 	return nil
 }
 
+// Speed 计算速度
+func (this *Bar) Speed(key string, size int64, interval time.Duration) string {
+	if val, ok := this.cache.Get(key); ok {
+		return val.(string)
+	}
+	spend := float64(size) / time.Now().Sub(this.currentTime).Seconds()
+	f, unit := oss.Size(int64(spend))
+	if f < 0 {
+		f, unit = 0, "B"
+	}
+	s := fmt.Sprintf("%0.1f%s/s", f, unit)
+	if f > 0 {
+		this.cache.Set(key, s, interval)
+	}
+	return s
+}
+
 func (this *Bar) Run() <-chan struct{} {
-	this.init()             //初始化
-	go this.Add(0)          //触发进度条出现
-	start := time.Now()     //开始时间
-	maxLength := 0          //字符串最大长度
-	cache := maps.NewSafe() //缓存,用于缓存最近的下载速度
+	this.init()         //初始化
+	go this.Add(0)      //触发进度条出现
+	start := time.Now() //开始时间
+	maxLength := 0      //字符串最大长度
+	//cache := maps.NewSafe()     //缓存,用于缓存最近的下载速度
 	for {
 		select {
 		case <-this.ctx.Done():
@@ -153,7 +172,7 @@ func (this *Bar) Run() <-chan struct{} {
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
-					if val, ok := cache.Get("Speed"); ok {
+					if val, ok := this.cache.Get("Speed"); ok {
 						return val.(string)
 					}
 					f, unit := oss.Size(int64(spend))
@@ -162,7 +181,7 @@ func (this *Bar) Run() <-chan struct{} {
 					}
 					s := fmt.Sprintf("%0.1f%s/s", f, unit)
 					if f > 0 {
-						cache.Set("Speed", s, time.Millisecond*500)
+						this.cache.Set("Speed", s, time.Millisecond*500)
 					}
 					return s
 				}),
