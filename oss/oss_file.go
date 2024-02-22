@@ -74,15 +74,18 @@ func New(filename string, v ...interface{}) error {
 		return err
 	}
 	defer f.Close()
-	if len(v) == 0 {
-		return nil
-	}
-	data := []byte(nil)
 	for _, k := range v {
-		data = append(data, conv.Bytes(k)...)
+		if r, ok := k.(io.Reader); ok {
+			if _, err = io.Copy(f, r); err != nil {
+				return err
+			}
+			continue
+		}
+		if _, err = f.Write(conv.Bytes(k)); err != nil {
+			return err
+		}
 	}
-	_, err = f.Write(data)
-	return err
+	return nil
 }
 
 // NewNotExist 如果不存在,则新建
