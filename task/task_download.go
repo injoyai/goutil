@@ -112,7 +112,7 @@ func (this *Download) downloadOne(ctx context.Context, i GetBytes) *DownloadResp
 
 func (this *Download) getBytes(ctx context.Context, v GetBytes) (bytes []byte, err error) {
 	for i := uint(0); i < this.retry; i++ {
-		bytes, err = v.GetBytes(ctx, nil)
+		bytes, err = v.GetBytes(ctx, func(p *http.Plan) {})
 		if err == nil {
 			return
 		}
