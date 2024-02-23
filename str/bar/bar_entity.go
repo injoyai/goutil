@@ -108,6 +108,14 @@ func (this *Bar) Close() error {
 	return nil
 }
 
+func (this *Bar) SizeUnit(size int64, decimal ...uint) string {
+	f, unit := oss.Size(size)
+	if len(decimal) > 0 {
+		return fmt.Sprintf(fmt.Sprintf("%%0.%df%%s/s", decimal[0]), f, unit)
+	}
+	return fmt.Sprintf("%0.1f%s/s", f, unit)
+}
+
 // Speed 计算速度
 func (this *Bar) Speed(key string, size int64, interval time.Duration) string {
 	lastTime, _ := this.cacheTime.GetOrSetByHandler(key, func() (interface{}, error) {
@@ -136,7 +144,6 @@ func (this *Bar) Run() <-chan struct{} {
 	go this.Add(0)      //触发进度条出现
 	start := time.Now() //开始时间
 	maxLength := 0      //字符串最大长度
-	//cache := maps.NewSafe()     //缓存,用于缓存最近的下载速度
 	for {
 		select {
 		case <-this.ctx.Done():
@@ -168,16 +175,16 @@ func (this *Bar) Run() <-chan struct{} {
 				Rate: element(func() string {
 					return fmt.Sprintf("%0.1f%%", rate*100)
 				}),
-				Size: element(func() string {
+				RateSize: element(func() string {
 					return fmt.Sprintf("%d/%d", this.current, this.total)
 				}),
-				SizeUnit: element(func() string {
+				RateSizeUnit: element(func() string {
 					currentNum, currentUnit := oss.Size(this.current)
 					totalNum, totalUnit := oss.Size(this.total)
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
-					return this.Speed("Speed", n, time.Millisecond*500)
+					return this.Speed("Default", n, time.Millisecond*500)
 				}),
 				Used: element(func() string {
 					return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds())
@@ -192,6 +199,7 @@ func (this *Bar) Run() <-chan struct{} {
 				}),
 			}
 
+			//自定义格式化输出
 			s := this.format(f)
 			if len(s) >= maxLength {
 				maxLength = len(s)
@@ -218,16 +226,9 @@ func (this *Bar) init() {
 		this.ctx, this.cancel = context.WithCancel(context.Background())
 	}
 	if this.format == nil {
-		this.format = func(e *Format) string {
-			return fmt.Sprintf("\r%s  %s  %s",
-				e.Bar,
-				e.SizeUnit,
-				e.Speed,
-			)
-		}
+		this.format = WithDefault
 	}
 	this.current = 0
-	//this.currentTime = time.Now()
 }
 
 func (this *Bar) Copy(w io.Writer, r io.Reader) (int, error) {
