@@ -21,28 +21,31 @@ func New(total int64) *Bar {
 func NewWithContext(ctx context.Context, total int64) *Bar {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Bar{
-		width:  50,
-		style:  '>',
-		total:  total,
-		ctx:    ctx,
-		cancel: cancel,
-		c:      make(chan int64),
-		writer: os.Stdout,
+		width:      50,
+		style:      '>',
+		total:      total,
+		ctx:        ctx,
+		cancel:     cancel,
+		c:          make(chan int64),
+		writer:     os.Stdout,
+		cacheTime:  maps.NewSafe(),
+		cacheSpeed: maps.NewSafe(),
 	}
 }
 
 type Bar struct {
-	format      Formatter          //格式化
-	width       int                //宽度
-	current     int64              //当前
-	currentTime time.Time          //当前时间
-	total       int64              //总
-	style       byte               //进度条风格
-	color       *color.Color       //整体颜色
-	c           chan int64         //实时数据通道
-	ctx         context.Context    //
-	cancel      context.CancelFunc //
-	writer      io.Writer
+	format     Formatter          //格式化
+	width      int                //宽度
+	current    int64              //当前
+	total      int64              //总
+	style      byte               //进度条风格
+	color      *color.Color       //整体颜色
+	c          chan int64         //实时数据通道
+	ctx        context.Context    //
+	cancel     context.CancelFunc //
+	writer     io.Writer
+	cacheTime  *maps.Safe
+	cacheSpeed *maps.Safe
 }
 
 /*
@@ -105,21 +108,42 @@ func (this *Bar) Close() error {
 	return nil
 }
 
+// Speed 计算速度
+func (this *Bar) Speed(key string, size int64, interval time.Duration) string {
+	lastTime, _ := this.cacheTime.GetOrSetByHandler(key, func() (interface{}, error) {
+		return time.Now(), nil
+	})
+	now := time.Now()
+	spend := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
+	this.cacheTime.Set(key, now)
+
+	if val, ok := this.cacheSpeed.Get(key); ok {
+		return val.(string)
+	}
+	f, unit := oss.Size(int64(spend))
+	if f < 0 {
+		f, unit = 0, "B"
+	}
+	s := fmt.Sprintf("%0.1f%s/s", f, unit)
+	if f > 0 {
+		this.cacheSpeed.Set(key, s, interval)
+	}
+	return s
+}
+
 func (this *Bar) Run() <-chan struct{} {
-	this.init()             //初始化
-	go this.Add(0)          //触发进度条出现
-	start := time.Now()     //开始时间
-	maxLength := 0          //字符串最大长度
-	cache := maps.NewSafe() //缓存,用于缓存最近的下载速度
+	this.init()         //初始化
+	go this.Add(0)      //触发进度条出现
+	start := time.Now() //开始时间
+	maxLength := 0      //字符串最大长度
+	//cache := maps.NewSafe()     //缓存,用于缓存最近的下载速度
 	for {
 		select {
 		case <-this.ctx.Done():
 			fmt.Println()
 			return this.ctx.Done()
 		case n := <-this.c:
-			spend := float64(n) / time.Now().Sub(this.currentTime).Seconds()
 			this.current += n
-			this.currentTime = time.Now()
 			if this.current >= this.total {
 				this.current = this.total
 				this.cancel()
@@ -153,18 +177,7 @@ func (this *Bar) Run() <-chan struct{} {
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
-					if val, ok := cache.Get("Speed"); ok {
-						return val.(string)
-					}
-					f, unit := oss.Size(int64(spend))
-					if f < 0 {
-						f, unit = 0, "B"
-					}
-					s := fmt.Sprintf("%0.1f%s/s", f, unit)
-					if f > 0 {
-						cache.Set("Speed", s, time.Millisecond*500)
-					}
-					return s
+					return this.Speed("Speed", n, time.Millisecond*500)
 				}),
 				Used: element(func() string {
 					return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds())
@@ -214,7 +227,7 @@ func (this *Bar) init() {
 		}
 	}
 	this.current = 0
-	this.currentTime = time.Now()
+	//this.currentTime = time.Now()
 }
 
 func (this *Bar) Copy(w io.Writer, r io.Reader) (int, error) {
