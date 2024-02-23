@@ -15,10 +15,10 @@ import (
 type Model string
 
 const (
-	In      Model = "in"  //输入
-	Out     Model = "out" //输出
-	High          = true  //高电平
-	Low           = false //低电平
+	Input   Model = "in"  //输入
+	Output  Model = "out" //输出
+	High          = 1     //高电平
+	Low           = 0     //低电平
 	gpioDir       = "/sys/class/gpio/"
 )
 
@@ -35,7 +35,7 @@ type Pin interface {
 	GetValue() (bool, error)
 
 	// SetValue 设置高低电平
-	SetValue(bool) error
+	SetValue(int) error
 
 	// SetHigh 设置高电平
 	SetHigh() error
@@ -119,7 +119,7 @@ func (this *pin) GetValue() (bool, error) {
 	return result == "1", err
 }
 
-func (this *pin) SetValue(b bool) error {
+func (this *pin) SetValue(b int) error {
 	_, err := bash.Execf("echo %d > %s/gpio%d/value", b, gpioDir, this.number)
 	return err
 }
