@@ -24,6 +24,7 @@ type Download struct {
 	retry     uint                                              //重试次数
 	offset    int                                               //偏移量
 	doneItem  func(ctx context.Context, resp *DownloadItemResp) //分片下载完成事件
+	doneAll   func(resp *DownloadResp)                          //全部分片下载完成事件
 }
 
 func (this *Download) Len() int {
@@ -59,6 +60,11 @@ func (this *Download) SetRetry(retry uint) *Download {
 
 func (this *Download) SetDoneItem(doneItem func(ctx context.Context, resp *DownloadItemResp)) *Download {
 	this.doneItem = doneItem
+	return this
+}
+
+func (this *Download) SetDoneAll(doneAll func(resp *DownloadResp)) *Download {
+	this.doneAll = doneAll
 	return this
 }
 
@@ -100,10 +106,14 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 		}
 	}
 	wg.Wait()
-	return &DownloadResp{
+	resp := &DownloadResp{
 		Start: start,
 		Size:  size,
 	}
+	if this.doneAll != nil {
+		this.doneAll(resp)
+	}
+	return resp
 }
 
 func (this *Download) downloadOne(ctx context.Context, i GetBytes) *DownloadResp {
