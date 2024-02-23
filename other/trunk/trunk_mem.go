@@ -79,24 +79,32 @@ func (this *Mem) Middleware(h MiddlewareHandler) {
 
 func (this *Mem) Run() {
 
+	//启一个单独的协程,防止阻塞到主消息队列
 	go this.runSubscribe()
 
-	for {
-		data := <-this.dataQueue
+loop:
+	for data := range this.dataQueue {
+
 		var pass bool
+		//执行中间件,能改变原始数据
 		for _, h := range this.middlewareList {
 			logs.PrintErr(g.Try(func() error {
 				data, pass = h(data)
 				return nil
 			}))
 			if !pass {
-				continue
+				//数据不符合,过滤掉
+				continue loop
 			}
 		}
+
+		//尝试加入订阅队列,不影响到主消息队列
 		select {
 		case this.subscribeQueue <- data:
 		default:
 		}
+
+		//
 		for _, hook := range this.hookList {
 			select {
 			case hook.C <- data:
