@@ -29,9 +29,9 @@ type Format struct {
 func (this *Format) NewSizeUnit(size int64, decimal ...uint) string {
 	f, unit := oss.Size(size)
 	if len(decimal) > 0 {
-		return fmt.Sprintf(fmt.Sprintf("%%0.%df%%s/s", decimal[0]), f, unit)
+		return fmt.Sprintf(fmt.Sprintf("%%0.%df%%s", decimal[0]), f, unit)
 	}
-	return fmt.Sprintf("%0.1f%s/s", f, unit)
+	return fmt.Sprintf("%0.1f%s", f, unit)
 }
 
 // Default 默认样式
