@@ -165,6 +165,7 @@ func (this *Bar) Run() <-chan struct{} {
 
 			//元素
 			f := &Format{
+				Entity: this,
 				Bar: element(func() string {
 					bar := fmt.Sprintf(fmt.Sprintf("[%%-%ds]", this.width), nowWidth)
 					if this.color != nil {
