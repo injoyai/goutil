@@ -12,6 +12,10 @@ type Command struct {
 	Child         []*Command                                           //设置子项
 }
 
+func (this *Command) Execute() error {
+	return this.ParesFlags().Execute()
+}
+
 func (this *Command) ParesFlags() *cobra.Command {
 	return this.paresFlags()
 }
