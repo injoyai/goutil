@@ -6,49 +6,50 @@ import (
 	"time"
 )
 
-var mapSizeUnit = map[int]string{
-	0:   "B",
-	10:  "KB",
-	20:  "MB",
-	30:  "GB",
-	40:  "TB",
-	50:  "PB",
-	60:  "EB",
-	70:  "ZB",
-	80:  "YB",
-	90:  "BB",
-	100: "NB",
-	110: "DB",
-	120: "CB",
-	130: "XB",
+// 64位最大只能到15.999EB
+var mapSizeUnit = []string{
+	"B",
+	"KB",
+	"MB",
+	"GB",
+	"TB",
+	"PB",
+	"EB", //64位最大单位
+	"ZB",
+	"YB",
+	"BB",
+	"NB",
+	"DB",
+	"CB",
+	"XB",
 }
 
-func Size(b int64) (float64, string) {
-	for n := 0; n <= 130; n += 10 {
-		if b < 1<<(n+10) {
-			if n == 0 {
-				return float64(b), mapSizeUnit[n]
-			}
-			return float64(b) / float64(int64(1)<<n), mapSizeUnit[n]
-		}
+// SizeUnit 字节数量和单位 例 15.8,"MB"
+// 64位最大值是 18446744073709551616 = 15.999EB
+func SizeUnit(b int64) (float64, string) {
+	i := 0
+	for ; b >= 1024*1024; i++ {
+		//后面点的精度不是很精确
+		b = b / 1024
 	}
-	return float64(b), mapSizeUnit[0]
+	if b > 1024 {
+		i++
+		return float64(b) / 1024, mapSizeUnit[i]
+	}
+	return float64(b), mapSizeUnit[i]
 }
 
-// SizeString 字节数量字符表现方式
+// SizeString 字节数量字符表现方式,例 15.8MB
 func SizeString(b int64, decimal ...int) string {
-	size, unit := Size(b)
+	size, unit := SizeUnit(b)
 	d := conv.GetDefaultInt(1, decimal...)
 	return fmt.Sprintf(fmt.Sprintf("%%.%df%%s", d), size, unit)
 }
 
-func SizeSpend(b int64, d time.Duration) (float64, string) {
-	size, unit := Size(b)
-	return size / d.Seconds(), unit
-}
-
-func SizeSpendString(b int64, sub time.Duration, decimal ...int) string {
-	spend, unit := SizeSpend(b, sub)
+// SizeSpeed 每秒速度 例15.8MB/s
+func SizeSpeed(b int64, sub time.Duration, decimal ...int) string {
+	size, unit := SizeUnit(b)
+	spend := size / sub.Seconds()
 	d := conv.GetDefaultInt(1, decimal...)
 	return fmt.Sprintf(fmt.Sprintf("%%.%df%%s/s", d), spend, unit)
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func Demo() <-chan struct{} {
+func Demo() error {
 	x := New(60)
 	x.SetStyle('>')
 	x.SetColor(BgCyan)

@@ -22,7 +22,7 @@ func main() {
 	url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
 	filename := "./downloader.exe"
 	b := bar.New(0)
-	b.SetColor(color.BgCyan)
+	b.SetColor(color.BgYellow)
 	b.SetStyle('#')
 	b.SetWriter(io.WriteFunc(func(p []byte) (int, error) {
 		return fmt.Print(string(p))

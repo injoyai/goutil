@@ -3,6 +3,7 @@ package bar
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/injoyai/base/maps"
@@ -21,8 +22,6 @@ func New(total int64) *Bar {
 func NewWithContext(ctx context.Context, total int64) *Bar {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Bar{
-		width:      50,
-		style:      '>',
 		total:      total,
 		ctx:        ctx,
 		cancel:     cancel,
@@ -34,12 +33,11 @@ func NewWithContext(ctx context.Context, total int64) *Bar {
 }
 
 type Bar struct {
-	format     Formatter          //格式化
-	width      int                //宽度
-	current    int64              //当前
-	total      int64              //总
-	style      byte               //进度条风格
-	color      *color.Color       //整体颜色
+	format Formatter //格式化
+	option []func(format *Format)
+
+	current    int64              //当前数量
+	total      int64              //总数量
 	c          chan int64         //实时数据通道
 	ctx        context.Context    //
 	cancel     context.CancelFunc //
@@ -60,14 +58,10 @@ SetFormatter 自定义格式
 			e.Remain,
 			this.suffix,
 		)
+	}
 */
 func (this *Bar) SetFormatter(f Formatter) *Bar {
 	this.format = f
-	return this
-}
-
-func (this *Bar) SetWidth(width int) *Bar {
-	this.width = width
 	return this
 }
 
@@ -76,14 +70,27 @@ func (this *Bar) SetTotal(total int64) *Bar {
 	return this
 }
 
-func (this *Bar) SetStyle(style byte) *Bar {
-	this.style = style
+func (this *Bar) AddOption(option ...func(f *Format)) *Bar {
+	this.option = append(this.option, option...)
 	return this
 }
 
+func (this *Bar) SetWidth(width int) *Bar {
+	return this.AddOption(func(format *Format) {
+		format.Bar.SetWidth(width)
+	})
+}
+
+func (this *Bar) SetStyle(style byte) *Bar {
+	return this.AddOption(func(format *Format) {
+		format.Bar.SetStyle(style)
+	})
+}
+
 func (this *Bar) SetColor(a color.Attribute) *Bar {
-	this.color = color.New(a)
-	return this
+	return this.AddOption(func(format *Format) {
+		format.Bar.SetColor(a)
+	})
 }
 
 func (this *Bar) SetWriter(w io.Writer) *Bar {
@@ -100,7 +107,7 @@ func (this *Bar) Add(n int64) *Bar {
 }
 
 func (this *Bar) Done() *Bar {
-	return this.Add(this.total)
+	return this.Add(this.total - this.current)
 }
 
 func (this *Bar) Close() error {
@@ -109,7 +116,7 @@ func (this *Bar) Close() error {
 }
 
 func (this *Bar) SizeUnit(size int64, decimal ...uint) string {
-	f, unit := oss.Size(size)
+	f, unit := oss.SizeUnit(size)
 	if len(decimal) > 0 {
 		return fmt.Sprintf(fmt.Sprintf("%%0.%df%%s", decimal[0]), f, unit)
 	}
@@ -117,29 +124,56 @@ func (this *Bar) SizeUnit(size int64, decimal ...uint) string {
 }
 
 // Speed 计算速度
-func (this *Bar) Speed(key string, size int64, interval time.Duration) string {
+func (this *Bar) Speed(key string, size int64, expiration time.Duration) string {
+
+	//最后的数据时间
 	lastTime, _ := this.cacheTime.GetOrSetByHandler(key, func() (interface{}, error) {
-		return time.Now(), nil
+		return time.Time{}, nil
 	})
+
+	//记录这次时间,用于下次计算时间差
 	now := time.Now()
-	spend := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
 	this.cacheTime.Set(key, now)
 
+	//尝试从缓存获取速度,存在则直接返回,由expiration控制
 	if val, ok := this.cacheSpeed.Get(key); ok {
 		return val.(string)
 	}
-	f, unit := oss.Size(int64(spend))
-	if f < 0 {
-		f, unit = 0, "B"
-	}
-	s := fmt.Sprintf("%0.1f%s/s", f, unit)
-	if f > 0 {
-		this.cacheSpeed.Set(key, s, interval)
-	}
+
+	//计算速度
+	spend := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
+	s := fmt.Sprintf("%0.1f/s", spend)
+	this.cacheSpeed.Set(key, s, expiration)
 	return s
 }
 
-func (this *Bar) Run() <-chan struct{} {
+// SpeedUnit 速度,带单位 1024 > 1KB
+func (this *Bar) SpeedUnit(key string, size int64, expiration time.Duration) string {
+
+	//最后的数据时间
+	lastTime, _ := this.cacheTime.GetOrSetByHandler(key, func() (interface{}, error) {
+		return time.Time{}, nil
+	})
+
+	//记录这次时间,用于下次计算时间差
+	now := time.Now()
+	this.cacheTime.Set(key, now)
+
+	//尝试从缓存获取速度,存在则直接返回,由expiration控制
+	if val, ok := this.cacheSpeed.Get(key); ok {
+		return val.(string)
+	}
+
+	//计算速度
+	spendSize := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
+	f, unit := oss.SizeUnit(int64(spendSize))
+	s := fmt.Sprintf("%0.1f%s/s", f, unit)
+	this.cacheSpeed.Set(key, s, expiration)
+	return s
+}
+
+func (this *Bar) Run() error {
+	defer fmt.Println()
 	this.init()         //初始化
 	go this.Add(0)      //触发进度条出现
 	start := time.Now() //开始时间
@@ -147,9 +181,11 @@ func (this *Bar) Run() <-chan struct{} {
 	for {
 		select {
 		case <-this.ctx.Done():
-			fmt.Println()
-			return this.ctx.Done()
+			return errors.New("上下文关闭")
+
 		case n := <-this.c:
+
+			//当前进度
 			this.current += n
 			if this.current >= this.total {
 				this.current = this.total
@@ -158,21 +194,19 @@ func (this *Bar) Run() <-chan struct{} {
 
 			//进度占比
 			rate := float64(this.current) / float64(this.total)
-			nowWidth := ""
-			for i := 0; i < int(float64(this.width)*rate); i++ {
-				nowWidth += string(this.style)
-			}
 
 			//元素
 			f := &Format{
 				Entity: this,
-				Bar: element(func() string {
-					bar := fmt.Sprintf(fmt.Sprintf("[%%-%ds]", this.width), nowWidth)
-					if this.color != nil {
-						bar = this.color.Sprint(bar)
-					}
-					return bar
-				}),
+				Bar: &bar{
+					prefix:  "[",
+					suffix:  "]",
+					style:   '>',
+					color:   nil,
+					total:   this.total,
+					current: this.current,
+					width:   50,
+				},
 				Rate: element(func() string {
 					return fmt.Sprintf("%0.1f%%", rate*100)
 				}),
@@ -180,12 +214,15 @@ func (this *Bar) Run() <-chan struct{} {
 					return fmt.Sprintf("%d/%d", this.current, this.total)
 				}),
 				RateSizeUnit: element(func() string {
-					currentNum, currentUnit := oss.Size(this.current)
-					totalNum, totalUnit := oss.Size(this.total)
+					currentNum, currentUnit := oss.SizeUnit(this.current)
+					totalNum, totalUnit := oss.SizeUnit(this.total)
 					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
 				}),
 				Speed: element(func() string {
-					return this.Speed("Default", n, time.Millisecond*500)
+					return this.Speed("Speed", n, time.Millisecond*500)
+				}),
+				SpeedUnit: element(func() string {
+					return this.SpeedUnit("SpeedUnit", n, time.Millisecond*500)
 				}),
 				Used: element(func() string {
 					return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds())
@@ -201,6 +238,9 @@ func (this *Bar) Run() <-chan struct{} {
 			}
 
 			//自定义格式化输出
+			for _, v := range this.option {
+				v(f)
+			}
 			s := this.format(f)
 			if len(s) >= maxLength {
 				maxLength = len(s)
@@ -217,15 +257,6 @@ func (this *Bar) Run() <-chan struct{} {
 }
 
 func (this *Bar) init() {
-	if this.width == 0 {
-		this.width = 40
-	}
-	if this.style == 0 {
-		this.style = '>'
-	}
-	if this.ctx == nil {
-		this.ctx, this.cancel = context.WithCancel(context.Background())
-	}
 	if this.format == nil {
 		this.format = WithDefault
 	}
@@ -259,14 +290,14 @@ func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int, error) {
 }
 
 var (
-	defaultClient = http.NewClient()
+	DefaultClient = http.NewClient()
 )
 
 func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int, error) {
-	if err := defaultClient.SetProxy(conv.GetDefaultString("", proxy...)); err != nil {
+	if err := DefaultClient.SetProxy(conv.GetDefaultString("", proxy...)); err != nil {
 		return 0, err
 	}
-	resp := defaultClient.Get(source)
+	resp := DefaultClient.Get(source)
 	if resp.Err() != nil {
 		return 0, resp.Err()
 	}
