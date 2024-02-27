@@ -272,8 +272,8 @@ func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int, error) {
 	buff := bufio.NewReader(r)
 	go this.Run()
 	total := 0
+	buf := make([]byte, bufSize)
 	for {
-		buf := make([]byte, bufSize)
 		n, err := buff.Read(buf)
 		if err != nil && err != io.EOF {
 			return total, err
