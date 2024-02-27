@@ -46,11 +46,11 @@ func (this *Format) Default() string {
 }
 
 // M3u8 m3u8样式,进度是分片,字节是另外的
-func (this *Format) M3u8(current int64) string {
+func (this *Format) M3u8(current, sum int64) string {
 	return fmt.Sprintf("\r%s  %s  %s  %s",
 		this.Bar,
 		this.RateSize,
-		this.NewSizeUnit(current),
+		this.NewSizeUnit(sum),
 		this.Entity.SpeedUnit("m3u8", current, time.Millisecond*500),
 	)
 }
@@ -61,9 +61,9 @@ func WithDefault(e *Format) string {
 	return e.Default()
 }
 
-func NewWithM3u8(current *int64) func(e *Format) string {
+func NewWithM3u8(current, sum *int64) func(e *Format) string {
 	return func(e *Format) string {
-		return e.M3u8(*current)
+		return e.M3u8(*current, *sum)
 	}
 }
 
