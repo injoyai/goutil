@@ -98,6 +98,12 @@ func (this *Bar) SetWriter(w io.Writer) *Bar {
 	return this
 }
 
+func (this *Bar) Write(p []byte) (int, error) {
+	length := len(p)
+	this.Add(int64(length))
+	return length, nil
+}
+
 func (this *Bar) Add(n int64) *Bar {
 	select {
 	case <-this.ctx.Done():
@@ -263,22 +269,22 @@ func (this *Bar) init() {
 	this.current = 0
 }
 
-func (this *Bar) Copy(w io.Writer, r io.Reader) (int, error) {
+func (this *Bar) Copy(w io.Writer, r io.Reader) (int64, error) {
 	return this.CopyN(w, r, 4<<10)
 }
 
-func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int, error) {
+func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int64, error) {
 	defer this.Close()
 	buff := bufio.NewReader(r)
 	go this.Run()
-	total := 0
+	total := int64(0)
 	buf := make([]byte, bufSize)
 	for {
 		n, err := buff.Read(buf)
 		if err != nil && err != io.EOF {
 			return total, err
 		}
-		total += n
+		total += int64(n)
 		this.Add(int64(n))
 		if _, err := w.Write(buf[:n]); err != nil {
 			return total, err
@@ -290,10 +296,11 @@ func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int, error) {
 }
 
 var (
-	DefaultClient = http.NewClient()
+	// DefaultClient 默认客户端,下载大文件的时候需要设置长的超时时间
+	DefaultClient = http.NewClient().SetTimeout(0)
 )
 
-func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int, error) {
+func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int64, error) {
 	if err := DefaultClient.SetProxy(conv.GetDefaultString("", proxy...)); err != nil {
 		return 0, err
 	}

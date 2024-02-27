@@ -155,6 +155,11 @@ func (this *Response) GetBodyString() string {
 	return string(this.GetBody())
 }
 
+// GetBodyDMap 获取body内容,解析成*conv.Map
+func (this *Response) GetBodyDMap() *conv.Map {
+	return conv.NewMap(this.GetBodyBytes())
+}
+
 // GetBodyMap 获取body内容,解析成map[string]interface{}返回
 func (this *Response) GetBodyMap() (m map[string]interface{}) {
 	_ = json.Unmarshal(this.GetBodyBytes(), &m)
@@ -182,16 +187,18 @@ func (this *Response) Execute(f ...func(r *Response) error) (err error) {
 
 // Bind 绑定body数据,目前支持字符串,字节和json,需要指针
 func (this *Response) Bind(ptr interface{}) *Response {
-	body := this.GetBodyBytes()
 	if ptr != nil {
 		switch val := ptr.(type) {
 		case *string:
-			*val = string(body)
+			*val = this.GetBodyString()
 		case *[]byte:
 			//val不为nil,this.body为nil可以赋值成功
-			*val = body
+			*val = this.GetBodyBytes()
+		case io.Writer:
+			_, err := io.Copy(val, this.Body)
+			this.setErr(err)
 		default:
-			this.setErr(json.Unmarshal(body, ptr))
+			this.setErr(json.Unmarshal(this.GetBodyBytes(), ptr))
 		}
 	}
 	return this

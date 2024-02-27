@@ -18,14 +18,14 @@ func Demo() error {
 	return x.Run()
 }
 
-func Download(url, filename string, proxy ...string) (int, error) {
+func Download(url, filename string, proxy ...string) (int64, error) {
 	return New(0).DownloadHTTP(url, filename, proxy...)
 }
 
-func DownloadHTTP(url, filename string, proxy ...string) (int, error) {
+func DownloadHTTP(url, filename string, proxy ...string) (int64, error) {
 	return New(0).DownloadHTTP(url, filename, proxy...)
 }
 
-func Copy(w io.Writer, r io.Reader, total int64) (int, error) {
+func Copy(w io.Writer, r io.Reader, total int64) (int64, error) {
 	return New(total).Copy(w, r)
 }
