@@ -73,6 +73,7 @@ func (this *Client) SetProxy(u string) error {
 }
 
 // SetTimeout 设置请求超时时间
+// 下载大文件的时候需要设置长的超时时间
 func (this *Client) SetTimeout(t time.Duration) *Client {
 	if this.Client != nil {
 		this.Client.Timeout = t
@@ -93,28 +94,25 @@ func (this *Client) GetBytes(url string) ([]byte, error) {
 	return resp.GetBodyBytes(), resp.Err()
 }
 
-func (this *Client) GetBytesWith(url string, f func([]byte)) ([]byte, error) {
+func (this *Client) GetReader(url string) (io.ReadCloser, error) {
 	resp := this.DoRequest(http.MethodGet, url, nil)
-	if resp.Err() != nil {
-		return nil, resp.Err()
-	}
-	buf := bytes.NewBuffer(nil)
-	if _, err := resp.CopyWith(buf, f); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return resp.Body, resp.Err()
 }
 
-func (this *Client) GetBytesWithPlan(url string, f func(p *io.Plan)) ([]byte, error) {
+func (this *Client) GetWith(url string, f func([]byte)) (int64, error) {
 	resp := this.DoRequest(http.MethodGet, url, nil)
 	if resp.Err() != nil {
-		return nil, resp.Err()
+		return 0, resp.Err()
 	}
-	buf := bytes.NewBuffer(nil)
-	if _, err := resp.CopyWithPlan(buf, f); err != nil {
-		return nil, err
+	return resp.CopyWith(io.Discard, f)
+}
+
+func (this *Client) GetWithPlan(url string, f func(p *io.Plan)) (int64, error) {
+	resp := this.DoRequest(http.MethodGet, url, nil)
+	if resp.Err() != nil {
+		return 0, resp.Err()
 	}
-	return buf.Bytes(), nil
+	return resp.CopyWithPlan(io.Discard, f)
 }
 
 func (this *Client) GetToWriter(url string, writer io.Writer) error {

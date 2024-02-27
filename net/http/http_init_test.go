@@ -24,3 +24,13 @@ func TestUrl(t *testing.T) {
 	}
 	t.Log(result)
 }
+
+func TestGetToWriter(t *testing.T) {
+	if err := DefaultClient.SetProxy("http://127.0.0.1:1081"); err != nil {
+		t.Error(err)
+	}
+	err := GetToFile("https://github.com/injoyai/downloader/releases/latest/download/downloader.exe", "./test.exe")
+	if err != nil {
+		t.Error(err)
+	}
+}
