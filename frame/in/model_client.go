@@ -97,6 +97,11 @@ func (this *Client) SetSuccFail(f func(c *Client, succ bool, data interface{}, c
 	return this
 }
 
+func (this *Client) SetPingPath(path string) *Client {
+	this.PingPath = path
+	return this
+}
+
 // AddExitOption 添加退出选项
 func (this *Client) AddExitOption(f ...ExitOption) *Client {
 	this.ExitOption = append(this.ExitOption, f...)
