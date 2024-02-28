@@ -19,12 +19,12 @@ func TestNewVar(t *testing.T) {
 
 }
 
-//百万次单线程速度4.31秒
-//百万次携程速度3.76秒
+// 百万次单线程速度4.31秒
+// 百万次携程速度3.76秒
 func TestNewCycle(t *testing.T) {
 
 	x := NewCycle(1000)
-	t.Log(x.Loading("666"))
+	//t.Log(x.Loading("666"))
 	t.Log("x.List():", x.List())
 	for _, v := range x.List() {
 		t.Log(v)
