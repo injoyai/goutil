@@ -38,7 +38,7 @@ func main() {
 
 	{
 		logs.Debug("失败示例:")
-		b = bar.New(100)
+		b = bar.New(0)
 		go func(b *bar.Bar) {
 			<-time.After(time.Second * 10)
 			b.Close()
