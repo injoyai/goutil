@@ -33,8 +33,8 @@ func NewWithContext(ctx context.Context, total int64) *Bar {
 }
 
 type Bar struct {
-	format Formatter //格式化
-	option []func(format *Format)
+	format Formatter              //格式化
+	option []func(format *Format) //执行过程中执行
 
 	current    int64              //当前数量
 	total      int64              //总数量
@@ -77,6 +77,15 @@ func (this *Bar) SetTotal(total int64) *Bar {
 func (this *Bar) AddOption(option ...func(f *Format)) *Bar {
 	this.option = append(this.option, option...)
 	return this
+}
+
+// OnFinal 执行结束时
+func (this *Bar) OnFinal(fn func(f *Format)) *Bar {
+	return this.AddOption(func(f *Format) {
+		if f.Final {
+			fn(f)
+		}
+	})
 }
 
 // SetWidth 设置进度条的宽度
@@ -154,7 +163,7 @@ func (this *Bar) Run() error {
 	go this.Add(0)      //触发进度条出现
 	start := time.Now() //开始时间
 	maxLength := 0      //字符串最大长度
-	for {
+	for i := 0; ; i++ {
 		select {
 		case <-this.ctx.Done():
 			return errors.New("上下文关闭")
@@ -173,14 +182,16 @@ func (this *Bar) Run() error {
 
 			//元素
 			f := &Format{
+				Index:  i,
+				Final:  this.current >= this.total,
 				Entity: this,
 				Bar: &bar{
 					prefix:  "[",
 					suffix:  "]",
 					style:   '>',
 					color:   nil,
-					total:   this.total,
-					current: this.current,
+					Total:   this.total,
+					Current: this.current,
 					width:   50,
 				},
 				Rate: element(func() string {

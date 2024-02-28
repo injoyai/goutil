@@ -16,6 +16,8 @@ type element func() string
 func (this element) String() string { return this() }
 
 type Format struct {
+	Index        int     //序号
+	Final        bool    //是否是最后的数据,成功的最后
 	Entity       *Bar    //实例
 	Bar          *bar    // Element //进度条,例 [>>>   ]
 	Rate         Element //进度百分比,例 58%
@@ -71,8 +73,8 @@ type bar struct {
 	prefix, suffix string       //前缀后缀 例 []
 	style          byte         //进度条风格 例 >
 	color          *color.Color //整体颜色
-	total          int64        //总数
-	current        int64        //当前
+	Total          int64        //总数
+	Current        int64        //当前
 	width          int          //宽度
 }
 
@@ -97,7 +99,7 @@ func (this *bar) SetColor(a color.Attribute) {
 }
 
 func (this *bar) String() string {
-	rate := float64(this.current) / float64(this.total)
+	rate := float64(this.Current) / float64(this.Total)
 	nowWidth := ""
 	for i := 0; i < int(float64(this.width)*rate); i++ {
 		nowWidth += string(this.style)
