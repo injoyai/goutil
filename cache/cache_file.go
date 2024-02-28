@@ -29,7 +29,7 @@ func newFile(name, tag string) *File {
 		tag:  tag,
 		Safe: maps.NewSafe(),
 	}
-	bs, _ := ioutil.ReadFile(data.filename())
+	bs, _ := ioutil.ReadFile(data.Filename())
 	m := make(map[string]interface{})
 	_ = json.Unmarshal(bs, &m)
 	for i, v := range m {
@@ -79,7 +79,7 @@ func (this *File) Del(key string) *File {
 }
 
 func (this *File) Save() error {
-	filename := this.filename()
+	filename := this.Filename()
 	bs, err := json.Marshal(this.Safe.GMap())
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (this *File) Cover() error {
 	return this.Save()
 }
 
-func (this *File) filename() string {
+func (this *File) Filename() string {
 	fileDir, filename := DefaultDir, this.name
 	if dir, file := filepath.Split(this.name); len(dir) > 0 {
 		fileDir, filename = dir, file
