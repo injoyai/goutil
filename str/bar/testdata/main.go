@@ -27,6 +27,10 @@ func main() {
 	b.SetWriter(io.WriteFunc(func(p []byte) (int, error) {
 		return fmt.Print(string(p))
 	}))
+	b.AddOption(func(f *bar.Format) {
+		f.Bar.SetPrefix("(")
+		f.Bar.SetSuffix(")")
+	})
 	for {
 		_, err := b.DownloadHTTP(url, filename, "http://127.0.0.1:1081")
 		if !logs.PrintErr(err) {
