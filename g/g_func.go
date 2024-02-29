@@ -79,12 +79,14 @@ func Try(fn func() error, catch ...func(err error)) (err error) {
 	return fn()
 }
 
-// Retry 重试,默认3次
-func Retry(fn func() error, nums ...uint) (err error) {
-	num := conv.GetDefaultUint(3, nums...)
+// Retry 重试,可选重试间隔
+func Retry(fn func() error, num uint, interval ...time.Duration) (err error) {
 	for i := uint(0); i < num; i++ {
 		if err = Try(fn); err == nil {
 			return
+		}
+		if len(interval) > 0 {
+			<-time.After(interval[0])
 		}
 	}
 	return

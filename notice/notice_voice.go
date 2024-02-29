@@ -6,12 +6,16 @@ import (
 	"sync"
 )
 
+var (
+	DefaultVoice = NewVoice(&VoiceConfig{
+		Rate:   0,
+		Volume: 100,
+	})
+)
+
 func NewVoice(cfg *VoiceConfig) *voice {
 	if cfg == nil {
-		cfg = &VoiceConfig{
-			Rate:   0,
-			Volume: 100,
-		}
+		return DefaultVoice
 	}
 	return &voice{cfg}
 }

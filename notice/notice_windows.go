@@ -9,6 +9,8 @@ import (
 	"unsafe"
 )
 
+var DefaultWindows = NewWindows()
+
 func NewWindows() Interface { return &Windows{} }
 
 // Windows 右下角通知和弹窗
