@@ -42,12 +42,13 @@ func main() {
 
 	{
 		logs.Debug("失败示例:")
-		b = bar.New(0)
+		b = bar.New(100)
 		go func(b *bar.Bar) {
 			<-time.After(time.Second * 10)
 			b.Close()
 		}(b)
-		b.Run()
+		b.Add(1).Flush()
+		<-b.Done()
 	}
 
 	g.Input("请按回车键退出...")

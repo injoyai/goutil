@@ -2,11 +2,10 @@ package bar
 
 import (
 	"bufio"
-	"context"
-	"errors"
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/injoyai/base/maps"
+	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/oss"
@@ -16,34 +15,27 @@ import (
 )
 
 func New(total int64) *Bar {
-	return NewWithContext(context.Background(), total)
-}
-
-func NewWithContext(ctx context.Context, total int64) *Bar {
-	ctx, cancel := context.WithCancel(ctx)
 	return &Bar{
 		total:      total,
-		ctx:        ctx,
-		cancel:     cancel,
-		c:          make(chan int64),
 		writer:     os.Stdout,
-		cacheTime:  maps.NewSafe(),
 		cacheSpeed: maps.NewSafe(),
+		start:      time.Now(),
+		Closer:     safe.NewCloser(),
 	}
 }
 
 type Bar struct {
-	format Formatter              //格式化
-	option []func(format *Format) //执行过程中执行
+	option       []func(format *Format) //选项
+	formatter    Formatter              //格式化
+	current      int64                  //当前数量
+	total        int64                  //总数量
+	writer       io.Writer              //输出
+	*safe.Closer                        //
 
-	current    int64              //当前数量
-	total      int64              //总数量
-	c          chan int64         //实时数据通道
-	ctx        context.Context    //
-	cancel     context.CancelFunc //
-	writer     io.Writer
-	cacheTime  *maps.Safe
-	cacheSpeed *maps.Safe
+	cacheSpeed *maps.Safe //用于计算实时速度
+	start      time.Time  //开始时间
+	maxLength  int        //字符最大长度
+	lastAdd    int64      //最后一次增加的数量
 }
 
 /*
@@ -63,7 +55,7 @@ SetFormatter 自定义格式
 这里可以也直接打印,需要自行处理上次数据遗留问题
 */
 func (this *Bar) SetFormatter(f Formatter) *Bar {
-	this.format = f
+	this.formatter = f
 	return this
 }
 
@@ -72,6 +64,110 @@ func (this *Bar) SetTotal(total int64) *Bar {
 	this.total = total
 	return this
 }
+
+// Set 同SetCurrent
+func (this *Bar) Set(current int64) *Bar {
+	return this.SetCurrent(current)
+}
+
+// SetCurrent 设置当前数量
+func (this *Bar) SetCurrent(current int64) *Bar {
+	if current > this.total {
+		current = this.total
+	}
+	this.lastAdd = current - this.current
+	this.current = current
+	return this
+}
+
+// SetCurrentFlush 设置当前数值,并刷新
+func (this *Bar) SetCurrentFlush(current int64) bool {
+	return this.SetCurrent(current).Flush()
+}
+
+// Add 同AddCurrent
+func (this *Bar) Add(size int64) *Bar {
+	return this.AddCurrent(size)
+}
+
+// AddCurrent 增加当前数量
+func (this *Bar) AddCurrent(size int64) *Bar {
+	return this.SetCurrent(this.current + size)
+}
+
+// AddCurrentFlush 增加数值,并刷新
+func (this *Bar) AddCurrentFlush(size int64) bool {
+	return this.AddCurrent(size).Flush()
+}
+
+// SetWriter 设置输出,默认到控制台
+func (this *Bar) SetWriter(w io.Writer) *Bar {
+	this.writer = w
+	return this
+}
+
+// Write 实现io.Writer,取字节的长度
+func (this *Bar) Write(p []byte) (int, error) {
+	length := len(p)
+	this.AddCurrentFlush(int64(length))
+	return length, nil
+}
+
+// Flush 刷新输出,返回是否关闭(结束)
+func (this *Bar) Flush() (closed bool) {
+	if this.Closed() {
+		return true
+	}
+	if this.writer == nil {
+		return false
+	}
+	s := this.String()
+	if !(len(s) > 0 && s[0] == '\r') {
+		s = "\r" + s
+	}
+	this.writer.Write([]byte(s))
+	if this.current >= this.total {
+		this.Close()
+	}
+	return this.Closed()
+}
+
+// Final 是否最后
+func (this *Bar) Final() bool {
+	return this.current >= this.total
+}
+
+// Close 关闭,输出换行符,后续不会继续输出
+func (this *Bar) Close() error {
+	if this.writer != nil {
+		this.writer.Write([]byte("\n"))
+	}
+	return this.Closer.Close()
+}
+
+func (this *Bar) String() string {
+	f := this.format()
+	for _, v := range this.option {
+		v(f)
+	}
+	//自定义格式化输出
+	if this.formatter == nil {
+		this.formatter = WithDefault
+	}
+	s := this.formatter(f)
+	if len(s) >= this.maxLength {
+		this.maxLength = len(s)
+	} else {
+		s += fmt.Sprintf(fmt.Sprintf("%%-%ds", this.maxLength-len(s)), " ")
+	}
+	return s
+}
+
+/*
+
+
+
+ */
 
 // AddOption 添加option
 func (this *Bar) AddOption(option ...func(f *Format)) *Bar {
@@ -82,7 +178,7 @@ func (this *Bar) AddOption(option ...func(f *Format)) *Bar {
 // OnFinal 执行结束时
 func (this *Bar) OnFinal(fn func(f *Format)) *Bar {
 	return this.AddOption(func(f *Format) {
-		if f.Final {
+		if f.Entity.Final() {
 			fn(f)
 		}
 	})
@@ -109,47 +205,35 @@ func (this *Bar) SetColor(a color.Attribute) *Bar {
 	})
 }
 
-// SetWriter 设置输出,默认到控制台
-func (this *Bar) SetWriter(w io.Writer) *Bar {
-	this.writer = w
-	return this
-}
+/*
 
-// Write 实现io.Writer,取字节的长度
-func (this *Bar) Write(p []byte) (int, error) {
-	length := len(p)
-	this.Add(int64(length))
-	return length, nil
-}
 
-// Add 增加当前数量
-func (this *Bar) Add(n int64) *Bar {
-	select {
-	case <-this.ctx.Done():
-	case this.c <- n:
+
+ */
+
+// SizeUnit 字节单位1024 -> 1KB
+func (this *Bar) SizeUnit(size int64, decimal ...uint) string {
+	f, unit := oss.SizeUnit(size)
+	if len(decimal) > 0 {
+		return fmt.Sprintf(fmt.Sprintf("%%0.%df%%s", decimal[0]), f, unit)
 	}
-	return this
+	return fmt.Sprintf("%0.1f%s", f, unit)
 }
 
-// Done 完成执行,一次性添加剩余的数量
-func (this *Bar) Done() *Bar {
-	return this.Add(this.total - this.current)
-}
-
-// Close 结束执行,不添加剩余数量
-func (this *Bar) Close() error {
-	this.cancel()
-	return nil
-}
-
-// Speed 计算速度,不带单位
+// Speed 实时速度,不带单位
 func (this *Bar) Speed(key string, size int64, expiration time.Duration) string {
 	return this.speed(key, size, expiration, func(size float64) string {
 		return fmt.Sprintf("%0.1f/s", size)
 	})
 }
 
-// SpeedUnit 速度,带单位 1024 -> 1KB
+// SpeedAvg 平均速度,不带单位
+func (this *Bar) SpeedAvg() string {
+	speedSize := float64(this.current) / time.Since(this.start).Seconds()
+	return fmt.Sprintf("%0.1f/s", speedSize)
+}
+
+// SpeedUnit 实时速度,带单位 1024/s -> 1KB/s
 func (this *Bar) SpeedUnit(key string, size int64, expiration time.Duration) string {
 	return this.speed(key, size, expiration, func(size float64) string {
 		f, unit := oss.SizeUnit(int64(size))
@@ -157,93 +241,11 @@ func (this *Bar) SpeedUnit(key string, size int64, expiration time.Duration) str
 	})
 }
 
-func (this *Bar) Run() error {
-	defer fmt.Println()
-	this.current = 0
-	go this.Add(0)      //触发进度条出现
-	start := time.Now() //开始时间
-	maxLength := 0      //字符串最大长度
-	for i := 0; ; i++ {
-		select {
-		case <-this.ctx.Done():
-			return errors.New("上下文关闭")
-
-		case n := <-this.c:
-
-			//当前进度
-			this.current += n
-			if this.current >= this.total {
-				this.current = this.total
-				this.cancel()
-			}
-
-			//进度占比
-			rate := float64(this.current) / float64(this.total)
-
-			//元素
-			f := &Format{
-				Index:  i,
-				Final:  this.current >= this.total,
-				Entity: this,
-				Bar: &bar{
-					prefix:  "[",
-					suffix:  "]",
-					style:   '>',
-					color:   nil,
-					Total:   this.total,
-					Current: this.current,
-					width:   50,
-				},
-				Rate: element(func() string {
-					return fmt.Sprintf("%0.1f%%", rate*100)
-				}),
-				RateSize: element(func() string {
-					return fmt.Sprintf("%d/%d", this.current, this.total)
-				}),
-				RateSizeUnit: element(func() string {
-					currentNum, currentUnit := oss.SizeUnit(this.current)
-					totalNum, totalUnit := oss.SizeUnit(this.total)
-					return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
-				}),
-				Speed: element(func() string {
-					return this.Speed("Speed", n, time.Millisecond*500)
-				}),
-				SpeedUnit: element(func() string {
-					return this.SpeedUnit("SpeedUnit", n, time.Millisecond*500)
-				}),
-				Used: element(func() string {
-					return fmt.Sprintf("%0.1fs", time.Now().Sub(start).Seconds())
-				}),
-				Remain: element(func() string {
-					spend := time.Now().Sub(start)
-					remain := "0s"
-					if rate > 0 {
-						remain = fmt.Sprintf("%0.1fs", time.Duration(float64(spend)/rate-float64(spend)).Seconds())
-					}
-					return remain
-				}),
-			}
-
-			for _, v := range this.option {
-				v(f)
-			}
-			//自定义格式化输出
-			if this.format == nil {
-				this.format = WithDefault
-			}
-			s := this.format(f)
-			if len(s) >= maxLength {
-				maxLength = len(s)
-			} else {
-				s += fmt.Sprintf(fmt.Sprintf("%%-%ds", maxLength-len(s)), " ")
-			}
-
-			if this.writer != nil {
-				this.writer.Write([]byte(s))
-			}
-
-		}
-	}
+// SpeedUnitAvg 平均速度,带单位 1024/s -> 1KB/s
+func (this *Bar) SpeedUnitAvg() string {
+	speedSize := float64(this.current) / time.Since(this.start).Seconds()
+	f, unit := oss.SizeUnit(int64(speedSize))
+	return fmt.Sprintf("%0.1f%s/s", f, unit)
 }
 
 func (this *Bar) Copy(w io.Writer, r io.Reader) (int64, error) {
@@ -251,9 +253,7 @@ func (this *Bar) Copy(w io.Writer, r io.Reader) (int64, error) {
 }
 
 func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int64, error) {
-	defer this.Close()
 	buff := bufio.NewReader(r)
-	go this.Run()
 	total := int64(0)
 	buf := make([]byte, bufSize)
 	for {
@@ -262,7 +262,7 @@ func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int64, error) {
 			return total, err
 		}
 		total += int64(n)
-		this.Add(int64(n))
+		this.Add(int64(n)).Flush()
 		if _, err := w.Write(buf[:n]); err != nil {
 			return total, err
 		}
@@ -270,29 +270,6 @@ func (this *Bar) CopyN(w io.Writer, r io.Reader, bufSize int64) (int64, error) {
 			return total, nil
 		}
 	}
-}
-
-func (this *Bar) speed(key string, size int64, expiration time.Duration, fn func(float64) string) string {
-
-	//最后的数据时间
-	lastTime, _ := this.cacheTime.GetOrSetByHandler(key, func() (interface{}, error) {
-		return time.Time{}, nil
-	})
-
-	//记录这次时间,用于下次计算时间差
-	now := time.Now()
-	this.cacheTime.Set(key, now)
-
-	//尝试从缓存获取速度,存在则直接返回,由expiration控制
-	if val, ok := this.cacheSpeed.Get(key); ok {
-		return val.(string)
-	}
-
-	//计算速度
-	spendSize := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
-	s := fn(spendSize)
-	this.cacheSpeed.Set(key, s, expiration)
-	return s
 }
 
 var (
@@ -317,4 +294,30 @@ func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int64, 
 	total := conv.Int64(resp.GetHeader("Content-Length"))
 	this.SetTotal(total)
 	return this.Copy(f, resp.Body)
+}
+
+func (this *Bar) speed(key string, size int64, expiration time.Duration, fn func(float64) string) string {
+
+	timeKey := "time_" + key
+	cacheKey := "speed_" + key
+	//最后的数据时间
+	lastTime, _ := this.cacheSpeed.GetOrSetByHandler(timeKey, func() (interface{}, error) {
+		return time.Time{}, nil
+	})
+
+	//记录这次时间,用于下次计算时间差
+	now := time.Now()
+	this.cacheSpeed.Set(timeKey, now)
+
+	//尝试从缓存获取速度,存在则直接返回,由expiration控制
+	if val, ok := this.cacheSpeed.Get(cacheKey); ok {
+		return val.(string)
+	}
+
+	//计算速度
+	size = conv.SelectInt64(size >= 0, size, 0)
+	spendSize := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
+	s := fn(spendSize)
+	this.cacheSpeed.Set(cacheKey, s, expiration)
+	return s
 }
