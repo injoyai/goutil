@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/injoyai/base/chans"
-	"github.com/injoyai/goutil/g"
 	"time"
 )
 
@@ -60,10 +59,12 @@ func (this *Range) Run(ctx context.Context) *Resp {
 			go func(ctx context.Context, i int, f Handler) {
 				defer wg.Done()
 				resp := &ItemResp{Index: i}
-				_ = g.Retry(func() error {
+				for x := uint(0); x < this.retry; x++ {
 					resp.Data, resp.Err = f(ctx)
-					return resp.Err
-				}, this.retry)
+					if resp.Err == nil {
+						break
+					}
+				}
 				if this.doneItem != nil {
 					this.doneItem(ctx, resp)
 				}
