@@ -9,13 +9,12 @@ func Demo() error {
 	x := New(60)
 	x.SetStyle('>')
 	x.SetColor(BgCyan)
-	go func() {
-		for {
-			time.Sleep(time.Millisecond * 100)
-			x.Add(1)
+	for {
+		time.Sleep(time.Millisecond * 100)
+		if x.Add(1).Flush() {
+			return nil
 		}
-	}()
-	return x.Run()
+	}
 }
 
 func Download(url, filename string, proxy ...string) (int64, error) {
