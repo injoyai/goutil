@@ -3,7 +3,6 @@ package docker
 import (
 	"errors"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/linux/systemctl"
 	"github.com/injoyai/goutil/oss/shell"
@@ -211,13 +210,13 @@ func (c Client) storeConfigDeal(Type string, oldDomain, newDomain string) error 
 }
 
 // dockerRestart 重启docker服务
-func (c Client) dockerRestart(interval time.Duration, nums ...int) error {
+func (c Client) dockerRestart(interval time.Duration, num int) error {
 	err := systemctl.Restart("docker")
 	if err != nil {
 		return err
 	}
 	var active bool
-	for range g.Interval(interval, nums...) {
+	for i := 0; i < num; i++ {
 		active, err = systemctl.IsActive("docker")
 		if err != nil {
 			return err
@@ -225,6 +224,7 @@ func (c Client) dockerRestart(interval time.Duration, nums ...int) error {
 		if active {
 			break
 		}
+		time.Sleep(interval)
 	}
 	if !active {
 		return errors.New("docker服务重启失败")

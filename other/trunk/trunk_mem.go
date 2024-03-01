@@ -3,6 +3,7 @@ package trunk
 import (
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/logs"
+	uuid "github.com/satori/go.uuid"
 	"sync"
 )
 
@@ -51,7 +52,7 @@ func (this *Mem) Subscribe(h SubscribeHandler) {
 func (this *Mem) Hook() *Hook {
 	this.hookLock.Lock()
 	defer this.hookLock.Unlock()
-	key := g.UUID()
+	key := uuid.NewV4().String()
 	c := &Hook{
 		key: key,
 		C:   make(chan interface{}),

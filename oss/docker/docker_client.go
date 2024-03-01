@@ -6,7 +6,6 @@ import (
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/goutil/database/sqlite"
 	"github.com/injoyai/goutil/database/xorms"
-	"github.com/injoyai/goutil/g"
 	"xorm.io/xorm"
 )
 
@@ -18,10 +17,14 @@ type Client struct {
 	DB             *xorm.Engine    //数据库,仓库需要数据库连接
 }
 
-func NewClient(ctx ...context.Context) (Client, error) {
+func NewClient() (Client, error) {
+	return NewClientContext(context.Background())
+}
+
+func NewClientContext(ctx context.Context) (Client, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	return Client{
-		ctx:        g.Ctx(ctx...),
+		ctx:        ctx,
 		Client:     cli,
 		configPath: "/etc/docker/daemon.json",
 		storeCache: maps.NewSafe(),

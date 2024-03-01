@@ -2,10 +2,9 @@ package in
 
 import (
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/g"
 )
 
-func NewRespMap(code interface{}, data interface{}, count ...int64) g.Map {
+func NewRespMap(code interface{}, data interface{}, count ...int64) map[string]interface{} {
 	m := map[string]interface{}{
 		"code": code,
 		"data": data,

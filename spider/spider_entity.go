@@ -3,13 +3,13 @@ package spider
 import (
 	"fmt"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/logs"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
 	"github.com/tebeka/selenium/firefox"
+	"math/rand"
 )
 
 const (
@@ -126,7 +126,7 @@ func (this *Entity) SetUserAgentDefault() *Entity {
 
 // SetUserAgentRand 设置随机UserAgent
 func (this *Entity) SetUserAgentRand() *Entity {
-	idx := g.RandInt(0, len(http.UserAgentList)-1)
+	idx := rand.Intn(len(http.UserAgentList) - 1)
 	return this.SetUserAgent(http.UserAgentList[idx])
 }
 
@@ -185,7 +185,12 @@ func (this *Entity) Run(f func(w *WebDriver) error, option ...selenium.ServiceOp
 	}
 	defer web.Close()
 
-	return g.Retry(func() error { return f(&WebDriver{web}) }, this.retry)
+	for x := uint(0); x < this.retry; x++ {
+		if err = f(&WebDriver{web}); err == nil {
+			return nil
+		}
+	}
+	return err
 }
 
 /*

@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/injoyai/goutil/cache"
-	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/logs"
 )
 
@@ -15,7 +14,7 @@ func main() {
 
 	{
 		c := cache.NewCycle(10)
-		for i := range g.Count(27) {
+		for i := 0; i < 27; i++ {
 			c.Add(i)
 		}
 		logs.Debug(c.List())  //[17 18 19 20 21 22 23 24 25 26]
@@ -33,7 +32,7 @@ func main() {
 
 	{
 		c1 := cache.NewCycle(10)
-		for i := range g.Count(27) {
+		for i := 0; i < 27; i++ {
 			c1.Add(i)
 		}
 		logs.PrintErr(c1.Save("test2"))
