@@ -5,6 +5,7 @@ package notice
 
 import (
 	"github.com/go-toast/toast"
+	"github.com/injoyai/conv"
 	"syscall"
 	"unsafe"
 )
@@ -42,7 +43,7 @@ func (this *Windows) Publish(msg *Message) error {
 	default:
 
 		//右下角通知
-		appID := msg.Tag.Conv().GetString("AppID", "Microsoft.Windows.Shell.RunDialog")
+		appID := conv.New(msg.Tag["AppID"]).String("Microsoft.Windows.Shell.RunDialog")
 		notification := toast.Notification{
 			AppID:    appID,
 			Title:    msg.Title,
