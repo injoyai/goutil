@@ -7,15 +7,15 @@ import (
 )
 
 var (
-	DefaultVoice = NewVoice(&VoiceConfig{
-		Rate:   0,
-		Volume: 100,
-	})
+	DefaultVoice = NewVoice(nil)
 )
 
 func NewVoice(cfg *VoiceConfig) *voice {
 	if cfg == nil {
-		return DefaultVoice
+		cfg = &VoiceConfig{
+			Rate:   0,
+			Volume: 100,
+		}
 	}
 	return &voice{cfg}
 }
