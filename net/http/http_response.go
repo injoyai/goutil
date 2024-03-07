@@ -103,12 +103,14 @@ func (this *Response) Cookies() (cookie []*http.Cookie) {
 
 // CopyWith 复制数据,并监听
 func (this *Response) CopyWith(w io.Writer, fn func(bs []byte)) (int64, error) {
-	return io.CopyWith(w, this.Body, fn)
+	defer this.Response.Body.Close()
+	return io.CopyWith(w, this.Response.Body, fn)
 }
 
 // CopyWithPlan 复制数据并监听进度
 func (this *Response) CopyWithPlan(w io.Writer, fn func(p *io.Plan)) (int64, error) {
-	return io.CopyWithPlan(w, this.Body, func(p *io.Plan) {
+	defer this.Response.Body.Close()
+	return io.CopyWithPlan(w, this.Response.Body, func(p *io.Plan) {
 		p.Total = this.GetContentLength()
 		fn(p)
 	})
@@ -126,6 +128,7 @@ func (this *Response) WriteToFile(filename string) (int64, error) {
 
 // WriteTo 写入到writer,例如文件下载,写入到文件
 func (this *Response) WriteTo(writer io.Writer) (int64, error) {
+	defer this.Response.Body.Close()
 	return io.Copy(writer, this.Response.Body)
 }
 

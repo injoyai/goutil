@@ -9,7 +9,7 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/oss"
-	"io"
+	"github.com/injoyai/io"
 	"os"
 	"time"
 )
@@ -281,19 +281,10 @@ func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int64, 
 	if err := DefaultClient.SetProxy(conv.GetDefaultString("", proxy...)); err != nil {
 		return 0, err
 	}
-	resp := DefaultClient.Get(source)
-	if resp.Err() != nil {
-		return 0, resp.Err()
-	}
-	defer resp.Body.Close()
-	f, err := os.Create(filename)
-	if err != nil {
-		return 0, err
-	}
-	defer f.Close()
-	total := conv.Int64(resp.GetHeader("Content-Length"))
-	this.SetTotal(total)
-	return this.Copy(f, resp.Body)
+	return DefaultClient.GetToFileWithPlan(source, filename, func(p *http.Plan) {
+		this.SetTotal(p.Total)
+		this.Set(p.Current).Flush()
+	})
 }
 
 func (this *Bar) speed(key string, size int64, expiration time.Duration, fn func(float64) string) string {

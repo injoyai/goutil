@@ -99,39 +99,50 @@ func (this *Client) GetReader(url string) (io.ReadCloser, error) {
 	return resp.Body, resp.Err()
 }
 
-func (this *Client) GetWith(url string, f func([]byte)) (int64, error) {
+func (this *Client) GetToWriter(url string, w io.Writer) (int64, error) {
 	resp := this.DoRequest(http.MethodGet, url, nil)
 	if resp.Err() != nil {
 		return 0, resp.Err()
-	}
-	return resp.CopyWith(io.Discard, f)
-}
-
-func (this *Client) GetWithPlan(url string, f func(p *io.Plan)) (int64, error) {
-	resp := this.DoRequest(http.MethodGet, url, nil)
-	if resp.Err() != nil {
-		return 0, resp.Err()
-	}
-	return resp.CopyWithPlan(io.Discard, f)
-}
-
-func (this *Client) GetToWriter(url string, writer io.Writer) error {
-	resp := this.DoRequest(http.MethodGet, url, nil)
-	if resp.Err() != nil {
-		return resp.Err()
 	}
 	defer resp.Response.Body.Close()
-	_, err := io.Copy(writer, resp.Response.Body)
-	return err
+	return io.Copy(w, resp.Response.Body)
 }
 
-func (this *Client) GetToFile(url string, filename string) error {
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
+func (this *Client) GetToWriterWith(url string, w io.Writer, f func([]byte)) (int64, error) {
+	resp := this.DoRequest(http.MethodGet, url, nil)
+	if resp.Err() != nil {
+		return 0, resp.Err()
 	}
-	defer f.Close()
-	return this.GetToWriter(url, f)
+	return resp.CopyWith(w, f)
+}
+
+func (this *Client) GetToWriterWithPlan(url string, w io.Writer, f func(p *Plan)) (int64, error) {
+	resp := this.DoRequest(http.MethodGet, url, nil)
+	if resp.Err() != nil {
+		return 0, resp.Err()
+	}
+	return resp.CopyWithPlan(w, func(p *io.Plan) {
+		p.Total = resp.ContentLength
+		f(p)
+	})
+}
+
+func (this *Client) GetToFile(url string, filename string) (int64, error) {
+	w, err := os.Create(filename)
+	if err != nil {
+		return 0, err
+	}
+	defer w.Close()
+	return this.GetToWriter(url, w)
+}
+
+func (this *Client) GetToFileWithPlan(url string, filename string, f func(p *Plan)) (int64, error) {
+	w, err := os.Create(filename)
+	if err != nil {
+		return 0, err
+	}
+	defer w.Close()
+	return this.GetToWriterWithPlan(url, w, f)
 }
 
 func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Response {

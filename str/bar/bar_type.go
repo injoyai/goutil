@@ -59,7 +59,8 @@ func (this *Bar) format() *Format {
 			spend := time.Now().Sub(this.start)
 			remain := "0s"
 			if rate > 0 {
-				remain = fmt.Sprintf("%0.1fs", time.Duration(float64(spend)/rate-float64(spend)).Seconds())
+				sub := time.Duration(float64(spend)/rate - float64(spend))
+				remain = (sub - sub%time.Second).String()
 			}
 			return remain
 		}),
@@ -80,7 +81,7 @@ type Format struct {
 	Remain       Element //预计剩余时间 例 1m18s
 }
 
-// Default 默认样式
+// Default 默认样式 [>>>   ] 1KB/10KB 13MB/s
 func (this *Format) Default() string {
 	return fmt.Sprintf("\r%s  %s  %s",
 		this.Bar,
