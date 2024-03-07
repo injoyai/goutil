@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/oss"
+	"io"
 	"time"
 )
 
@@ -19,19 +19,19 @@ func NewDownload() *Download {
 }
 
 type Download struct {
-	queue     []GetBytes                                        //分片队列
-	coroutine uint                                              //协程数
-	retry     uint                                              //重试次数
-	offset    int                                               //偏移量
-	doneItem  func(ctx context.Context, resp *DownloadItemResp) //分片下载完成事件
-	doneAll   func(resp *DownloadResp)                          //全部分片下载完成事件
+	queue     []GetReader                                                      //分片队列
+	coroutine uint                                                             //协程数
+	retry     uint                                                             //重试次数
+	offset    int                                                              //偏移量
+	doneItem  func(ctx context.Context, resp *DownloadItemResp) (int64, error) //分片下载完成事件
+	doneAll   func(resp *DownloadResp)                                         //全部分片下载完成事件
 }
 
 func (this *Download) Len() int {
 	return len(this.queue)
 }
 
-func (this *Download) Set(i int, v GetBytes) *Download {
+func (this *Download) Set(i int, v GetReader) *Download {
 	if v != nil {
 		for len(this.queue) <= i {
 			this.queue = append(this.queue, nil)
@@ -41,7 +41,7 @@ func (this *Download) Set(i int, v GetBytes) *Download {
 	return this
 }
 
-func (this *Download) Append(v GetBytes) *Download {
+func (this *Download) Append(v GetReader) *Download {
 	if v != nil {
 		this.queue = append(this.queue, v)
 	}
@@ -58,7 +58,7 @@ func (this *Download) SetRetry(retry uint) *Download {
 	return this
 }
 
-func (this *Download) SetDoneItem(doneItem func(ctx context.Context, resp *DownloadItemResp)) *Download {
+func (this *Download) SetDoneItem(doneItem func(ctx context.Context, resp *DownloadItemResp) (int64, error)) *Download {
 	this.doneItem = doneItem
 	return this
 }
@@ -75,7 +75,7 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 	}
 	start := time.Now()
 	wg := chans.NewWaitLimit(this.coroutine)
-	size := int64(0)
+	totalSize := int64(0)
 	for i, v := range this.queue {
 		if v == nil {
 			continue
@@ -89,26 +89,30 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 			}
 		default:
 			wg.Add()
-			go func(ctx context.Context, i int, t *Download, v GetBytes) {
+			go func(ctx context.Context, i int, totalSize *int64, t *Download, v GetReader) {
 				defer wg.Done()
-				bytes, err := t.getBytes(ctx, v)
+				reader, err := t.getReader(ctx, v)
 				if err == nil {
-					size += int64(len(bytes))
+					defer reader.Close()
 				}
-				if this.doneItem != nil {
-					this.doneItem(ctx, &DownloadItemResp{
-						Index: i,
-						Bytes: bytes,
-						Err:   err,
-					})
+				if t.doneItem == nil {
+					t.doneItem = func(ctx context.Context, resp *DownloadItemResp) (int64, error) {
+						return resp.GetSize()
+					}
 				}
-			}(ctx, i, this, v)
+				size, _ := t.doneItem(ctx, &DownloadItemResp{
+					Index:  i,
+					Err:    err,
+					Reader: reader,
+				})
+				*totalSize += size
+			}(ctx, i, &totalSize, this, v)
 		}
 	}
 	wg.Wait()
 	resp := &DownloadResp{
 		Start: start,
-		Size:  size,
+		Size:  totalSize,
 	}
 	if this.doneAll != nil {
 		this.doneAll(resp)
@@ -116,26 +120,26 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 	return resp
 }
 
-func (this *Download) downloadOne(ctx context.Context, i GetBytes) *DownloadResp {
+func (this *Download) downloadOne(ctx context.Context, i GetReader) *DownloadResp {
 	start := time.Now()
-	bytes, err := i.GetBytes(ctx, func(p *http.Plan) {
-		if this.doneItem != nil {
-			this.doneItem(ctx, &DownloadItemResp{
-				Index: p.Index,
-				Bytes: p.Bytes,
-			})
-		}
-	})
+	reader, err := this.getReader(ctx, i)
+	size := int64(0)
+	if this.doneItem != nil {
+		size, _ = this.doneItem(ctx, &DownloadItemResp{
+			Index:  0,
+			Reader: reader,
+		})
+	}
 	return &DownloadResp{
 		Start: start,
-		Size:  int64(len(bytes)),
+		Size:  size,
 		Err:   err,
 	}
 }
 
-func (this *Download) getBytes(ctx context.Context, v GetBytes) (bytes []byte, err error) {
+func (this *Download) getReader(ctx context.Context, v GetReader) (reader io.ReadCloser, err error) {
 	for i := uint(0); i < this.retry; i++ {
-		bytes, err = v.GetBytes(ctx, func(p *http.Plan) {})
+		reader, err = v.GetReader(ctx)
 		if err == nil {
 			return
 		}
@@ -143,14 +147,14 @@ func (this *Download) getBytes(ctx context.Context, v GetBytes) (bytes []byte, e
 	return
 }
 
-type GetBytes interface {
-	GetBytes(ctx context.Context, f func(p *http.Plan)) ([]byte, error)
+type GetReader interface {
+	GetReader(ctx context.Context) (io.ReadCloser, error)
 }
 
-type GetBytesFunc func(ctx context.Context, f func(p *http.Plan)) ([]byte, error)
+type GetReaderFunc func(ctx context.Context) (io.ReadCloser, error)
 
-func (this GetBytesFunc) GetBytes(ctx context.Context, f func(p *http.Plan)) ([]byte, error) {
-	return this(ctx, f)
+func (this GetReaderFunc) GetReader(ctx context.Context) (io.ReadCloser, error) {
+	return this(ctx)
 }
 
 /*
@@ -160,13 +164,21 @@ func (this GetBytesFunc) GetBytes(ctx context.Context, f func(p *http.Plan)) ([]
  */
 
 type DownloadItemResp struct {
-	Index int
-	Bytes []byte
-	Err   error
+	Index  int
+	Err    error
+	Reader io.Reader
+	bytes  *[]byte
 }
 
-func (this *DownloadItemResp) GetSize() int64 {
-	return int64(len(this.Bytes))
+func (this *DownloadItemResp) GetSize() (int64, error) {
+	if this.bytes == nil && this.Reader != nil {
+		bs, err := io.ReadAll(this.Reader)
+		if err != nil {
+			return 0, err
+		}
+		*this.bytes = bs
+	}
+	return int64(len(*this.bytes)), nil
 }
 
 func (this *DownloadItemResp) Error() string {
@@ -176,8 +188,13 @@ func (this *DownloadItemResp) Error() string {
 	return ""
 }
 
+func (this *DownloadItemResp) WriteTo(w io.Writer) (int64, error) {
+	return io.Copy(w, this.Reader)
+}
+
+// Save 保存成文件
 func (this *DownloadItemResp) Save(filename string) error {
-	return oss.New(filename, this.Bytes)
+	return oss.New(filename, this.Reader)
 }
 
 // DownloadResp 下载响应,去除字节,避免内存占用过大
@@ -186,34 +203,7 @@ type DownloadResp struct {
 	Size  int64          //实际下载字节大小
 	Err   error          //错误信息
 	spend *time.Duration //下载耗时
-	//Bytes [][]byte  //任务分片字节
 }
-
-//func (this *DownloadResp) WriteTo(w io.Writer) (int64, error) {
-//	co := int64(0)
-//	for _, bs := range this.Bytes {
-//		if w != nil && bs != nil {
-//			n, err := w.Write(bs)
-//			if err != nil {
-//				return co, err
-//			}
-//			co += int64(n)
-//		}
-//	}
-//	if this.size == nil {
-//		this.size = &co
-//	}
-//	return co, nil
-//}
-//
-//func (this *DownloadResp) WriteToFile(filename string) (int64, error) {
-//	f, err := os.Create(filename)
-//	if err != nil {
-//		return 0, err
-//	}
-//	defer f.Close()
-//	return this.WriteTo(f)
-//}
 
 func (this *DownloadResp) GetSpend() time.Duration {
 	if this.spend != nil {
@@ -223,26 +213,6 @@ func (this *DownloadResp) GetSpend() time.Duration {
 	this.spend = &spend
 	return spend
 }
-
-//func (this *DownloadResp) GetBytes() []byte {
-//	bs := []byte(nil)
-//	for _, v := range this.Bytes {
-//		bs = append(bs, v...)
-//	}
-//	return bs
-//}
-//
-//func (this *DownloadResp) GetSize() int64 {
-//	if this.size != nil {
-//		return *this.size
-//	}
-//	var size int64
-//	for _, v := range this.Bytes {
-//		size += int64(len(v))
-//	}
-//	this.size = &size
-//	return size
-//}
 
 func (this *DownloadResp) Error() string {
 	if this.Err != nil {

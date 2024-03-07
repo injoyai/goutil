@@ -75,14 +75,15 @@ func New(filename string, v ...interface{}) error {
 	}
 	defer f.Close()
 	for _, k := range v {
-		if r, ok := k.(io.Reader); ok {
+		switch r := k.(type) {
+		case io.Reader:
 			if _, err = io.Copy(f, r); err != nil {
 				return err
 			}
-			continue
-		}
-		if _, err = f.Write(conv.Bytes(k)); err != nil {
-			return err
+		default:
+			if _, err = f.Write(conv.Bytes(r)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
