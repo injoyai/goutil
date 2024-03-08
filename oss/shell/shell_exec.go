@@ -88,9 +88,9 @@ func Stop(name string) error {
 	return nil
 }
 
-// Start 启动程序
+// Start2 启动程序
 // windows "cmd", "/c", "start ./xxx.exe"
-func Start(filename string) error {
+func Start2(filename string) error {
 	switch runtime.GOOS {
 	case "windows":
 		return exec.Command("cmd", "/c", "start "+filename).Start()
