@@ -10,5 +10,5 @@ func TestNewFile(t *testing.T) {
 }
 
 func TestNewFile2(t *testing.T) {
-	t.Log(http.ListenAndServe(":8200", NewFile("", "/api")))
+	t.Log(http.ListenAndServe(":8200", NewFile("/api", "")))
 }
