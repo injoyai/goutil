@@ -12,17 +12,6 @@ import (
 	"path/filepath"
 )
 
-type File struct {
-	name string
-	tag  string
-	*maps.Safe
-	conv.Extend
-}
-
-func (this *File) GetVar(key string) *conv.Var {
-	return conv.New(this.MustGet(key))
-}
-
 func newFile(name, tag string) *File {
 	data := &File{
 		name: name,
@@ -39,9 +28,21 @@ func newFile(name, tag string) *File {
 	return data
 }
 
+type File struct {
+	name string
+	tag  string
+	*maps.Safe
+	conv.Extend
+}
+
 // Name 名字
 func (this *File) Name() string {
 	return this.name
+}
+
+// GetVar 实现接口
+func (this *File) GetVar(key string) *conv.Var {
+	return conv.New(this.MustGet(key))
 }
 
 // Clear 清空数据
@@ -50,7 +51,9 @@ func (this *File) Clear() *File {
 	return this
 }
 
-// GetAndSetByExtend 根据conv.Extend获取数据,不存在则取File中的数据,并设置到File中
+// GetAndSetByExtend
+// 根据conv.Extend获取数据,不存在则取File中的数据,并设置到File中
+// 尝试从用户那里获取数据,存在则覆盖
 func (this *File) GetAndSetByExtend(key string, extend conv.Extend) interface{} {
 	old := this.GetInterface(key)
 	val := extend.GetInterface(key, old)
@@ -78,6 +81,7 @@ func (this *File) Del(key string) *File {
 	return this
 }
 
+// Save 保存配置文件,存在则覆盖
 func (this *File) Save() error {
 	filename := this.Filename()
 	bs, err := json.Marshal(this.Safe.GMap())
