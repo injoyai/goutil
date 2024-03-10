@@ -36,7 +36,7 @@ func (this *File) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filename)
 }
 
-func NewFile(dir string, prefix string, options ...Option) http.Handler {
+func NewFile(prefix string, dir string, options ...Option) http.Handler {
 	if len(dir) == 0 {
 		dir = "."
 	}

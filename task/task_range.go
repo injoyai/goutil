@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/injoyai/base/chans"
+	"github.com/injoyai/conv"
 	"time"
 )
 
@@ -11,20 +12,31 @@ type Handler func(ctx context.Context) (interface{}, error)
 
 func NewRange() *Range {
 	return &Range{
-		limit: 1,
-		retry: 3,
+		coroutine: 1,
+		retry:     3,
 	}
 }
 
 type Range struct {
-	queue    []Handler                                 //分片队列
-	limit    uint                                      //协程数
-	retry    uint                                      //重试次数
-	doneItem func(ctx context.Context, resp *ItemResp) //子项执行完成
+	queue     []Handler                                 //分片队列
+	coroutine uint                                      //协程数
+	retry     uint                                      //重试次数
+	doneItem  func(ctx context.Context, resp *ItemResp) //子项执行完成
+	doneAll   func(resp *Resp)                          //全部完成
 }
 
 func (this *Range) Len() int {
 	return len(this.queue)
+}
+
+func (this *Range) Set(i int, v Handler) *Range {
+	if v != nil {
+		for len(this.queue) <= i {
+			this.queue = append(this.queue, nil)
+		}
+		this.queue[i] = v
+	}
+	return this
 }
 
 func (this *Range) Append(v Handler) *Range {
@@ -32,13 +44,13 @@ func (this *Range) Append(v Handler) *Range {
 	return this
 }
 
-func (this *Range) SetLimit(limit uint) *Range {
-	this.limit = limit
+func (this *Range) SetCoroutine(limit uint) *Range {
+	this.coroutine = conv.SelectUint(limit == 0, 1, limit)
 	return this
 }
 
 func (this *Range) SetRetry(retry uint) *Range {
-	this.retry = retry
+	this.retry = conv.SelectUint(retry == 0, 1, retry)
 	return this
 }
 
@@ -47,40 +59,59 @@ func (this *Range) SetDoneItem(f func(ctx context.Context, resp *ItemResp)) *Ran
 	return this
 }
 
+func (this *Range) SetDoneAll(doneAll func(resp *Resp)) *Range {
+	this.doneAll = doneAll
+	return this
+}
+
 func (this *Range) Run(ctx context.Context) *Resp {
 	start := time.Now()
-	wg := chans.NewWaitLimit(this.limit)
+	wg := chans.NewWaitLimit(this.coroutine)
 	for i, f := range this.queue {
+		if f == nil {
+			continue
+		}
 		select {
 		case <-ctx.Done():
 			return &Resp{Err: errors.New("上下文关闭")}
 		default:
 			wg.Add()
-			go func(ctx context.Context, i int, f Handler) {
+			go func(ctx context.Context, t *Range, i int, f Handler) {
 				defer wg.Done()
 				resp := &ItemResp{Index: i}
-				for x := uint(0); x < this.retry; x++ {
+				for x := uint(0); x <= t.retry; x++ {
 					resp.Data, resp.Err = f(ctx)
 					if resp.Err == nil {
 						break
 					}
 				}
-				if this.doneItem != nil {
-					this.doneItem(ctx, resp)
+				if t.doneItem != nil {
+					t.doneItem(ctx, resp)
 				}
-			}(ctx, i, f)
+			}(ctx, this, i, f)
 		}
 	}
 	wg.Wait()
-	return &Resp{
+	resp := &Resp{
 		Start: start,
 	}
+	if this.doneAll != nil {
+		this.doneAll(resp)
+	}
+	return resp
 }
 
 type ItemResp struct {
 	Index int
-	Data  interface{}
 	Err   error
+	Data  interface{}
+}
+
+func (this *ItemResp) Error() string {
+	if this.Err != nil {
+		return this.Err.Error()
+	}
+	return ""
 }
 
 type Resp struct {
