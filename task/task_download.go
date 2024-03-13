@@ -7,6 +7,7 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
 	"io"
+	"sync/atomic"
 	"time"
 )
 
@@ -22,7 +23,6 @@ type Download struct {
 	queue     []GetReader                                                      //分片队列
 	coroutine uint                                                             //协程数
 	retry     uint                                                             //重试次数
-	offset    int                                                              //偏移量
 	doneItem  func(ctx context.Context, resp *DownloadItemResp) (int64, error) //分片下载完成事件
 	doneAll   func(resp *DownloadResp)                                         //全部分片下载完成事件
 }
@@ -42,9 +42,7 @@ func (this *Download) Set(i int, v GetReader) *Download {
 }
 
 func (this *Download) Append(v GetReader) *Download {
-	if v != nil {
-		this.queue = append(this.queue, v)
-	}
+	this.queue = append(this.queue, v)
 	return this
 }
 
@@ -70,9 +68,6 @@ func (this *Download) SetDoneAll(doneAll func(resp *DownloadResp)) *Download {
 
 // Download 下载任务开始下载
 func (this *Download) Download(ctx context.Context) *DownloadResp {
-	if len(this.queue) == 1 {
-		return this.downloadOne(ctx, this.queue[0])
-	}
 	start := time.Now()
 	wg := chans.NewWaitLimit(this.coroutine)
 	totalSize := int64(0)
@@ -91,21 +86,26 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 			wg.Add()
 			go func(ctx context.Context, i int, totalSize *int64, t *Download, v GetReader) {
 				defer wg.Done()
-				reader, err := t.getReader(ctx, v)
-				if err == nil {
-					defer reader.Close()
+
+				resp := &DownloadItemResp{Index: i}
+				for idx := uint(0); idx <= this.retry; idx++ {
+					resp.Reader, resp.Err = v.GetReader(ctx)
+					if resp.Err == nil {
+						break
+					}
+				}
+
+				if resp.Reader != nil {
+					defer resp.Reader.(io.ReadCloser).Close()
 				}
 				if t.doneItem == nil {
 					t.doneItem = func(ctx context.Context, resp *DownloadItemResp) (int64, error) {
 						return resp.GetSize()
 					}
 				}
-				size, _ := t.doneItem(ctx, &DownloadItemResp{
-					Index:  i,
-					Err:    err,
-					Reader: reader,
-				})
-				*totalSize += size
+				size, _ := t.doneItem(ctx, resp)
+				atomic.AddInt64(totalSize, size)
+
 			}(ctx, i, &totalSize, this, v)
 		}
 	}
@@ -118,33 +118,6 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 		this.doneAll(resp)
 	}
 	return resp
-}
-
-func (this *Download) downloadOne(ctx context.Context, i GetReader) *DownloadResp {
-	start := time.Now()
-	reader, err := this.getReader(ctx, i)
-	size := int64(0)
-	if this.doneItem != nil {
-		size, _ = this.doneItem(ctx, &DownloadItemResp{
-			Index:  0,
-			Reader: reader,
-		})
-	}
-	return &DownloadResp{
-		Start: start,
-		Size:  size,
-		Err:   err,
-	}
-}
-
-func (this *Download) getReader(ctx context.Context, v GetReader) (reader io.ReadCloser, err error) {
-	for i := uint(0); i < this.retry; i++ {
-		reader, err = v.GetReader(ctx)
-		if err == nil {
-			return
-		}
-	}
-	return
 }
 
 type GetReader interface {

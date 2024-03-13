@@ -24,7 +24,7 @@ func (this *Group) Middleware(topic string, h func(msg interface{}) bool) {
 	this.get(topic).Middleware(h)
 }
 
-func (this *Group) Hook(topic string, cap uint) *Channel {
+func (this *Group) Channel(topic string, cap uint) *Channel {
 	return this.get(topic).Channel(cap)
 }
 

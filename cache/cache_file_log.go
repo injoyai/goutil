@@ -2,7 +2,6 @@ package cache
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"io/ioutil"
@@ -25,13 +24,13 @@ NewFileLog
 func newFileLog(cfg *FileLogConfig) *FileLog {
 	//初始化
 	f := new(FileLog)
-	f.FileLogConfig = cfg.deal()
+	f.FileLogConfig = cfg.init()
 	//加载最新数据
 	f.cacheLast = NewCycle(f.CacheNum)
 	f.cacheFile = maps.NewSafe()
 	//打开文件/创建文件
 	var err error
-	_ = os.MkdirAll(f.Dir, 0666)
+	_ = os.MkdirAll(f.Dir, defaultFileLogPerm)
 	currentFilename := time.Now().Format(f.Layout)
 	f.currentFile, err = os.OpenFile(filepath.Join(f.Dir, currentFilename), os.O_RDWR|os.O_APPEND, 0)
 	if err == nil {
@@ -41,16 +40,12 @@ func newFileLog(cfg *FileLogConfig) *FileLog {
 }
 
 const (
-	defaultFileLogSaveTime = time.Hour * 24 * 10
-	defaultFileLogDir      = "./output/log/"
-	defaultFileLogLayout   = "2006-01-02-15.log"
-	defaultFileLogSplit    = "\n"
-	defaultFileLogPerm     = 0666
+	defaultFileLogPerm = 0666
 )
 
 // FileLogConfig 可选配置信息
 type FileLogConfig struct {
-	SaveTime         time.Duration //保存时长,根据写入新文件时触发(不写入不触发,文件颗粒度约细,触发越频繁)
+	SaveTime         time.Duration //保存时长,根据写入新(新建)文件时触发(不写入不触发,文件颗粒度约细,触发越频繁)
 	Dir              string        //文件保存目录 默认 "./output/log/"
 	Layout           string        //文件命名规则 例如 "日志2006-01-02-15.log"
 	CacheNum         int           //缓存最新数据大小
@@ -59,21 +54,21 @@ type FileLogConfig struct {
 }
 
 // deal 整理配置信息,未设置增加默认值
-func (this *FileLogConfig) deal() *FileLogConfig {
+func (this *FileLogConfig) init() *FileLogConfig {
 	if this.SaveTime <= 0 {
-		this.SaveTime = defaultFileLogSaveTime
+		this.SaveTime = time.Hour * 24 * 10
 	}
 	if len(this.Dir) == 0 {
-		this.Dir = defaultFileLogDir
+		this.Dir = "./output/log/"
 	}
 	if len(this.Layout) == 0 {
-		this.Layout = defaultFileLogLayout
+		this.Layout = "2006-01-02-15.log"
 	}
 	if this.CacheNum == 0 {
 		this.CacheNum = 100
 	}
 	if len(this.Split) == 0 {
-		this.Split = defaultFileLogSplit
+		this.Split = "\n"
 	}
 	os.MkdirAll(this.Dir, defaultFileLogPerm)
 	return this
@@ -222,25 +217,23 @@ func (this *FileLog) GetLog(start, end time.Time) ([][]byte, error) {
 }
 
 // GetLogMerge 获取合并的数据,统计间隔至少1秒
-func (this *FileLog) GetLogMerge(start, end time.Time, merge time.Duration, fn func([]byte) (IFileLogAny, error)) (map[int64][]IFileLogAny, error) {
+func (this *FileLog) GetLogMerge(start, end time.Time, merge time.Duration, decode func([]byte) (GetSecond, error)) (map[int64][]GetSecond, error) {
 	//统计间隔
 	interval := int64(merge / time.Second)
-	if interval <= 0 {
-		return nil, fmt.Errorf("合并间隔有误(%s),至少需要1秒", merge)
-	}
+	interval = conv.SelectInt64(interval < 1, 1, interval)
 	//获取日志列表
 	list, err := this.GetLog(start, end)
 	if err != nil {
 		return nil, err
 	}
 	//填充没有数据的节点
-	m := make(map[int64][]IFileLogAny)
+	m := make(map[int64][]GetSecond)
 	for i := start.Unix(); i <= end.Unix(); i += interval {
-		m[i] = []IFileLogAny(nil)
+		m[i] = []GetSecond(nil)
 	}
 	//合并数据
 	for _, v := range list {
-		any, err := fn(v)
+		any, err := decode(v)
 		if err != nil {
 			return nil, err
 		}
@@ -253,7 +246,7 @@ func (this *FileLog) GetLogMerge(start, end time.Time, merge time.Duration, fn f
 }
 
 // GetLogCurve 获取日志并生成曲线图
-func (this *FileLog) GetLogCurve(start, end time.Time, merge time.Duration, i IFileLog) ([]interface{}, error) {
+func (this *FileLog) GetLogCurve(start, end time.Time, merge time.Duration, i Decoder) ([]interface{}, error) {
 	m, err := this.GetLogMerge(start, end, merge, i.Decode)
 	if err != nil {
 		return nil, err
@@ -272,19 +265,19 @@ func (this *FileLog) GetLogCurve(start, end time.Time, merge time.Duration, i IF
 	return list, nil
 }
 
-type IFileLogAny interface {
+type GetSecond interface {
 	// GetSecond 获取记录时间
 	GetSecond() int64
 }
 
-type IFileLog interface {
+type Decoder interface {
 	// Decode 字节转对象,这个是接口速度的关键,不推荐使用json
-	Decode([]byte) (IFileLogAny, error)
-	// Report 整理对象,合并统计,曲线的按时间统计
-	Report(node int64, list []IFileLogAny) (interface{}, error)
+	Decode([]byte) (GetSecond, error)
+	// Report 整理对象,合并统计,曲线的按时间统计,平均值或者最大值等等
+	Report(node int64, list []GetSecond) (interface{}, error)
 }
 
-// rangeDir 遍历目录
+// rangeDir 遍历目录,返回符合的文件列表
 func (this *FileLog) rangeDir(dir string, is func(string) bool) ([]string, error) {
 	fileInfoList, err := ioutil.ReadDir(dir)
 	if err != nil {
