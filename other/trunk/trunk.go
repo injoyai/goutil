@@ -27,7 +27,7 @@ func (this *Trunk) run() {
 	for msg := range this.ch {
 		for _, v := range this.channels {
 			//尝试加入通道,加入失败则丢弃
-			v.Publish(msg)
+			v.publish(msg)
 		}
 		for _, v := range this.subscribes {
 			wg.Add(1)
@@ -126,7 +126,7 @@ type Channel struct {
 	closed uint32
 }
 
-func (this *Channel) Publish(msg interface{}) {
+func (this *Channel) publish(msg interface{}) {
 	if atomic.LoadUint32(&this.closed) == 1 {
 		//通道状态为1(关闭)，直接返回
 		return

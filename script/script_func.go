@@ -8,8 +8,8 @@ import (
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
+	"github.com/injoyai/goutil/notice"
 	"github.com/injoyai/goutil/oss/shell"
-	"github.com/injoyai/goutil/other/notice/voice"
 	"github.com/injoyai/goutil/str"
 	"github.com/injoyai/io/dial"
 	"math"
@@ -90,7 +90,7 @@ func funcGetJson(args *Args) interface{} {
 // funcSpeak 播放语音
 func funcSpeak(args *Args) interface{} {
 	msg := args.GetString(1)
-	return voice.Speak(msg)
+	return notice.DefaultVoice.Speak(msg)
 }
 
 // funcBase64Encode base64编码
