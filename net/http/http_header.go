@@ -3,8 +3,8 @@ package http
 import "net/http"
 
 const (
-	HeaderKeySpend         = "Injoy-Spend"
-	HeaderKeyTry           = "Injoy-Try"
+	HeaderKeySpend         = "HTTP-Spend"
+	HeaderKeyTry           = "HTTP-Try"
 	HeaderKeyAuthorization = "Authorization"
 	HeaderKeyUserAgent     = "User-Agent"
 	HeaderKeyAccept        = "Accept"
