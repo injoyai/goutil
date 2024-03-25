@@ -38,8 +38,6 @@ func (this *Response) String() string {
 		return this.Error.Error()
 	}
 	if this.Request != nil && this.Response != nil {
-		this.Response.Header.Add(HeaderKeySpend, this.spend.String())
-		this.Response.Header.Add(HeaderKeyTry, conv.String(this.tryNum))
 		respBs, err := httputil.DumpResponse(this.Response, true)
 		if err != nil {
 			respBs, _ = httputil.DumpResponse(this.Response, false)
@@ -232,6 +230,10 @@ func newResponse(req *Request, resp *http.Response, start time.Time, err error) 
 	if req != nil {
 		r.tryNum = req.try
 		r.Bind(req.bodyBind)
+	}
+	if resp != nil {
+		resp.Header.Add(HeaderKeySpend, r.spend.String())
+		resp.Header.Add(HeaderKeyTry, conv.String(r.tryNum))
 	}
 	return r
 }

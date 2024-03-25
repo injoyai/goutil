@@ -190,14 +190,13 @@ func (this *Client) Trace(url string) *Response {
 }
 
 func (this *Client) DoRequest(method, url string, body interface{}) *Response {
-	req := NewRequest(method, url, body)
-	if req.err != nil {
-		return newResponseErr(req.err)
-	}
-	return this.Do(req)
+	return this.Do(NewRequest(method, url, body))
 }
 
 func (this *Client) Do(request *Request) (resp *Response) {
+	if request.err != nil {
+		return newResponseErr(request.err)
+	}
 	start := time.Now()
 	defer func() {
 		if request.done() {
@@ -216,4 +215,21 @@ func (this *Client) Do(request *Request) (resp *Response) {
 		return this.Do(request)
 	}
 	return
+}
+
+/*
+
+
+
+ */
+
+func (this *Client) Request(url string, body ...interface{}) *Request {
+	if len(body) > 0 {
+		return NewRequest(http.MethodGet, url, body[0]).SetClient(this)
+	}
+	return NewRequest(http.MethodGet, url, nil).SetClient(this)
+}
+
+func (this *Client) Url(url string) *Request {
+	return NewRequest(http.MethodGet, url, nil).SetClient(this)
 }

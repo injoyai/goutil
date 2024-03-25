@@ -8,23 +8,35 @@ import (
 	"net/http"
 	"net/http/httputil"
 	gourl "net/url"
-	"strings"
 	"sync"
 )
 
 type Request struct {
 	*http.Request
-	client   *Client
-	url      string                 //网址
-	query    map[string]interface{} //query参数,?后面的参数
-	body     []byte                 //body参数
-	bodyBind interface{}            //响应的body解析
-	debug    bool                   //debug模式
-	retry    uint                   //重试次数,0不重试
-	try      uint                   //已经执行次数,大于等于重试次数则结束
-	muQuery  sync.RWMutex           //锁
-	muHeader sync.RWMutex           //锁
-	err      error
+	client *Client
+
+	// query参数,?后面的参数
+	// 可以可网站分开设置,所以另加这个字段用于保存参数
+	// 例 xxx.SetQuery("a", 1).SetQuery("b", 2).SetUrl("http://www.baidu.com")
+	// 结果为 http://www.baidu.com?a=1&b=2
+	query   map[string]interface{}
+	queryMu sync.RWMutex //锁
+
+	// body参数,请求体,方便读取,提供GetBody等函数
+	// 否则需要从流中读取
+	body     []byte
+	bodyBind interface{} //响应的body解析
+
+	//debug模式,会打印请求响应的数据内容
+	debug bool
+
+	retry uint //重试次数,0不重试
+	try   uint //已经执行次数,大于等于重试次数则结束
+
+	muHeader sync.RWMutex //锁
+
+	//执行中的错误信息,采用的链式操作,固先保存错误信息,统一处理
+	err error
 }
 
 func (this *Request) Err() error {
@@ -83,35 +95,56 @@ func (this *Request) GetMethod() string {
 
 // SetUrl 设置地址
 func (this *Request) SetUrl(url string) *Request {
-	URL, err := gourl.Parse(this.dealQuery(url))
-	if err == nil {
-		this.url = url
-		this.Request.URL = URL
+	u, err := gourl.Parse(url)
+	if err != nil {
+		this.err = err
+		return this
 	}
+	return this.SetURL(u)
+}
+
+func (this *Request) SetURL(u *gourl.URL) *Request {
+	values := u.Query()
+	this.queryMu.RLock()
+	for i, v := range this.query {
+		values.Add(i, conv.String(v))
+	}
+	this.queryMu.RUnlock()
+	u.RawQuery = values.Encode()
+	this.Request.URL = u
+	this.Request.Host = u.Host
 	return this
 }
 
 // GetUrl 获取请求地址
 func (this *Request) GetUrl() string {
-	return this.url
+	if this.Request == nil || this.Request.URL == nil {
+		return ""
+	}
+	return this.Request.URL.String()
 }
 
 // SetQuery 设置query参数,已存在则覆盖
 func (this *Request) SetQuery(key string, val interface{}) *Request {
-	this.muQuery.Lock()
+	this.queryMu.Lock()
 	this.query[key] = val
-	this.muQuery.Unlock()
-	return this.SetUrl(this.url)
+	this.queryMu.Unlock()
+	return this.SetURL(this.Request.URL)
+}
+
+// SetQuerys 批量设置query参数,已存在则覆盖
+func (this *Request) SetQuerys(m map[string]interface{}) *Request {
+	this.queryMu.Lock()
+	for i, v := range m {
+		this.query[i] = v
+	}
+	this.queryMu.Unlock()
+	return this.SetURL(this.Request.URL)
 }
 
 // SetQueryMap 批量设置query参数,已存在则覆盖
 func (this *Request) SetQueryMap(m map[string]interface{}) *Request {
-	this.muQuery.Lock()
-	for i, v := range m {
-		this.query[i] = v
-	}
-	this.muQuery.Unlock()
-	return this.SetUrl(this.url)
+	return this.SetQuerys(m)
 }
 
 // copyHeader 复制请求头,map是引用类型
@@ -151,11 +184,7 @@ func (this *Request) SetHeader(key string, val ...string) *Request {
 
 // SetHeaders 批量设置请求头header,,已存在则覆盖
 func (this *Request) SetHeaders(m http.Header) *Request {
-	header := http.Header{}
-	for i, v := range m {
-		header[i] = v
-	}
-	this.Request.Header = header
+	this.Request.Header = m
 	return this
 }
 
@@ -214,8 +243,8 @@ func (this *Request) FormFile(m map[string][]byte) *Request {
 		fileWriter.Write(v)
 	}
 	_ = w.Close()
-	this.SetContentType(w.FormDataContentType()).SetBody(body.Bytes())
-	return this
+	this.SetContentType(w.FormDataContentType())
+	return this.SetBody(body.Bytes())
 }
 
 // FormField form-data Field
@@ -226,8 +255,8 @@ func (this *Request) FormField(m map[string]interface{}) *Request {
 		_ = w.WriteField(i, conv.String(v))
 	}
 	_ = w.Close()
-	this.SetContentType(w.FormDataContentType()).SetBody(body.Bytes())
-	return this
+	this.SetContentType(w.FormDataContentType())
+	return this.SetBody(body.Bytes())
 }
 
 // SetBody 设置请求body,默认json解析
@@ -299,39 +328,18 @@ func (this *Request) Delete() *Response {
 }
 
 func (this *Request) Do() *Response {
-	if this.err != nil {
-		return newResponseErr(this.err)
-	}
 	return this.getClient().Do(this)
-}
-
-func (this *Request) dealQuery(url string) string {
-	if len(this.query) > 0 {
-		if !strings.Contains(url, "?") {
-			url += "?"
-		} else {
-			url += "&"
-		}
-		u := gourl.Values{}
-		this.muQuery.RLock()
-		for i, v := range this.query {
-			u.Add(i, conv.String(v))
-		}
-		this.muQuery.RUnlock()
-		url += u.Encode()
-	}
-	return url
 }
 
 // NewRequest 新建请求内容
 func NewRequest(method, url string, body interface{}) *Request {
 	request, err := http.NewRequest(method, url, bytes.NewReader(conv.Bytes(body)))
 	if request == nil {
+		// 消耗点内存,方便不用每个函数都进行不是nil的判断
 		request = &http.Request{Header: map[string][]string{}}
 	}
 	req := &Request{
 		Request: request,
-		url:     url,
 		query:   make(map[string]interface{}),
 		body:    conv.Bytes(body),
 		err:     err,
