@@ -16,7 +16,6 @@ type element func() string
 func (this element) String() string { return this() }
 
 func (this *Bar) format() *Format {
-	this.number++
 	//进度占比
 	rate := float64(this.current) / float64(this.total)
 	return &Format{
@@ -29,7 +28,6 @@ func (this *Bar) format() *Format {
 			Total:   this.total,
 			Current: this.current,
 			width:   50,
-			_number: this.number,
 		},
 		Rate: element(func() string {
 			return fmt.Sprintf("%0.1f%%", rate*100)
@@ -121,7 +119,6 @@ type bar struct {
 	Total          int64        //总数
 	Current        int64        //当前
 	width          int          //宽度
-	_number        int          //次数
 }
 
 func (this *bar) SetPrefix(prefix string) {
@@ -145,22 +142,6 @@ func (this *bar) SetColor(a color.Attribute) {
 }
 
 func (this *bar) String() string {
-	if this.Total <= 0 {
-		//一个循环的进度条
-		nowWidth := ""
-		for i := 0; i < this.width; i++ {
-			if i%2 == this._number%2 {
-				nowWidth += " "
-			} else {
-				nowWidth += string(this.style)
-			}
-		}
-		barStr := fmt.Sprintf(fmt.Sprintf("%s%%-%ds%s", this.prefix, this.width, this.suffix), nowWidth)
-		if this.color != nil {
-			barStr = this.color.Sprint(barStr)
-		}
-		return barStr
-	}
 	rate := float64(this.Current) / float64(this.Total)
 	nowWidth := ""
 	for i := 0; i < int(float64(this.width)*rate); i++ {
