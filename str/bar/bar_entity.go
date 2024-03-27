@@ -36,6 +36,7 @@ type Bar struct {
 	start      time.Time  //开始时间
 	maxLength  int        //字符最大长度
 	lastAdd    int64      //最后一次增加的数量
+	number     int        //数量
 }
 
 /*
@@ -72,7 +73,7 @@ func (this *Bar) Set(current int64) *Bar {
 
 // SetCurrent 设置当前数量
 func (this *Bar) SetCurrent(current int64) *Bar {
-	if current > this.total {
+	if this.total > 0 && current > this.total {
 		current = this.total
 	}
 	this.lastAdd = current - this.current
@@ -126,7 +127,7 @@ func (this *Bar) Flush() (closed bool) {
 		s = "\r" + s
 	}
 	this.writer.Write([]byte(s))
-	if this.current >= this.total {
+	if this.total > 0 && this.current >= this.total {
 		this.Close()
 	}
 	return this.Closed()

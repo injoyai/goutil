@@ -7,6 +7,7 @@ import (
 	"github.com/injoyai/goutil/script/js"
 	"github.com/injoyai/goutil/str"
 	json "github.com/json-iterator/go"
+	"sort"
 	"sync"
 )
 
@@ -151,6 +152,32 @@ func (this Map) Merge(m ...Map) Map {
 
 func (this Map) Conv() conv.Extend {
 	return conv.NewExtend(this)
+}
+
+type Maps []Map
+
+func (this Maps) Len() int {
+	return len(this)
+}
+
+func (this Maps) Swap(i, j int) {
+	this[i], this[j] = this[j], this[i]
+}
+
+func (this Maps) Sort(fn func(i, j int) bool) {
+	sort.Sort(&_sortMaps{
+		Maps: this,
+		less: fn,
+	})
+}
+
+type _sortMaps struct {
+	Maps
+	less func(i, j int) bool
+}
+
+func (this *_sortMaps) Less(i, j int) bool {
+	return this.less(i, j)
 }
 
 //========================================Key========================================

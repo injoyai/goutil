@@ -17,6 +17,18 @@ func init() {
 
 func main() {
 
+	{
+		b := bar.New(0)
+		b.SetColor(color.BgYellow)
+		b.SetStyle('>')
+		for i := 0; i < 100; i++ {
+
+			b.Add(1).Flush()
+			<-time.After(time.Millisecond * 100)
+		}
+		b.Close()
+	}
+
 	bar.Demo()
 
 	url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
