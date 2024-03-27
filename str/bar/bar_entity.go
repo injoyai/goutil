@@ -282,6 +282,7 @@ func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int64, 
 	if err := DefaultClient.SetProxy(conv.GetDefaultString("", proxy...)); err != nil {
 		return 0, err
 	}
+	defer this.Close()
 	return DefaultClient.GetToFileWithPlan(source, filename, func(p *http.Plan) {
 		this.SetTotal(p.Total)
 		this.Set(p.Current).Flush()
