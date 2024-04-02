@@ -45,6 +45,11 @@ func (this *File) GetVar(key string) *conv.Var {
 	return conv.New(this.MustGet(key))
 }
 
+// DMap *conv.Map
+func (this *File) DMap() *conv.Map {
+	return conv.NewMap(this.Safe.GMap())
+}
+
 // Clear 清空数据
 func (this *File) Clear() *File {
 	this.Safe = maps.NewSafe()

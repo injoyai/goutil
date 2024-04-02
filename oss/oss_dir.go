@@ -1,9 +1,9 @@
 package oss
 
 import (
+	"github.com/injoyai/conv"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -60,8 +60,14 @@ func UserStartupDir(join ...string) string {
 	return filepath.Join(append([]string{dir, "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup"}, join...)...)
 }
 
+// UserInjoyDir 个人数据路径
 func UserInjoyDir(join ...string) string {
 	return UserLocalDir(append([]string{DefaultName}, join...)...)
+}
+
+// UserInjoyCacheDir 个人缓存数据路径
+func UserInjoyCacheDir(join ...string) string {
+	return UserInjoyDir(append([]string{"/data/cache"}, join...)...)
 }
 
 // UserDefaultDir 默认系统用户数据子路径(个人使用)
@@ -96,10 +102,22 @@ func ReadFileInfos(dir string) ([]os.FileInfo, error) {
 }
 
 // ReadFilenames 获取目录下的所有文件名称
-func ReadFilenames(dir string) ([]string, error) {
+func ReadFilenames(dir string, levels ...int) ([]string, error) {
+	level := conv.DefaultInt(0, levels...)
 	filenames := []string(nil)
 	err := RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
-		if !info.IsDir() {
+		if info.IsDir() {
+			if level != 0 {
+				if level > 0 {
+					level--
+				}
+				child, err := ReadFilenames(filepath.Join(dir, info.Name()), level)
+				if err != nil {
+					return false, err
+				}
+				filenames = append(filenames, child...)
+			}
+		} else {
 			filenames = append(filenames, filepath.Join(dir, info.Name()))
 		}
 		return true, nil
@@ -121,11 +139,15 @@ func ReadDirNames(dir string) ([]string, error) {
 
 // RangeFileInfo 遍历目录
 func RangeFileInfo(dir string, fn func(info fs.FileInfo) (bool, error)) error {
-	fileInfos, err := ioutil.ReadDir(dir)
+	entrys, err := os.ReadDir(dir)
 	if err != nil {
 		return err
 	}
-	for _, info := range fileInfos {
+	for _, entry := range entrys {
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
 		next, err := fn(info)
 		if err != nil {
 			return err
