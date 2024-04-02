@@ -133,7 +133,11 @@ func (this *Client) GetToFile(url string, filename string) (int64, error) {
 		return 0, err
 	}
 	defer w.Close()
-	return this.GetToWriter(url, w)
+	n, err := this.GetToWriter(url, w)
+	if err != nil {
+		os.Remove(filename)
+	}
+	return n, err
 }
 
 func (this *Client) GetToFileWithPlan(url string, filename string, f func(p *Plan)) (int64, error) {
@@ -142,7 +146,11 @@ func (this *Client) GetToFileWithPlan(url string, filename string, f func(p *Pla
 		return 0, err
 	}
 	defer w.Close()
-	return this.GetToWriterWithPlan(url, w, f)
+	n, err := this.GetToWriterWithPlan(url, w, f)
+	if err != nil {
+		os.Remove(filename)
+	}
+	return n, err
 }
 
 func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Response {
