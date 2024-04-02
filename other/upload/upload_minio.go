@@ -48,3 +48,11 @@ func (this *Minio) Save(filename string, reader io.Reader) (string, error) {
 	_, err := this.PutObject(this.cfg.BucketName, filename, reader, -1, minio.PutObjectOptions{})
 	return fmt.Sprintf("%s/%s/%s", this.cfg.Endpoint, this.cfg.BucketName, filename), err
 }
+
+func (this *Minio) List() ([]string, error) {
+	list := []string(nil)
+	for v := range this.Client.ListObjects(this.cfg.BucketName, "", false, make(chan struct{})) {
+		list = append(list, fmt.Sprintf("%s/%s/%s", this.cfg.Endpoint, this.cfg.BucketName, v.Key))
+	}
+	return list, nil
+}

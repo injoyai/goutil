@@ -1,7 +1,6 @@
 package oss
 
 import (
-	"io/ioutil"
 	"os"
 )
 
@@ -14,5 +13,5 @@ var (
 	Remove    = os.Remove
 	RemoveAll = os.RemoveAll
 
-	ReadDir = ioutil.ReadDir
+	ReadDir = os.ReadDir
 )

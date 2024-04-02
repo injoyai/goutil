@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"github.com/injoyai/conv"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,7 @@ func (this *Command) ParesFlags() *cobra.Command {
 
 func (this *Command) paresFlags(flags ...*Flag) *cobra.Command {
 	for _, v := range this.Flag {
-		this.Command.PersistentFlags().StringVarP(&v.value, v.Name, v.Short, v.Default, v.Memo)
+		this.Command.PersistentFlags().StringVarP(&v.Value, v.Name, v.Short, v.Default, v.Memo)
 	}
 	flags = append(this.Flag, flags...)
 	if this.Command.Run == nil && this.Run != nil {
@@ -68,7 +69,7 @@ func (this *Flags) Range(fn func(key string, val *Flag) bool) {
 
 func (this *Flags) GetVar(key string) *conv.Var {
 	val, ok := this.m[key]
-	if ok && len(val.value) > 0 {
+	if ok && len(val.Value) > 0 {
 		return val.Var()
 	}
 	return conv.Nil()
@@ -79,13 +80,13 @@ type Flag struct {
 	Short   string //flag短名称,例如 -n,中的n代替name
 	Default string //默认值,如果没有输入的话,使用默认值
 	Memo    string //备注信息,提示信息
-	value   string //值,输入的值 --name injoy 中的injoy
-}
-
-func (this *Flag) Value() string {
-	return this.value
+	Value   string //值,输入的值 --name injoy 中的injoy
 }
 
 func (this *Flag) Var() *conv.Var {
-	return conv.New(this.value)
+	return conv.New(this.Value)
+}
+
+func (this *Flag) String() string {
+	return fmt.Sprintf("-%s=%s", this.Name, this.Value)
 }

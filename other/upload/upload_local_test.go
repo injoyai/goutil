@@ -6,11 +6,12 @@ import (
 )
 
 func TestLocal_Save(t *testing.T) {
-	i := NewLocal(false)
-	s, err := i.Save("./a/b/c.txt", bytes.NewReader([]byte("hello")))
+	i := NewLocal("./data/upload/")
+	i.Save("d.txt", bytes.NewReader([]byte("hello")))
+	_, err := i.Save("./a/b/c.txt", bytes.NewReader([]byte("hello")))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Log(s)
+	t.Log(i.List())
 }

@@ -2,6 +2,7 @@ package upload
 
 import (
 	"context"
+	"errors"
 	"github.com/qiniu/api.v7/auth/qbox"
 	"github.com/qiniu/api.v7/storage"
 	"io"
@@ -58,4 +59,8 @@ func (this *Qiniu) Save(name string, reader io.Reader) (string, error) {
 	ret := storage.PutRet{}
 	err := formUploader.Put(context.Background(), &ret, upToken, name, reader, -1, new(storage.PutExtra))
 	return this.Domain + ret.Key, err
+}
+
+func (this *Qiniu) List() ([]string, error) {
+	return nil, errors.New("暂不支持")
 }
