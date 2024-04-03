@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 )
 
-func newFile(name, tag string) *File {
+func newFile(name, group string) *File {
 	data := &File{
-		name: name,
-		tag:  tag,
-		Safe: maps.NewSafe(),
+		name:  name,
+		group: group,
+		Safe:  maps.NewSafe(),
 	}
 	bs, _ := ioutil.ReadFile(data.Filename())
 	m := make(map[string]interface{})
@@ -29,8 +29,8 @@ func newFile(name, tag string) *File {
 }
 
 type File struct {
-	name string
-	tag  string
+	name  string
+	group string
 	*maps.Safe
 	conv.Extend
 }
@@ -108,6 +108,6 @@ func (this *File) Filename() string {
 	}
 	h := md5.New()
 	h.Write([]byte(filename))
-	filename = fmt.Sprintf("%s@%s", this.tag, hex.EncodeToString(h.Sum(nil)))
+	filename = fmt.Sprintf("%s@%s", this.group, hex.EncodeToString(h.Sum(nil)))
 	return filepath.Join(fileDir, filename)
 }
