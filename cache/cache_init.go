@@ -10,9 +10,9 @@ var DefaultDir = "./data/cache/"
 // NewFile 新建文件缓存
 // 万次读写速度4.18秒
 // 万次协程读写速度2.21秒
-func NewFile(name string, tags ...string) *File {
-	tag := conv.GetDefaultString("var", tags...)
-	return newFile(name, tag)
+func NewFile(name string, groups ...string) *File {
+	group := conv.GetDefaultString("var", groups...)
+	return newFile(name, group)
 }
 
 // NewCycle 新建内存缓存,存储记录,循环使用
