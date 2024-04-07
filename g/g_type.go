@@ -140,6 +140,26 @@ func (this Map) GetVar(key string) *conv.Var {
 	return conv.New(this[key])
 }
 
+func (this Map) GetInt(key string) int {
+	return conv.Int(this[key])
+}
+
+func (this Map) GetInt64(key string) int64 {
+	return conv.Int64(this[key])
+}
+
+func (this Map) GetString(key string) string {
+	return conv.String(this[key])
+}
+
+func (this Map) GetBool(key string) bool {
+	return conv.Bool(this[key])
+}
+
+func (this Map) GetFloat(key string) float64 {
+	return conv.Float64(this[key])
+}
+
 // Merge 合并多个map
 func (this Map) Merge(m ...Map) Map {
 	for _, v := range m {
