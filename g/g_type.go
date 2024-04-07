@@ -156,7 +156,11 @@ func (this Map) GetBool(key string) bool {
 	return conv.Bool(this[key])
 }
 
-func (this Map) GetFloat(key string) float64 {
+func (this Map) GetFloat32(key string) float32 {
+	return conv.Float32(this[key])
+}
+
+func (this Map) GetFloat64(key string) float64 {
 	return conv.Float64(this[key])
 }
 
