@@ -164,7 +164,7 @@ func (this Maps) Swap(i, j int) {
 	this[i], this[j] = this[j], this[i]
 }
 
-func (this Maps) Sort(fn func(i, j int) bool) {
+func (this Maps) Sort(fn func(i, j Map) bool) {
 	sort.Sort(&_sortMaps{
 		Maps: this,
 		less: fn,
@@ -173,11 +173,11 @@ func (this Maps) Sort(fn func(i, j int) bool) {
 
 type _sortMaps struct {
 	Maps
-	less func(i, j int) bool
+	less func(i, j Map) bool
 }
 
 func (this *_sortMaps) Less(i, j int) bool {
-	return this.less(i, j)
+	return this.less(this.Maps[i], this.Maps[j])
 }
 
 //========================================Key========================================
