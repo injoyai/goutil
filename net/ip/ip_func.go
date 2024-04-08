@@ -40,31 +40,31 @@ func ParseV4(s string) (net.IP, uint16, error) {
 	return ip, uint16(port), nil
 }
 
-func RangeV4(network string, fn func(n net.Interface, ip net.IP) bool) error {
+func RangeV4(search string, fn func(n net.Interface, ip net.IP, self bool) bool) error {
 	is, err := net.Interfaces()
 	if err != nil {
 		return err
 	}
-	for _, v := range is {
+	for _, network := range is {
 
-		if v.Flags&(1<<net.FlagLoopback) == 1 || v.Flags&(1<<net.FlagUp) == 0 {
+		if network.Flags&(1<<net.FlagLoopback) == 1 || network.Flags&(1<<net.FlagUp) == 0 {
 			continue
 		}
-		if len(network) > 0 && network != "all" && !strings.Contains(v.Name, network) {
+		if len(search) > 0 && search != "all" && !strings.Contains(network.Name, search) {
 			continue
 		}
 
-		addrs, err := v.Addrs()
+		addrs, err := network.Addrs()
 		if err != nil {
 			return err
 		}
 
 		for _, addr := range addrs {
 			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
-				ipv4 := ipnet.IP.To4()[:3]
-				for i := conv.Uint32([]byte{ipv4[0], ipv4[1], ipv4[2], 0}); i <= conv.Uint32([]byte{ipv4[0], ipv4[1], ipv4[2], 255}); i++ {
+				selfIP := ipnet.IP.To4()
+				for i := conv.Uint32([]byte{selfIP[0], selfIP[1], selfIP[2], 0}); i <= conv.Uint32([]byte{selfIP[0], selfIP[1], selfIP[2], 255}); i++ {
 					ip := net.IP(conv.Bytes(i))
-					if !fn(v, ip) {
+					if !fn(network, ip, selfIP.String() == ip.String()) {
 						break
 					}
 				}
