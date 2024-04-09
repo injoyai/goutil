@@ -6,8 +6,10 @@ package win
 import (
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
+	"github.com/injoyai/goutil/oss"
 	"os/user"
 	"path/filepath"
+	"strings"
 )
 
 // Shortcut the shortcut (.lnk file) property struct
@@ -34,8 +36,27 @@ func (this *Shortcut) Create() error {
 	return CreateShortcut(this)
 }
 
+// CreateStartupShortcut 创建开机自启快捷方式
+func CreateStartupShortcut(target string) error {
+	_, name := filepath.Split(target)
+	name = strings.Split(name, ".")[0]
+	filename := oss.UserStartupDir(name + ".lnk")
+	shortcut := &Shortcut{
+		ShortcutPath:     filename,
+		Target:           target,
+		IconLocation:     "",
+		Arguments:        "",
+		Description:      "",
+		Hotkey:           "",
+		WindowStyle:      "1",
+		WorkingDirectory: "",
+	}
+	return shortcut.Create()
+}
+
 // CreateDesktopShortcut 创建桌面快捷方式
-func CreateDesktopShortcut(name, target, iconPath string) error {
+// 例 CreateDesktopShortcut("google","https://google.cn")
+func CreateDesktopShortcut(name, target string) error {
 	u, err := user.Current()
 	if err != nil {
 		return err
@@ -44,14 +65,14 @@ func CreateDesktopShortcut(name, target, iconPath string) error {
 	shortcut := &Shortcut{
 		ShortcutPath:     shortcutPath,
 		Target:           target,
-		IconLocation:     iconPath,
+		IconLocation:     "",
 		Arguments:        "",
 		Description:      "",
 		Hotkey:           "",
 		WindowStyle:      "1",
 		WorkingDirectory: "",
 	}
-	return CreateShortcut(shortcut)
+	return shortcut.Create()
 }
 
 // CreateShortcut 创建快捷方式
