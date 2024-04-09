@@ -60,6 +60,11 @@ func UserStartupDir(join ...string) string {
 	return filepath.Join(append([]string{dir, "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup"}, join...)...)
 }
 
+func UserDesktopDir(join ...string) string {
+	dir, _ := os.UserHomeDir()
+	return filepath.Join(append([]string{dir, "Desktop"}, join...)...)
+}
+
 // UserInjoyDir 个人数据路径
 func UserInjoyDir(join ...string) string {
 	return UserLocalDir(append([]string{DefaultName}, join...)...)
