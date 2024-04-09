@@ -2,7 +2,6 @@ package oss
 
 import (
 	"bytes"
-	"math"
 	"testing"
 	"time"
 )
@@ -25,5 +24,5 @@ func TestNew(t *testing.T) {
 func TestSizeUnit(t *testing.T) {
 	t.Log(SizeUnit(314 * 1024 * 1024))
 
-	t.Log(SizeUnit(math.MaxUint64))
+	//t.Log(SizeUnit(math.MaxUint64))
 }

@@ -14,3 +14,7 @@ func TestDir(t *testing.T) {
 func TestUserStartupDir(t *testing.T) {
 	t.Log(UserStartupDir())
 }
+
+func TestUserDesktopDir(t *testing.T) {
+	t.Log(UserDesktopDir())
+}
