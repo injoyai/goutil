@@ -67,7 +67,7 @@ type Inter struct {
 }
 
 func (this *Inter) Print() {
-	fmt.Printf("\n%d: %s (%s):\n", this.Index, this.Name, this.HardwareAddr)
+	fmt.Printf("\n%d: %s (%s):\n", this.Index, this.HardwareAddr, this.Name)
 }
 
 // RangeSegment 遍历网段
