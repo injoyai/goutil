@@ -87,7 +87,9 @@ func (this Type) Value(v interface{}) interface{} {
 		return conv.Float64(v)
 	case Script:
 		scriptPoolOnce.Do(func() {
-			ScriptPool = js.NewPool(20)
+			if ScriptPool == nil {
+				ScriptPool = js.NewPool(20)
+			}
 		})
 		val, _ := ScriptPool.Exec(conv.String(v))
 		return val
@@ -177,6 +179,8 @@ func (this Map) Merge(m ...Map) Map {
 func (this Map) Conv() conv.Extend {
 	return conv.NewExtend(this)
 }
+
+//========================================Maps========================================
 
 type Maps []Map
 
