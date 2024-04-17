@@ -8,11 +8,12 @@ import (
 
 // Cycle 固定列表长度,循环使用
 type Cycle struct {
-	list   []interface{} //列表数据
-	offset int           //当前数据位置下标
-	length int           //列表长度
-	cycle  bool          //循环使用,数据量已经超过列表的长度,覆盖了老数据
-	listen *chans.Listen
+	list       []interface{}                 //列表数据
+	offset     int                           //当前数据位置下标
+	length     int                           //列表长度
+	cycle      bool                          //循环使用,数据量已经超过列表的长度,覆盖了老数据
+	listen     *chans.Listen                 //数据监听
+	middleware []func(data interface{}) bool //中间件
 }
 
 // Subscribe 开启一个订阅数据的通道
@@ -59,8 +60,25 @@ func (this *Cycle) List(limits ...int) []interface{} {
 	return list
 }
 
+// Use 中间件
+func (this *Cycle) Use(f ...func(data interface{}) bool) *Cycle {
+	this.middleware = append(this.middleware, f...)
+	return this
+}
+
+// Write 实现io.Writer接口
+func (this *Cycle) Write(p []byte) (int, error) {
+	this.Add(p)
+	return len(p), nil
+}
+
 // Add 添加任意数据到缓存
 func (this *Cycle) Add(data interface{}) *Cycle {
+	for _, f := range this.middleware {
+		if !f(data) {
+			return this
+		}
+	}
 	this.listen.Publish(data)
 	this.offset = conv.SelectInt(this.offset >= len(this.list) || this.offset < 0, 0, this.offset)
 	this.list[this.offset] = data
