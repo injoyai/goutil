@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/injoyai/io"
 	"net/http"
+	"time"
 )
 
 const (
@@ -20,6 +21,11 @@ const (
 // SetProxy 设置默认客户端的代理地址
 func SetProxy(proxy string) error {
 	return DefaultClient.SetProxy(proxy)
+}
+
+// SetTimeout 设置超时时间
+func SetTimeout(t time.Duration) *Client {
+	return DefaultClient.SetTimeout(t)
 }
 
 func Url(url string) *Request {
