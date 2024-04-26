@@ -45,7 +45,7 @@ require (
 	github.com/ugorji/go/codec v1.2.12
 	github.com/yuin/gopher-lua v1.1.0
 	golang.org/x/image v0.11.0
-	golang.org/x/sys v0.11.0
+	golang.org/x/sys v0.16.0
 	golang.org/x/text v0.12.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/yaml.v3 v3.0.1
@@ -55,13 +55,13 @@ require (
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/chromedp/chromedp v0.9.5
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/qiniu/x v7.0.8+incompatible // indirect
 	github.com/spf13/cobra v1.2.1
-	github.com/spf13/pflag v1.0.5
 	github.com/tebeka/selenium v0.9.9
 	golang.org/x/net v0.7.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
