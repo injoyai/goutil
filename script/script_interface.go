@@ -5,7 +5,7 @@ import (
 	"github.com/injoyai/conv"
 )
 
-type Func func(*Args) interface{}
+type Func func(*Args) (interface{}, error)
 type Option func(c Client)
 
 type Client interface {
