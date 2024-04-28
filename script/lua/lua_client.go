@@ -126,12 +126,20 @@ func (this *Client) Set(key string, value interface{}) error {
 	switch fn := value.(type) {
 	case script.Func:
 		value = this.toFunc(fn)
-	case func(*script.Args) interface{}:
+	case func(*script.Args) (interface{}, error):
 		value = this.toFunc(fn)
+	case func(*script.Args) interface{}:
+		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+			return fn(args), nil
+		})
+	case func(*script.Args) error:
+		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+			return nil, fn(args)
+		})
 	case func():
-		value = this.toFunc(func(*script.Args) interface{} {
+		value = this.toFunc(func(*script.Args) (interface{}, error) {
 			fn()
-			return nil
+			return nil, nil
 		})
 	}
 	this.client.SetGlobal(key, this.Value(value))
@@ -154,7 +162,12 @@ func (this *Client) toFunc(fn script.Func) lua.LGFunction {
 			This: this,
 			Args: args,
 		}
-		call.Push(this.Value(fn(arg)))
+		val, err := fn(arg)
+		if err != nil {
+			call.Push(this.Value(err))
+			return 1
+		}
+		call.Push(this.Value(val))
 		return 1
 	}
 }

@@ -19,22 +19,22 @@ func New(option ...func(c script.Client)) *Client {
 	cli := &Client{
 		Otto: vm,
 	}
-	cli.SetFunc("print", func(args *script.Args) interface{} {
+	cli.SetFunc("print", func(args *script.Args) (interface{}, error) {
 		fmt.Println(args.Interfaces()...)
-		return Nil
+		return nil, nil
 	})
-	cli.SetFunc("println", func(args *script.Args) interface{} {
+	cli.SetFunc("println", func(args *script.Args) (interface{}, error) {
 		fmt.Println(args.Interfaces()...)
-		return Nil
+		return nil, nil
 	})
-	cli.SetFunc("printf", func(args *script.Args) interface{} {
+	cli.SetFunc("printf", func(args *script.Args) (interface{}, error) {
 		a := args.Interfaces()
 		if len(a) > 0 {
 			fmt.Printf(conv.String(a[0]), a[1:]...)
 		} else {
 			fmt.Printf("")
 		}
-		return nil
+		return nil, nil
 	})
 	//cli.Exec("var console={\nlog:function(any){\nprint(any)\n}\n}")
 	for _, v := range option {
@@ -81,12 +81,25 @@ func (this *Client) Set(key string, value interface{}) error {
 	switch fn := value.(type) {
 	case script.Func:
 		value = this.toFunc(fn)
-	case func(*script.Args) interface{}:
+	case func(*script.Args) (interface{}, error):
 		value = this.toFunc(fn)
+	case func(*script.Args) interface{}:
+		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+			return fn(args), nil
+		})
+	case func(*script.Args) error:
+		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+			return nil, fn(args)
+		})
+	case func(*script.Args):
+		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+			fn(args)
+			return nil, nil
+		})
 	case func():
-		value = this.toFunc(func(args *script.Args) interface{} {
+		value = this.toFunc(func(args *script.Args) (interface{}, error) {
 			fn()
-			return nil
+			return nil, nil
 		})
 	}
 	return this.Otto.Set(key, value)
@@ -112,7 +125,16 @@ func (this *Client) toFunc(fn script.Func) func(call otto.FunctionCall) otto.Val
 			This: this,
 			Args: args,
 		}
-		result, _ := otto.ToValue(fn(arg))
+		defer func() {
+			if err := recover(); err != nil {
+				panic(call.Otto.MakeCustomError("", fmt.Sprint(err)))
+			}
+		}()
+		value, err := fn(arg)
+		if err != nil {
+			panic(err)
+		}
+		result, _ := otto.ToValue(value)
 		return result
 	}
 }

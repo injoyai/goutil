@@ -51,9 +51,8 @@ func funcSprintf(args *Args) interface{} {
 	return ""
 }
 
-func funcSleep(args *Args) interface{} {
+func funcSleep(args *Args) {
 	time.Sleep(time.Duration(args.GetInt(1) * 1e6))
-	return nil
 }
 
 var r = rand.New(rand.NewSource(time.Now().Unix()))
@@ -68,18 +67,18 @@ func funcRand(args *Args) interface{} {
 }
 
 // funcSyncDate 从网络同步时间
-func funcSyncDate(args *Args) interface{} {
+func funcSyncDate(args *Args) (interface{}, error) {
 	// 阿里ntp.aliyun.com 腾讯time1.cloud.tencent.com
 	host := args.GetString(1, "ntp.ntsc.ac.cn")
-	_, err := shell.Exec("ntpdate " + host)
-	return err
+	result, err := shell.Exec("ntpdate " + host)
+	return result, err
 }
 
 // funcSetDate 设置时间
-func funcSetDate(args *Args) interface{} {
+func funcSetDate(args *Args) (interface{}, error) {
 	dateStr := args.GetString(1, "1970-01-01 08:00:00")
-	_, err := shell.Exec(fmt.Sprintf(`date --set="%s"`, dateStr))
-	return err
+	result, err := shell.Exec(fmt.Sprintf(`date --set="%s"`, dateStr))
+	return result, err
 }
 
 // funcGetJson 解析json,读取其中数据
@@ -88,7 +87,7 @@ func funcGetJson(args *Args) interface{} {
 }
 
 // funcSpeak 播放语音
-func funcSpeak(args *Args) interface{} {
+func funcSpeak(args *Args) error {
 	msg := args.GetString(1)
 	return notice.DefaultVoice.Speak(msg)
 }
@@ -100,17 +99,17 @@ func funcBase64Encode(args *Args) interface{} {
 }
 
 // funcBase64Decode base64解码
-func funcBase64Decode(args *Args) interface{} {
+func funcBase64Decode(args *Args) (interface{}, error) {
 	data := args.GetString(1)
-	bs, _ := base64.StdEncoding.DecodeString(data)
-	return string(bs)
+	bs, err := base64.StdEncoding.DecodeString(data)
+	return string(bs), err
 }
 
 // funcHexToBytes 字符转字节 例 "0102" >>> []byte{0x01,0x02}
-func funcHexToBytes(args *Args) interface{} {
+func funcHexToBytes(args *Args) (interface{}, error) {
 	s := args.GetString(1)
-	bs, _ := hex.DecodeString(s)
-	return string(bs)
+	bs, err := hex.DecodeString(s)
+	return string(bs), err
 }
 
 // funcHexToString 字节转字符 例 []byte{0x01,0x02} >>> "0102"
@@ -162,12 +161,11 @@ func funcHoldCount(args *Args) interface{} {
 }
 
 // funcSetCache 设置缓存
-func funcSetCache(args *Args) interface{} {
+func funcSetCache(args *Args) {
 	key := args.GetString(1)
 	val := args.GetString(2)
 	expiration := args.GetFloat64(3, 0)
 	cacheMap.Set(key, val, time.Duration(float64(time.Second)*expiration))
-	return nil
 }
 
 // funcGetCache 获取缓存
@@ -177,10 +175,9 @@ func funcGetCache(args *Args) interface{} {
 }
 
 // funcDelCache 删除缓存
-func funcDelCache(args *Args) interface{} {
+func funcDelCache(args *Args) {
 	key := args.GetString(1)
 	cacheMap.Del(key)
-	return true
 }
 
 // funcLen 取字符长度
@@ -333,20 +330,16 @@ func funcReverse(args *Args) interface{} {
 }
 
 // funcShell 执行脚本
-func funcShell(args *Args) interface{} {
+func funcShell(args *Args) (interface{}, error) {
 	list := []string(nil)
 	for _, v := range args.Args {
 		list = append(list, v.String())
 	}
-	result, err := shell.Exec(list...)
-	if err != nil {
-		return err
-	}
-	return result
+	return shell.Exec(list...)
 }
 
 // funcHTTP http请求,协程执行
-func funcHTTP(args *Args) interface{} {
+func funcHTTP(args *Args) error {
 	method := strings.ToUpper(args.GetString(1))
 	url := args.GetString(2)
 	body := args.GetString(3)
@@ -361,7 +354,7 @@ func funcHTTP(args *Args) interface{} {
 	return nil
 }
 
-func funcUDP(args *Args) interface{} {
+func funcUDP(args *Args) error {
 	addr := args.GetString(1)
 	data := args.GetString(2)
 	return dial.WriteUDP(addr, []byte(data))
