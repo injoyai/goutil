@@ -1,0 +1,43 @@
+name: modbus rtu
+debug: true
+key: data
+actions:
+  #0x01030400190030e02b
+  - name: 校验基础长度
+    script: len(data)>5
+    error: 长度错误,小于5
+
+
+
+  - name: 校验crc
+    script: crc16(cut(data,0,len(data)-2))==cut(data,len(data)-2,len(data))
+    error: crc校验错误
+
+  - name: 长度
+    key: length
+    script: intBytes(cut(data,2,3))
+
+  - name: 校验总长度
+    script: length+5==len(data)
+    error: 总长度错误
+
+  - name: 取字节
+    script: cut(data,3,length+3)
+
+
+
+  - name: 取值
+    script:
+      - key: 温度
+        script: intBytes(cut(data,0,2))
+
+      - key: 湿度
+        script: intBytes(cut(data,2,4))
+
+      - 湿度
+
+#  - name: 取值
+#    script:
+#      - intBytes(cut(data,0,2))
+#
+#      - intBytes(cut(data,2,4))

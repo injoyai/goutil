@@ -1,0 +1,49 @@
+name: DLT645 #电表协议
+debug: true
+actions:
+  - name: 取协议部分 #通过解析json的方式获取协议数据, 例 {"code":200,"data":{"version":"v1.0","hex":"68AAAAAAAAAAAA68910833333333343333337E16"}}
+    script: getJson(value,"data.hex")
+
+  - name: 校验长度 #把获取到的数据转成字符串, 例 86000000000000000
+    script: len(value)!=40
+    error: 长度校验失败
+
+  - name: 校验帧头
+    script: cut(value,0,2)=="68"
+    error: 帧头校验失败
+
+  - name: 校验帧尾
+    script: str(cut(value,38,40))=="16"
+    error: "帧尾校验失败"
+
+  - name: 截取标识
+    key: filed
+    script: cut(value,20,28)
+    switch:
+      33333333:
+        name: 电量
+        value: electricity
+      02020100:
+        name: 电流
+        value: current
+      0201ff00:
+        name: 电压
+        value: voltage
+      default:
+        error: 未知类型
+
+  - name: 值-裁剪
+    script:
+     - cut(value,28,36)
+     - print("value:",value)
+
+  - name: 值-转值
+    script: sub0x33ReverseHEXToFloat(value,2)
+
+  - key: "@js getString('filed')"
+
+  - script: del("filed","value")
+
+
+
+

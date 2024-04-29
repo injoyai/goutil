@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/injoyai/base/bytes/crypt/crc"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
@@ -182,8 +183,21 @@ func funcDelCache(args *Args) {
 
 // funcLen 取字符长度
 func funcLen(args *Args) interface{} {
-	key := args.GetString(1)
-	return len(key)
+	v := args.Get(1)
+	switch val := v.Val().(type) {
+	case string:
+		return len(val)
+	case []byte:
+		return len(val)
+	case []interface{}:
+		return len(val)
+	case map[string]interface{}:
+		return len(val)
+	case map[interface{}]interface{}:
+		return len(val)
+	default:
+		return len(v.String())
+	}
 }
 
 // funcToInt 任意类型转int
@@ -209,6 +223,10 @@ func funcToInt32(args *Args) interface{} {
 // funcToInt64 任意类型转int64
 func funcToInt64(args *Args) interface{} {
 	return conv.Int64(args.GetString(1))
+}
+
+func funcToInt64Bytes(args *Args) interface{} {
+	return conv.Int64(args.GetBytes(1))
 }
 
 // funcToUint8 任意类型转uint8
@@ -256,8 +274,33 @@ func funcToBool(args *Args) interface{} {
 	return conv.Bool(args.GetString(1))
 }
 
+func funcCut(args *Args) interface{} {
+
+	str := args.GetString(1)
+	start := args.GetInt(2)
+	end := args.GetInt(3)
+
+	if end == 0 || end > len(str) {
+		end = len(str)
+	}
+	if start < 0 {
+		start = 0
+	}
+	if start >= len(str) {
+		return ""
+	}
+
+	//字节无法映射到js
+	return str[start:end]
+}
+
 // funcToBIN 数字转成2进制字符串
 func funcToBIN(args *Args) interface{} {
+	v := args.Get(1)
+	switch val := v.Val().(type) {
+	case string:
+		return conv.BINStr([]byte(val))
+	}
 	byte := args.GetInt(2)
 	data := interface{}(args.GetInt64(1))
 	switch byte {
@@ -276,6 +319,11 @@ func funcToBIN(args *Args) interface{} {
 }
 
 func funcToHex(args *Args) interface{} {
+	v := args.Get(1)
+	switch val := v.Val().(type) {
+	case string:
+		return hex.EncodeToString([]byte(val))
+	}
 	data := args.GetInt64(1)
 	bytes := []byte(nil)
 	switch args.GetInt(2) {
@@ -358,4 +406,59 @@ func funcUDP(args *Args) error {
 	addr := args.GetString(1)
 	data := args.GetString(2)
 	return dial.WriteUDP(addr, []byte(data))
+}
+
+func funcCrc16(args *Args) interface{} {
+	bs := args.Get(1).Bytes()
+	table := args.GetString(2)
+	param := crc.CRC16_MODBUS
+	switch strings.ToUpper(table) {
+	case "ARC":
+		param = crc.CRC16_ARC
+	case "AUG_CCITT":
+		param = crc.CRC16_AUG_CCITT
+	case "BUYPASS":
+		param = crc.CRC16_BUYPASS
+	case "CCITT_FALSE":
+		param = crc.CRC16_CCITT_FALSE
+	case "CDMA2000":
+		param = crc.CRC16_CDMA2000
+	case "DDS_110":
+		param = crc.CRC16_DDS_110
+	case "DECT_R":
+		param = crc.CRC16_DECT_R
+	case "DECT_X":
+		param = crc.CRC16_DECT_X
+	case "DNP":
+		param = crc.CRC16_DNP
+	case "EN_13757":
+		param = crc.CRC16_EN_13757
+	case "GENIBUS":
+		param = crc.CRC16_GENIBUS
+	case "MAXIM":
+		param = crc.CRC16_MAXIM
+	case "MCRF4XX":
+		param = crc.CRC16_MCRF4XX
+	case "RIELLO":
+		param = crc.CRC16_RIELLO
+	case "T10_DIF":
+		param = crc.CRC16_T10_DIF
+	case "TELEDISK":
+		param = crc.CRC16_TELEDISK
+	case "TMS37157":
+		param = crc.CRC16_TMS37157
+	case "USB":
+		param = crc.CRC16_USB
+	case "CRC_A":
+		param = crc.CRC16_CRC_A
+	case "KERMIT":
+		param = crc.CRC16_KERMIT
+	case "MODBUS":
+		param = crc.CRC16_MODBUS
+	case "X_25":
+		param = crc.CRC16_X_25
+	case "XMODEM":
+		param = crc.CRC16_XMODEM
+	}
+	return crc.Encrypt16(bs, param).String()
 }
