@@ -7,8 +7,6 @@ actions:
     script: len(data)>5
     error: 长度错误,小于5
 
-
-
   - name: 校验crc
     script: crc16(cut(data,0,len(data)-2))==cut(data,len(data)-2,len(data))
     error: crc校验错误
@@ -24,8 +22,6 @@ actions:
   - name: 取字节
     script: cut(data,3,length+3)
 
-
-
   - name: 取值
     script:
       - key: 温度
@@ -34,10 +30,6 @@ actions:
       - key: 湿度
         script: intBytes(cut(data,2,4))
 
-      - 湿度
+  - script: del("data","length")
 
-#  - name: 取值
-#    script:
-#      - intBytes(cut(data,0,2))
-#
-#      - intBytes(cut(data,2,4))
+
