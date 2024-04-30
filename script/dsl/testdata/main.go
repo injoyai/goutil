@@ -13,7 +13,7 @@ import (
 
 func main() {
 
-	//dlt645()
+	dlt645()
 	modbusRtu()
 
 }

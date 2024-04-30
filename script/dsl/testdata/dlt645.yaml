@@ -5,7 +5,7 @@ actions:
     script: getJson(value,"data.hex")
 
   - name: 校验长度 #把获取到的数据转成字符串, 例 86000000000000000
-    script: len(value)!=40
+    script: len(value)==40
     error: 长度校验失败
 
   - name: 校验帧头
