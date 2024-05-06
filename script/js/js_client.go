@@ -115,26 +115,32 @@ func (this *Client) Close() error {
 
 func (this *Client) toFunc(fn script.Func) func(call otto.FunctionCall) otto.Value {
 	return func(call otto.FunctionCall) otto.Value {
-		//it, _ := call.This.Export()
+		defer func() {
+			if err := recover(); err != nil {
+				panic(call.Otto.MakeCustomError("", fmt.Sprint(err)))
+			}
+		}()
 		args := []*conv.Var(nil)
 		for _, v := range call.ArgumentList {
-			val, _ := v.Export()
+			val, err := v.Export()
+			if err != nil {
+				panic(err)
+			}
 			args = append(args, conv.New(val))
 		}
 		arg := &script.Args{
 			This: this,
 			Args: args,
 		}
-		defer func() {
-			if err := recover(); err != nil {
-				panic(call.Otto.MakeCustomError("", fmt.Sprint(err)))
-			}
-		}()
+
 		value, err := fn(arg)
 		if err != nil {
 			panic(err)
 		}
-		result, _ := otto.ToValue(value)
+		result, err := otto.ToValue(value)
+		if err != nil {
+			panic(err)
+		}
 		return result
 	}
 }
