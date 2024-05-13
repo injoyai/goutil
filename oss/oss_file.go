@@ -2,6 +2,7 @@ package oss
 
 import (
 	"encoding/base64"
+	"encoding/csv"
 	"encoding/hex"
 	"github.com/injoyai/conv"
 	"io"
@@ -95,6 +96,60 @@ func NewNotExist(filename string, v ...interface{}) error {
 		return New(filename, v...)
 	}
 	return nil
+}
+
+// OpenCSV 新建或者打开csv文件
+func OpenCSV(filename string, initStr ...interface{}) (*CSVFile, error) {
+	if !Exists(filename) {
+		f, err := os.Create(filename)
+		if err != nil {
+			return nil, err
+		}
+		ff := &CSVFile{
+			File:   f,
+			Writer: csv.NewWriter(f),
+		}
+
+		//写入utf-8 编码
+		if _, err = f.WriteString("\xEF\xBB\xBF"); err == nil {
+			//写入预设值,例如标题
+			err = ff.Write(initStr...)
+		}
+
+		if err != nil {
+			f.Close()
+		}
+		return ff, err
+	}
+
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, defaultPerm)
+	return &CSVFile{
+		File:   f,
+		Writer: csv.NewWriter(f),
+	}, err
+}
+
+func WithOpenCSV(filename string, fn func(f *CSVFile), initStr ...interface{}) error {
+	f, err := OpenCSV(filename, initStr...)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	fn(f)
+	return nil
+}
+
+func OpenAppend(filename string) (*os.File, error) {
+	return os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, defaultPerm)
+}
+
+func WithOpenAppend(filename string, fn func(f *os.File) error) error {
+	f, err := OpenAppend(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return fn(f)
 }
 
 // OpenFunc 打开文件,并执行函数

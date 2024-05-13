@@ -2,7 +2,7 @@ name: modbus rtu
 debug: true
 key: data
 actions:
-  #0x01030400190030e02b
+  #输入 0x01030400190030e02b
   - name: 校验基础长度
     script: len(data)>5
     error: 长度错误,小于5
@@ -31,5 +31,6 @@ actions:
         script: intBytes(cut(data,2,4))
 
   - script: del("data","length")
+  #输出  {"温度":25,"湿度":48}
 
 
