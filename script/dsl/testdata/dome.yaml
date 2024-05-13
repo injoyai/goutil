@@ -1,0 +1,31 @@
+name: 模版
+key: value # 脚本能直接通过该名称获取到值,例 print(value)
+debug: true # 打印执行日志
+actions:
+
+    # 可以使用JS语法,下面是常用内置函数
+    # cut(value,start,end) ,裁剪数据,value原始值,start起始位置,end结束位置
+    # str(value), 任意类型转字符串, 例 str(19) >> "19"
+    # script: getJson(value,"data.hex[0]") , value是原始数据,第二参数是数据的位置,用.和[]访问对象和数组
+    # int(value) ,任意类型转int 例 int("010") >> 10
+    # intBytes(value) ,任意类型先转字节,再转int 例 intBytes("19") >> 0x3139 >> 12601
+
+
+    - name: 取协议部分
+      # key: xxx 如果没设置key的话,数据会赋值到父级key上
+      # 例如获取json的一部分字段 {"data":{"hex":["xxxxxxx"]},"code":200}
+      # script: getJson(value,"data.hex[0]")
+
+    - name: 校验长度
+      script:
+        - print(value) # 调试,打印value的值
+        - len(value)==40 # 判断长度,否则会返回错误
+      error: 长度校验失败
+
+    - name: 校验帧头
+      script: str(cut(value,38,40))=="86"
+      error: 帧头校验失败
+
+    - name: 数据解析
+
+    - script: print(value)
