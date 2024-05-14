@@ -36,7 +36,7 @@ func FuncDir() string {
 	return filepath.Dir(filename)
 }
 
-// UserDir 系统用户路径
+// UserDir 系统用户路径 C:\Users\QL1211
 func UserDir() string {
 	dir, _ := os.UserHomeDir()
 	return dir
