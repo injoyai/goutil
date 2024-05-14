@@ -5,8 +5,6 @@ import (
 	"github.com/injoyai/conv"
 	"os"
 	"os/signal"
-	"os/user"
-	"strings"
 	"sync"
 	"syscall"
 )
@@ -34,15 +32,6 @@ func ListenExit(handler ...func()) {
 
 // Wait 一直等待
 func Wait() { select {} }
-
-// UserHome 获取用户账号路径 例 C:/Users/injoy/
-func UserHome() (string, error) {
-	u, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-	return strings.ReplaceAll(u.HomeDir, `\`, `/`) + "/", nil
-}
 
 // Input 监听用户输入
 // reader := bufio.NewReader(os.Stdin)
