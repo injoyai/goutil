@@ -11,8 +11,8 @@ func Pointer(s string) *string {
 }
 
 // Bytes 字符串转字节,不同类型共用同一地址
-func Bytes(s *string) *[]byte {
-	return (*[]byte)(unsafe.Pointer(s))
+func Bytes(s *string) []byte {
+	return *(*[]byte)(unsafe.Pointer(s))
 }
 
 // Reverse 把字符串顺序逆转过来

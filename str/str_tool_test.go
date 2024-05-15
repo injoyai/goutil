@@ -15,3 +15,16 @@ func TestMustSplitN(t *testing.T) {
 	t.Log(MustSplitN(testStr, testSep, 0))
 	t.Log(MustSplitN(testStr, testSep, -1))
 }
+
+func TestBytes(t *testing.T) {
+	s := "xxx"
+	t.Logf("%p", &s)
+	t.Logf("%p", &s)
+	bs := Bytes(&s)
+	t.Logf("%p", bs)
+	t.Log(bs)
+	t.Log(string(bs))
+	bs[0] = 48
+
+	t.Log(s)
+}
