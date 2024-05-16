@@ -45,4 +45,10 @@ func Input(hint ...interface{}) (s string) {
 }
 
 // InputVar 监听用户输入
-func InputVar(hint ...interface{}) *conv.Var { return conv.New(Input(hint...)) }
+func InputVar(hint ...interface{}) *conv.Var {
+	input := Input(hint...)
+	if len(input) == 0 {
+		return conv.Nil()
+	}
+	return conv.New(input)
+}
