@@ -60,6 +60,10 @@ func (this *Client) Get(key string) (string, error) {
 
 // GetVar 实现接口,忽略了错误,并不安全
 func (this *Client) GetVar(key string) *conv.Var {
+	result := this.GetCmd(key)
+	if result.Err() != nil {
+		return conv.Nil()
+	}
 	return conv.New(this.GetCmd(key).Val())
 }
 
