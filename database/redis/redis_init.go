@@ -40,8 +40,9 @@ func NewClient(op *Options) *Client {
 type Client struct {
 	*redis.Client
 	ctx             context.Context
-	CacheMap        *maps.Safe    //三级缓存,优先从内存,然后redis,然后调用函数
-	CacheExpiration time.Duration //缓存有效期,缓存失效的话,回去redis获取数据
+	CacheMap        *maps.Safe      //三级缓存,优先从内存,然后redis,然后调用函数
+	CacheExpiration time.Duration   //缓存有效期,缓存失效的话,回去redis获取数据
+	OnGetVarErr     func(err error) //获取var的错误信息,例改成panic,捕获到错误
 	conv.Extend
 }
 
@@ -62,6 +63,9 @@ func (this *Client) Get(key string) (string, error) {
 func (this *Client) GetVar(key string) *conv.Var {
 	result := this.GetCmd(key)
 	if result.Err() != nil {
+		if result.Err() != Nil && this.OnGetVarErr != nil {
+			this.OnGetVarErr(result.Err())
+		}
 		return conv.Nil()
 	}
 	return conv.New(this.GetCmd(key).Val())
