@@ -187,7 +187,7 @@ func (this *Response) Execute(f ...func(r *Response) error) (err error) {
 }
 
 // Bind 绑定body数据,目前支持字符串,字节和json,需要指针
-func (this *Response) Bind(ptr interface{}) *Response {
+func (this *Response) Bind(ptr interface{}) error {
 	if ptr != nil {
 		switch val := ptr.(type) {
 		case *string:
@@ -197,12 +197,13 @@ func (this *Response) Bind(ptr interface{}) *Response {
 			*val = this.GetBodyBytes()
 		case io.Writer:
 			_, err := io.Copy(val, this.Body)
-			this.setErr(err)
+			return err
 		default:
-			this.setErr(json.Unmarshal(this.GetBodyBytes(), ptr))
+			//尝试解析,错误不处理,不然会返回错误,看不到正常请求的数据
+			return json.Unmarshal(this.GetBodyBytes(), ptr)
 		}
 	}
-	return this
+	return nil
 }
 
 // Err 错误信息,如果错误则Response为nil
@@ -229,7 +230,7 @@ func newResponse(req *Request, resp *http.Response, start time.Time, err error) 
 	}
 	if req != nil {
 		r.tryNum = req.try
-		r.Bind(req.bodyBind)
+		r.Bind(req.bodyBind) //尝试解析
 	}
 	if resp != nil {
 		resp.Header.Add(HeaderKeySpend, r.spend.String())
