@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-var Nil = redis.Nil
+const Nil = redis.Nil
 
 type (
 	Options   = redis.Options
@@ -76,8 +76,9 @@ func (this *Client) Set(key string, value interface{}, expiration time.Duration)
 }
 
 // Cache 优先从内存中获取数据,不存在则尝试重redis中获取,小于等于0是不过期
-func (this *Client) Cache(key string, fn func() (interface{}, error), expiration time.Duration) (interface{}, error) {
+func (this *Client) Cache(key string, fn func() (interface{}, error), expiration time.Duration, cacheExpirations ...time.Duration) (interface{}, error) {
 	cacheExpiration := conv.SelectDuration(expiration > 0 && this.CacheExpiration > expiration, expiration, this.CacheExpiration)
+	cacheExpiration = conv.DefaultDuration(cacheExpiration, cacheExpirations...)
 	return this.CacheMap.GetOrSetByHandler(key, func() (interface{}, error) {
 		s, err := this.Get(key)
 		if err != nil && err.Error() != redis.Nil.Error() {
