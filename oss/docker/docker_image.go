@@ -1,7 +1,6 @@
 package docker
 
 import (
-	"context"
 	"encoding/base64"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/registry"
@@ -179,7 +178,7 @@ func (c Client) ImageClear() error {
 
 // ImageDelete 删除镜像,根据镜像id
 func (c Client) ImageDelete(id string) error {
-	_, err := c.ImageRemove(context.Background(), id, types.ImageRemoveOptions{Force: true})
+	_, err := c.ImageRemove(c.ctx, id, types.ImageRemoveOptions{Force: true})
 	return err
 }
 

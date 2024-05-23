@@ -6,9 +6,7 @@ import (
 	"sync"
 )
 
-var (
-	DefaultVoice = NewVoice(nil)
-)
+var DefaultVoice = NewVoice(nil)
 
 func NewVoice(cfg *VoiceConfig) *voice {
 	if cfg == nil {
