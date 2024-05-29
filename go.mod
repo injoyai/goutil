@@ -3,8 +3,8 @@ module github.com/injoyai/goutil
 go 1.16
 
 require (
-	github.com/injoyai/base v1.0.8
-	github.com/injoyai/conv v1.1.2
+	github.com/injoyai/base v1.0.10
+	github.com/injoyai/conv v1.1.5
 	github.com/injoyai/io v0.1.8
 	github.com/injoyai/logs v1.0.7
 )

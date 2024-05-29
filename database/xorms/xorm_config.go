@@ -63,8 +63,8 @@ func (this *Config) Open() *Engine {
 		}
 		db.SetTableMapper(core.NewPrefixMapper(core.SameMapper{}, this.TablePrefix))
 	}
-	if err := db.Ping(); err != nil {
-		e.err = err
-	}
+	//if err := db.Ping(); err != nil {
+	//	e.err = err
+	//}
 	return e
 }
