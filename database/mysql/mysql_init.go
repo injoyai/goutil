@@ -5,7 +5,7 @@ import (
 	"github.com/injoyai/goutil/database/xorms"
 )
 
-func NewXorm(op *xorms.Option) *xorms.Engine {
+func NewXorm(op *xorms.Option) (*xorms.Engine, error) {
 	return xorms.New(&xorms.Config{
 		Type:        "mysql",
 		DSN:         op.DSN,
@@ -14,7 +14,7 @@ func NewXorm(op *xorms.Option) *xorms.Engine {
 	})
 }
 
-func NewXormWithDSN(dsn string) *xorms.Engine {
+func NewXormWithDSN(dsn string) (*xorms.Engine, error) {
 	return NewXorm(&xorms.Option{
 		DSN:       dsn,
 		FieldSync: true,

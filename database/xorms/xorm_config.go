@@ -47,15 +47,22 @@ func (this *Config) SetTablePrefix(s string) *Config {
 	return this
 }
 
-func (this *Config) Open() *Engine {
+/*
+Open 连接数据库
+使用以下方式加载驱动
+_ "github.com/go-sql-driver/mysql"
+_ "github.com/denisenkom/go-mssqldb"
+*/
+func (this *Config) Open() (*Engine, error) {
 	if len(this.Type) == 0 {
 		this.Type = DefaultConfig().Type
 	}
 	db, err := xorm.NewEngine(this.Type, this.DSN)
+	if err != nil {
+		return nil, err
+	}
 	e := &Engine{
 		Engine: db,
-		cfg:    this,
-		err:    err,
 	}
 	if db != nil {
 		if this.FieldSync {
@@ -63,8 +70,5 @@ func (this *Config) Open() *Engine {
 		}
 		db.SetTableMapper(core.NewPrefixMapper(core.SameMapper{}, this.TablePrefix))
 	}
-	//if err := db.Ping(); err != nil {
-	//	e.err = err
-	//}
-	return e
+	return e, nil
 }
