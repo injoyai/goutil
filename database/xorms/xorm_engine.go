@@ -11,12 +11,6 @@ type Table *schemas.Table
 
 type Engine struct {
 	*xorm.Engine
-	cfg *Config
-	err error
-}
-
-func (this *Engine) Err() error {
-	return this.err
 }
 
 func (this *Engine) TableName(v interface{}) string {
@@ -90,6 +84,6 @@ func (this *Engine) Where(query interface{}, args ...interface{}) *Session {
 	return newSession(this.Engine.Where(query, args...))
 }
 
-func New(cfg *Config) *Engine {
+func New(cfg *Config) (*Engine, error) {
 	return cfg.Open()
 }

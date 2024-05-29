@@ -7,22 +7,24 @@ import (
 	"path/filepath"
 )
 
-func NewXorm(op *xorms.Option) *xorms.Engine {
+func NewXorm(op *xorms.Option) (*xorms.Engine, error) {
 	dir, _ := filepath.Split(op.DSN)
 	_ = os.MkdirAll(dir, 0777)
-	db := xorms.New(&xorms.Config{
+	db, err := xorms.New(&xorms.Config{
 		Type:        "sqlite",
 		DSN:         op.DSN,
 		FieldSync:   op.FieldSync,
 		TablePrefix: op.TablePrefix,
 	})
-	if db.Err() == nil {
-		db.SetMaxOpenConns(1)
+	if err != nil {
+		return nil, err
 	}
-	return db
+	//sqlite是文件数据库,只能打开一次(即一个连接)
+	db.SetMaxOpenConns(1)
+	return db, nil
 }
 
-func NewXormWithPath(path string) *xorms.Engine {
+func NewXormWithPath(path string) (*xorms.Engine, error) {
 	return NewXorm(&xorms.Option{
 		DSN:       path,
 		FieldSync: true,
