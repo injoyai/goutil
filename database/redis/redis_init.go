@@ -14,19 +14,19 @@ import (
 const Nil = redis.Nil
 
 type (
-	Options   = redis.Options
+	Config    = redis.Options
 	StringCmd = redis.StringCmd
 )
 
 func New(addr, pwd string, db ...int) *Client {
-	return NewClient(&Options{
+	return NewClient(&Config{
 		Addr:     addr,
 		Password: pwd,
 		DB:       conv.GetDefaultInt(0, db...),
 	})
 }
 
-func NewClient(op *Options) *Client {
+func NewClient(op *Config) *Client {
 	c := &Client{
 		Client:          redis.NewClient(op),
 		ctx:             context.Background(),

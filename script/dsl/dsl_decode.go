@@ -14,7 +14,12 @@ import (
 	"strings"
 )
 
-func NewDecode(resource interface{}, opts ...func(*Decode)) (*Decode, error) {
+type Option func(*Decode)
+
+// NewDecode 新建dsl
+// @resource 文本内容
+// @opts 选项
+func NewDecode(resource interface{}, opts ...Option) (*Decode, error) {
 	d := new(Decode)
 	if err := yaml.Unmarshal(conv.Bytes(resource), d); err != nil {
 		return nil, err
@@ -29,41 +34,41 @@ func NewDecode(resource interface{}, opts ...func(*Decode)) (*Decode, error) {
 }
 
 // WithDebug 自定义调试模式
-func WithDebug(b ...bool) func(d *Decode) {
+func WithDebug(b ...bool) Option {
 	return func(d *Decode) {
 		d.Debug = len(b) == 0 || b[0]
 	}
 }
 
 // WithLog 自定义日志输出
-func WithLog(f func(format string, v ...interface{})) func(d *Decode) {
+func WithLog(f func(format string, v ...interface{})) Option {
 	return func(d *Decode) {
 		d.Logger = f
 	}
 }
 
 // WithKey 自定义key
-func WithKey(key string) func(d *Decode) {
+func WithKey(key string) Option {
 	return func(d *Decode) {
 		d.Key = key
 	}
 }
 
 // WithGlobal 自定义全局变量
-func WithGlobal(m g.Map) func(d *Decode) {
+func WithGlobal(m g.Map) Option {
 	return func(d *Decode) {
 		d.Global = m
 	}
 }
 
 // WithScript 自定义脚本
-func WithScript(s script.Client) func(d *Decode) {
+func WithScript(s script.Client) Option {
 	return func(d *Decode) {
 		d.Script = s
 	}
 }
 
-func WithDecode(d *Decode) func(d *Decode) {
+func WithDecode(d *Decode) Option {
 	return func(d2 *Decode) {
 		//这个可以设置成不一样
 		d2.Key = d.Key
