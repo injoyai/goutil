@@ -1,7 +1,7 @@
 package paging
 
-func FindAndCount(i Interface, size int, offset ...int) (interface{}, int) {
-	return Limit(i, size, offset...), i.Len()
+func FindAndCount(i Interface, size int, offset ...int) (interface{}, int64) {
+	return Limit(i, size, offset...), int64(i.Len())
 }
 
 func Limit(i Interface, size int, offset ...int) interface{} {
