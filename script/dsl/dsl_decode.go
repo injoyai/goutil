@@ -88,14 +88,14 @@ Decode 协议解析
 	DLT645(电量解析)  (3.7,4.0,3.7,4.4,4.1,4.1,3.7)s/万次
 */
 type Decode struct {
-	Name    string                                `yaml:"name"`    //名称
-	Actions []*Action                             `yaml:"actions"` //动作
-	Debug   bool                                  `yaml:"debug"`   //调试模式
-	Logger  func(format string, v ...interface{}) `yaml:"-"`       //日志
-	Key     string                                `yaml:"key"`     //脚本取值的key,默认value,例如cut(value,0,2),直接操作变量
-	Script  script.Client                         `yaml:"-"`
-	Global  g.Map                                 `yaml:"-"`
-	index   uint                                  `yaml:"-"`
+	Name    string                                `yaml:"name" json:"name"`       //名称,dsl的名称,例 电表协议解析
+	Actions []*Action                             `yaml:"actions" json:"actions"` //动作,解析的动作
+	Debug   bool                                  `yaml:"debug" json:"debug"`     //调试模式,会打印日志信息
+	Logger  func(format string, v ...interface{}) `yaml:"-" json:"-"`             //日志,日志输出函数
+	Key     string                                `yaml:"key" json:"key"`         //脚本取值的key,默认value,例如cut(value,0,2),直接操作变量
+	Script  script.Client                         `yaml:"-" json:"-"`             //脚本实例
+	Global  g.Map                                 `yaml:"-" json:"-"`             //全局变量缓存
+	index   uint                                  ``                              //记录执行的步骤
 }
 
 func (this *Decode) newScript(cache g.Map, opts ...func(c script.Client)) script.Client {
