@@ -27,19 +27,10 @@ var mapSizeUnit = []string{
 // SizeUnit 字节数量和单位 例 15.8,"MB"
 // 64位最大值是 18446744073709551616 = 15.999EB
 func SizeUnit(b int64) (float64, string) {
-	i := 0
-	for ; b >= 1024*1024; i++ {
-		//后面点的精度不是很精确
-		b = b / 1024
-	}
-	if b > 1024 {
-		i++
-		return float64(b) / 1024, mapSizeUnit[i]
-	}
-	return float64(b), mapSizeUnit[i]
+	return Volume(b).SizeUnit()
 }
 
-// SizeString 字节数量字符表现方式,例 15.8MB
+// SizeString 字节数量字符表现方式,例 15.8MB, 会四舍五入
 func SizeString(b int64, decimal ...int) string {
 	size, unit := SizeUnit(b)
 	d := conv.GetDefaultInt(1, decimal...)
