@@ -23,15 +23,18 @@ func NewClient() (Client, error) {
 
 func NewClientContext(ctx context.Context) (Client, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return Client{}, err
+	}
+	e, err := sqlite.NewXorm("./data/docker/store.db", xorms.WithTablePrefix("docker_"))
+	if err != nil {
+		return Client{}, err
+	}
 	return Client{
 		ctx:        ctx,
 		Client:     cli,
 		configPath: "/etc/docker/daemon.json",
 		storeCache: maps.NewSafe(),
-		DB: sqlite.NewXorm(&xorms.Option{
-			DSN:         "./data/docker/store.db",
-			FieldSync:   true,
-			TablePrefix: "docker_",
-		}).Engine,
-	}, err
+		DB:         e.Engine,
+	}, nil
 }

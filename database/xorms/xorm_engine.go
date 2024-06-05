@@ -1,6 +1,14 @@
 package xorms
 
 import (
+	"fmt"
+	_ "github.com/denisenkom/go-mssqldb"
+	_ "github.com/glebarez/go-sqlite"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/injoyai/conv"
+	"github.com/injoyai/conv/cfg"
+	"os"
+	"path/filepath"
 	"time"
 	"xorm.io/core"
 	"xorm.io/xorm"
@@ -84,6 +92,60 @@ func (this *Engine) Where(query interface{}, args ...interface{}) *Session {
 	return newSession(this.Engine.Where(query, args...))
 }
 
-func New(cfg *Config) (*Engine, error) {
-	return cfg.Open()
+/*
+New
+mysql _ "github.com/go-sql-driver/mysql"
+sqlite _ "github.com/glebarez/go-sqlite"
+sqlserver _ "github.com/denisenkom/go-mssqldb"
+*/
+func New(Type, dsn string, options ...Option) (*Engine, error) {
+	db, err := xorm.NewEngine(Type, dsn)
+	if err != nil {
+		return nil, err
+	}
+	//默认同步字段
+	WithSyncField(true)(db)
+	for _, v := range options {
+		v(db)
+	}
+	return &Engine{Engine: db}, nil
+}
+
+func NewMysql(dsn string, options ...Option) (*Engine, error) {
+	return New("mysql", dsn, options...)
+}
+
+func NewSqlite(filename string, options ...Option) (*Engine, error) {
+	dir, _ := filepath.Split(filename)
+	_ = os.MkdirAll(dir, 0777)
+	//sqlite是文件数据库,只能打开一次(即一个连接)
+	options = append(options, WithMaxOpenConns(1))
+	return New("sqlite", filename, options...)
+}
+
+func NewMssql(dsn string, options ...Option) (*Engine, error) {
+	return New("mssql", dsn, options...)
+}
+
+func ByCfg(path ...string) (*Engine, error) {
+	return ByDMap(cfg.Default.GetDMap(conv.DefaultString("database", path...)))
+}
+
+func ByDMap(m *conv.Map) (*Engine, error) {
+	return New(
+		m.GetString("type", "mysql"),
+		m.GetString("dsn",
+			fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=%t&loc=%s",
+				m.GetString("username"),
+				m.GetString("password", m.GetString("pwd")),
+				m.GetString("host"),
+				m.GetString("port"),
+				m.GetString("database"),
+				m.GetString("charset", "utf8mb4"),
+				m.GetBool("parseTime", true),
+				m.GetString("loc", "Local"),
+			),
+		),
+		WithDMap(m),
+	)
 }

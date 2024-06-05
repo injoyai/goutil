@@ -24,3 +24,7 @@ func TestClient_Cache(t *testing.T) {
 		<-time.After(time.Second * 6)
 	}
 }
+
+func TestWithCfg(t *testing.T) {
+	t.Log(WithCfg().Ping())
+}
