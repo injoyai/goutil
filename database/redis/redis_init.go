@@ -3,8 +3,10 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/str"
 	"github.com/redis/go-redis/v9"
@@ -23,6 +25,39 @@ func New(addr, pwd string, db ...int) *Client {
 		Addr:     addr,
 		Password: pwd,
 		DB:       conv.GetDefaultInt(0, db...),
+	})
+}
+
+func WithCfg(path ...string) *Client {
+	return WithDMap(cfg.Default.GetDMap(conv.DefaultString("redis", path...)))
+}
+
+func WithDMap(m *conv.Map) *Client {
+	return NewClient(&Config{
+		Network:               m.GetString("network"),
+		Addr:                  m.GetString("addr", fmt.Sprintf("%s:%s", m.GetString("host"), m.GetString("port"))),
+		ClientName:            m.GetString("clientName"),
+		Protocol:              m.GetInt("protocol"),
+		Username:              m.GetString("username"),
+		Password:              m.GetString("password", m.GetString("pwd")),
+		DB:                    m.GetInt("db"),
+		MaxRetries:            m.GetInt("maxRetries"),
+		MinRetryBackoff:       m.GetDuration("minRetryBackoff"),
+		MaxRetryBackoff:       m.GetDuration("maxRetryBackoff"),
+		DialTimeout:           m.GetDuration("dialTimeout"),
+		ReadTimeout:           m.GetDuration("readTimeout"),
+		WriteTimeout:          m.GetDuration("writeTimeout"),
+		ContextTimeoutEnabled: m.GetBool("contextTimeoutEnabled"),
+		PoolFIFO:              m.GetBool("poolFIFO"),
+		PoolSize:              m.GetInt("poolSize"),
+		PoolTimeout:           m.GetDuration("poolTimeout"),
+		MinIdleConns:          m.GetInt("minIdleConns"),
+		MaxIdleConns:          m.GetInt("maxIdleConns"),
+		MaxActiveConns:        m.GetInt("maxActiveConns"),
+		ConnMaxIdleTime:       m.GetDuration("connMaxIdleTime"),
+		ConnMaxLifetime:       m.GetDuration("connMaxLifetime"),
+		DisableIndentity:      m.GetBool("disableIndentity"),
+		IdentitySuffix:        m.GetString("identitySuffix"),
 	})
 }
 
