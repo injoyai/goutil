@@ -9,6 +9,7 @@ import (
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
+	"github.com/injoyai/goutil/net/ip"
 	"github.com/injoyai/goutil/notice"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/str"
@@ -27,21 +28,27 @@ var (
 )
 
 // funcPrint 打印输出
-func funcPrint(args *Args) interface{} {
+func funcPrint(args *Args) error {
 	msg := fmt.Sprint(args.Interfaces()...)
-	fmt.Print(msg)
-	return nil
+	_, err := fmt.Print(msg)
+	return err
+}
+
+func funcPrintln(args *Args) error {
+	msg := fmt.Sprint(args.Interfaces()...)
+	_, err := fmt.Println(msg)
+	return err
 }
 
 // funcPrintf 格式化打印
-func funcPrintf(args *Args) interface{} {
+func funcPrintf(args *Args) error {
 	list := args.Args
 	msg := ""
 	if len(list) > 0 {
 		msg = fmt.Sprintf(list[0].String(), args.Interfaces()[1:]...)
 	}
-	fmt.Print(msg)
-	return nil
+	_, err := fmt.Print(msg)
+	return err
 }
 
 func funcSprintf(args *Args) interface{} {
@@ -461,4 +468,9 @@ func funcCrc16(args *Args) interface{} {
 		param = crc.CRC16_XMODEM
 	}
 	return crc.Encrypt16(bs, param).String()
+}
+
+func funcPing(args *Args) (interface{}, error) {
+	result, err := ip.Ping(args.GetString(1), args.Get(2).Second(1))
+	return result.String(), err
 }
