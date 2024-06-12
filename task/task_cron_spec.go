@@ -2,16 +2,10 @@ package task
 
 import (
 	"fmt"
-	"github.com/robfig/cron/v3"
 	"strconv"
 	"strings"
 	"time"
 )
-
-func CheckSpec(spec string) error {
-	_, err := cron.ParseStandard(spec)
-	return err
-}
 
 // Interval 间隔时间
 type Interval time.Duration
