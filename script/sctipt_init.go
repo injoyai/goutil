@@ -2,6 +2,9 @@ package script
 
 func WithBaseFunc(i Client) {
 	setFunc := i.Set
+	setFunc("print", funcPrint)
+	setFunc("println", funcPrintln)
+	setFunc("printf", funcPrintf)
 	setFunc("sprintf", funcSprintf)
 	setFunc("shell", funcShell)
 	setFunc("speak", funcSpeak)
@@ -52,4 +55,5 @@ func WithBaseFunc(i Client) {
 	setFunc("syncDate", funcSyncDate)
 	setFunc("setDate", funcSetDate)
 	setFunc("crc16", funcCrc16)
+	setFunc("ping", funcPing)
 }
