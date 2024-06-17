@@ -28,15 +28,15 @@ var (
 func NewGoManage() *GoManage {
 	return &GoManage{
 		m:   maps.NewSafe(),
-		key: &atomic.Int64{},
+		key: 0,
 	}
 }
 
 type GoManage struct {
-	m     *maps.Safe    //协程集合
-	len   int           //协程数量
-	key   *atomic.Int64 //key生成器
-	limit int           //现在协程数量
+	m     *maps.Safe //协程集合
+	len   int        //协程数量
+	key   uint64     //key生成器
+	limit int        //现在协程数量
 }
 
 func (this *GoManage) SetLimit(limit int) *GoManage {
@@ -70,7 +70,7 @@ func (this *GoManage) Try(f func(ctx context.Context, args ...interface{}), args
 }
 
 func (this *GoManage) Go(f func(ctx context.Context, args ...interface{}), args ...interface{}) *GoItem {
-	key := this.key.Add(1)
+	key := atomic.AddUint64(&this.key, 1)
 	ctx, cancel := context.WithCancel(context.Background())
 	item := &GoItem{
 		Key:  key,
@@ -90,7 +90,7 @@ func (this *GoManage) Go(f func(ctx context.Context, args ...interface{}), args 
 }
 
 type GoItem struct {
-	Key      int64                                          //key
+	Key      uint64                                         //key
 	StarTime time.Time                                      //开始时间
 	f        func(ctx context.Context, args ...interface{}) //协程的函数
 	args     []interface{}                                  //参数
