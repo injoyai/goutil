@@ -398,12 +398,17 @@ func funcHTTP(args *Args) error {
 	method := strings.ToUpper(args.GetString(1))
 	url := args.GetString(2)
 	body := args.GetString(3)
-	try := args.GetInt(4)
-	resp := http.Url(url).SetBody(body).Retry(uint(try)).SetMethod(method).Do()
+	expect := args.GetString(4) //预期 code=200
+	resp := http.Url(url).SetBody(body).SetMethod(method).Do()
 	if resp.Err() != nil {
 		return resp.Err()
 	}
-	if conv.Int(resp.GetBodyMap()["code"]) != 200 {
+	m := resp.GetBodyDMap()
+	if list := strings.SplitN(expect, "=", 2); len(list) == 2 {
+		if m.GetString(list[0]) != list[1] {
+			return errors.New(resp.GetBodyString())
+		}
+	} else if m.GetInt("code") != 200 {
 		return errors.New(resp.GetBodyString())
 	}
 	return nil
