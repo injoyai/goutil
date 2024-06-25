@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 )
 
 var (
@@ -51,4 +52,10 @@ func InputVar(hint ...interface{}) *conv.Var {
 		return conv.Nil()
 	}
 	return conv.New(input)
+}
+
+// AfterExit 延迟退出
+func AfterExit(t time.Duration, code ...int) {
+	time.After(t)
+	os.Exit(conv.DefaultInt(0, code...))
 }
