@@ -1,9 +1,7 @@
 package oss
 
 import (
-	"github.com/injoyai/conv"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -96,77 +94,74 @@ func DelDir(dir string) error {
 	return os.RemoveAll(dir)
 }
 
-// ReadFileInfos 获取目录下的所有文件信息(包括文件夹)
-func ReadFileInfos(dir string) ([]os.FileInfo, error) {
-	files := []os.FileInfo(nil)
-	err := RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
-		files = append(files, info)
-		return true, nil
-	})
-	return files, err
-}
-
-// ReadFilenames 获取目录下的所有文件名称
-func ReadFilenames(dir string, levels ...int) ([]string, error) {
-	level := conv.DefaultInt(0, levels...)
-	filenames := []string(nil)
-	err := RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
-		if info.IsDir() {
-			if level != 0 {
-				if level > 0 {
-					level--
-				}
-				child, err := ReadFilenames(filepath.Join(dir, info.Name()), level)
-				if err != nil {
-					return false, err
-				}
-				filenames = append(filenames, child...)
-			}
-		} else {
-			filenames = append(filenames, filepath.Join(dir, info.Name()))
-		}
-		return true, nil
-	})
-	return filenames, err
-}
-
-// ReadDirNames 获取目录下的所有目录
-func ReadDirNames(dir string) ([]string, error) {
-	dirNames := []string(nil)
-	err := RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
-		if info.IsDir() {
-			dirNames = append(dirNames, filepath.Join(dir, info.Name()))
-		}
-		return true, nil
-	})
-	return dirNames, err
-}
-
 // RangeFileInfo 遍历目录
-func RangeFileInfo(dir string, fn func(info fs.FileInfo) (bool, error)) error {
-	entrys, err := os.ReadDir(dir)
+func RangeFileInfo(dir string, fn func(info *FileInfo) (bool, error), level ...int) error {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
 	}
-	for _, entry := range entrys {
+	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
 			return err
 		}
-		next, err := fn(info)
+		next, err := fn(&FileInfo{
+			FileInfo: info,
+			Dir:      dir,
+		})
 		if err != nil {
 			return err
 		}
 		if !next {
 			break
 		}
+		if len(level) > 0 && level[0] != 0 && entry.IsDir() {
+			//大于0(限制多少层)或者小于0(无限制层数),表示继续往下遍历
+			if err := RangeFileInfo(filepath.Join(dir, info.Name()), fn, level[0]-1); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
 
+// ReadFileInfos 获取目录下的所有文件信息(包括文件夹)
+func ReadFileInfos(dir string, level ...int) ([]os.FileInfo, error) {
+	files := []os.FileInfo(nil)
+	err := RangeFileInfo(dir, func(info *FileInfo) (bool, error) {
+		files = append(files, info)
+		return true, nil
+	}, level...)
+	return files, err
+}
+
+// ReadFilenames 获取目录下的所有文件名称
+func ReadFilenames(dir string, level ...int) ([]string, error) {
+	filenames := []string(nil)
+	err := RangeFileInfo(dir, func(info *FileInfo) (bool, error) {
+		if !info.IsDir() {
+			filenames = append(filenames, info.FullName())
+		}
+		return true, nil
+	}, level...)
+	return filenames, err
+}
+
+// ReadDirNames 获取目录下的所有目录
+func ReadDirNames(dir string, level ...int) ([]string, error) {
+	dirNames := []string(nil)
+	err := RangeFileInfo(dir, func(info *FileInfo) (bool, error) {
+		if info.IsDir() {
+			dirNames = append(dirNames, info.FullName())
+		}
+		return true, nil
+	}, level...)
+	return dirNames, err
+}
+
 // RangeFile 遍历目录的文件
-func RangeFile(dir string, fn func(info os.FileInfo, f *os.File) (bool, error)) error {
-	return RangeFileInfo(dir, func(info os.FileInfo) (bool, error) {
+func RangeFile(dir string, fn func(info *FileInfo, f *os.File) (bool, error), level ...int) error {
+	return RangeFileInfo(dir, func(info *FileInfo) (bool, error) {
 		if !info.IsDir() {
 			f, err := os.Open(filepath.Join(dir, info.Name()))
 			if err != nil {
@@ -176,16 +171,29 @@ func RangeFile(dir string, fn func(info os.FileInfo, f *os.File) (bool, error)) 
 			return fn(info, f)
 		}
 		return true, nil
-	})
+	}, level...)
 }
 
 // RangeFileBytes 遍历目录的文件字节
-func RangeFileBytes(dir string, fn func(info os.FileInfo, bs []byte) bool) error {
-	return RangeFile(dir, func(info os.FileInfo, f *os.File) (bool, error) {
+func RangeFileBytes(dir string, fn func(info *FileInfo, bs []byte) bool, level ...int) error {
+	return RangeFile(dir, func(info *FileInfo, f *os.File) (bool, error) {
 		bs, err := io.ReadAll(f)
 		if err != nil {
 			return false, err
 		}
 		return fn(info, bs), nil
-	})
+	}, level...)
+}
+
+type FileInfo struct {
+	os.FileInfo
+	Dir string
+}
+
+func (this *FileInfo) FullName() string {
+	return filepath.Join(this.Dir, this.FileInfo.Name())
+}
+
+func (this *FileInfo) Filename() string {
+	return filepath.Join(this.Dir, this.FileInfo.Name())
 }
