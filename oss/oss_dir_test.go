@@ -22,3 +22,7 @@ func TestUserDesktopDir(t *testing.T) {
 func TestUserDir(t *testing.T) {
 	t.Log(UserDir())
 }
+
+func TestRangeFileInfo(t *testing.T) {
+	t.Log(ReadFilenames("./", -1))
+}
