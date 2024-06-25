@@ -64,8 +64,10 @@ func New(filename string, v ...interface{}) error {
 		return os.MkdirAll(filename, defaultPerm)
 	}
 	dir, name := filepath.Split(filename)
-	if err := os.MkdirAll(dir, defaultPerm); err != nil {
-		return err
+	if len(dir) > 0 {
+		if err := os.MkdirAll(dir, defaultPerm); err != nil {
+			return err
+		}
 	}
 	if len(name) == 0 {
 		return nil
