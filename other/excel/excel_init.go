@@ -5,7 +5,6 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/tealeg/xlsx"
 	"io"
-	"io/ioutil"
 )
 
 func ToExcel(sheets map[string][][]interface{}) (*bytes.Buffer, error) {
@@ -29,12 +28,20 @@ func ToExcel(sheets map[string][][]interface{}) (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-func FromExcel(buf io.Reader) (result map[string][][]string, err error) {
-	data, err := ioutil.ReadAll(buf)
+func From(i interface{}) (result map[string][][]string, err error) {
+	return FromBytes(conv.Bytes(i))
+}
+
+func FromReader(r io.Reader) (result map[string][][]string, err error) {
+	bs, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
-	file, err := xlsx.OpenBinary(data)
+	return FromBytes(bs)
+}
+
+func FromBytes(bs []byte) (result map[string][][]string, err error) {
+	file, err := xlsx.OpenBinary(bs)
 	if err != nil {
 		return nil, err
 	}
