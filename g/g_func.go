@@ -79,17 +79,33 @@ func Try(fn func() error, catch ...func(err error)) (err error) {
 	return fn()
 }
 
-// Retry 重试,可选重试间隔
-func Retry(fn func() error, num uint, interval ...time.Duration) (err error) {
-	for i := uint(0); i < num; i++ {
+// Retry 重试,可选重试间隔函数,入参是0
+func Retry(fn func() error, num int, interval ...func(time.Duration) time.Duration) (err error) {
+	t := time.Duration(0)
+	for i := 0; num < 0 || i < num; i++ {
 		if err = Try(fn); err == nil {
 			return
 		}
-		if len(interval) > 0 {
-			<-time.After(interval[0])
+		for _, v := range interval {
+			t = v(t)
+		}
+		if t > 0 {
+			<-time.After(t)
 		}
 	}
 	return
+}
+
+// WithRetreat32 默认退避重试,最小1秒,最大32秒,
+func WithRetreat32(t time.Duration) time.Duration {
+	if t < time.Second {
+		return time.Second
+	}
+	t *= 2
+	if t <= time.Second*32 {
+		return t
+	}
+	return time.Second * 32
 }
 
 // PanicErr 如果是错误则panic
