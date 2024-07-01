@@ -56,6 +56,6 @@ func InputVar(hint ...interface{}) *conv.Var {
 
 // AfterExit 延迟退出
 func AfterExit(t time.Duration, code ...int) {
-	time.After(t)
+	<-time.After(t)
 	os.Exit(conv.DefaultInt(0, code...))
 }
