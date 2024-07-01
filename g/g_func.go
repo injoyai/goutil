@@ -97,15 +97,20 @@ func Retry(fn func() error, num int, interval ...func(time.Duration) time.Durati
 }
 
 // WithRetreat32 默认退避重试,最小1秒,最大32秒,
-func WithRetreat32(t time.Duration) time.Duration {
-	if t < time.Second {
-		return time.Second
+var WithRetreat32 = RetreatRange(time.Second, time.Second*32)
+
+// RetreatRange 默认退避重试,最小1秒,最大32秒,
+func RetreatRange(min, max time.Duration) func(t time.Duration) time.Duration {
+	return func(t time.Duration) time.Duration {
+		if t < min {
+			return min
+		}
+		t *= 2
+		if t <= max {
+			return t
+		}
+		return max
 	}
-	t *= 2
-	if t <= time.Second*32 {
-		return t
-	}
-	return time.Second * 32
 }
 
 // PanicErr 如果是错误则panic
