@@ -66,18 +66,18 @@ func FromBytes(bs []byte) (result map[string][][]string, err error) {
 
  */
 
-func FromCsv(i interface{}) (result map[string][][]string, err error) {
+func FromCsv(i interface{}) (result [][]string, err error) {
 	return FromCsvReader(bytes.NewReader(conv.Bytes(i)))
 }
 
-func FromCsvReader(r io.Reader) (result map[string][][]string, err error) {
+func FromCsvReader(r io.Reader) (result [][]string, err error) {
 	x := csv.NewReader(r)
 	x.FieldsPerRecord = -1
-	result["Sheet1"], err = x.ReadAll()
+	result, err = x.ReadAll()
 	return
 }
 
-func FromCsvBytes(bs []byte) (result map[string][][]string, err error) {
+func FromCsvBytes(bs []byte) (result [][]string, err error) {
 	return FromCsvReader(bytes.NewReader(bs))
 }
 
