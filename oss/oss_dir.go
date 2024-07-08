@@ -1,6 +1,7 @@
 package oss
 
 import (
+	"fmt"
 	"github.com/injoyai/conv"
 	"io"
 	"os"
@@ -242,25 +243,28 @@ type Dir struct {
 }
 
 func (this *Dir) String() string {
-	list := append([]string{this.Name()}, this.child()...)
+	return this.Format("├—— ", "└—— ", "└—— ")
+}
+
+func (this *Dir) Format(prefix1, prefix2, dirPrefix string) string {
+	list := append([]string{this.Name()}, this.child(prefix1, prefix2, dirPrefix)...)
 	return strings.Join(list, "\n") + "\n"
 }
 
-func (this *Dir) child() []string {
+func (this *Dir) child(filePrefix1, filePrefix2, dirPrefix string) []string {
 	list := []string(nil)
-	prefix := "├—— " //"|—— " //" "//┗ |—— ├
-	prefix2 := "└—— "
 	for i, v := range this.Files {
 		if i == len(this.Files)-1 && len(this.Dirs) == 0 {
-			list = append(list, prefix2+v.Name()+" ("+SizeString(v.Size())+")")
+			list = append(list, filePrefix2+v.Name()+" ("+SizeString(v.Size())+")")
 			continue
 		}
-		list = append(list, prefix+v.Name()+" ("+SizeString(v.Size())+")")
+		list = append(list, filePrefix1+v.Name()+" ("+SizeString(v.Size())+")")
 	}
+	empty := fmt.Sprintf(fmt.Sprintf("%%-%ds", len(dirPrefix)), "")
 	for _, v := range this.Dirs {
-		list = append(list, prefix2+v.Name())
-		for _, vv := range v.child() {
-			list = append(list, "   "+vv)
+		list = append(list, dirPrefix+v.Name())
+		for _, vv := range v.child(filePrefix1, filePrefix2, dirPrefix) {
+			list = append(list, empty+vv)
 		}
 	}
 	return list
