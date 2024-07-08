@@ -1,10 +1,12 @@
 package oss
 
 import (
+	"github.com/injoyai/conv"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 const (
@@ -125,6 +127,41 @@ func RangeFileInfo(dir string, fn func(info *FileInfo) (bool, error), level ...i
 	return nil
 }
 
+func ReadTree(dir string, levels ...int) (*Dir, error) {
+	fileInfo, err := os.Stat(dir)
+	if err != nil {
+		return nil, err
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	d := &Dir{FileInfo: &FileInfo{
+		FileInfo: fileInfo,
+		Dir:      dir,
+	}}
+	level := conv.DefaultInt(-1, levels...)
+	for _, entry := range entries {
+		if entry.IsDir() && (len(levels) == 0 || levels[0] != 0) {
+			d2, err := ReadTree(filepath.Join(dir, entry.Name()), level-1)
+			if err != nil {
+				return nil, err
+			}
+			d.Dirs = append(d.Dirs, d2)
+		} else if !entry.IsDir() {
+			fi, err := entry.Info()
+			if err != nil {
+				return nil, err
+			}
+			d.Files = append(d.Files, &FileInfo{
+				Dir:      dir,
+				FileInfo: fi,
+			})
+		}
+	}
+	return d, nil
+}
+
 // ReadFileInfos 获取目录下的所有文件信息(包括文件夹)
 func ReadFileInfos(dir string, level ...int) ([]os.FileInfo, error) {
 	files := []os.FileInfo(nil)
@@ -196,4 +233,35 @@ func (this *FileInfo) FullName() string {
 
 func (this *FileInfo) Filename() string {
 	return filepath.Join(this.Dir, this.FileInfo.Name())
+}
+
+type Dir struct {
+	*FileInfo
+	Dirs  []*Dir
+	Files []os.FileInfo
+}
+
+func (this *Dir) String() string {
+	list := append([]string{this.Name()}, this.child()...)
+	return strings.Join(list, "\n") + "\n"
+}
+
+func (this *Dir) child() []string {
+	list := []string(nil)
+	prefix := "├—— " //"|—— " //" "//┗ |—— ├
+	prefix2 := "└—— "
+	for i, v := range this.Files {
+		if i == len(this.Files)-1 && len(this.Dirs) == 0 {
+			list = append(list, prefix2+v.Name()+" ("+SizeString(v.Size())+")")
+			continue
+		}
+		list = append(list, prefix+v.Name()+" ("+SizeString(v.Size())+")")
+	}
+	for _, v := range this.Dirs {
+		list = append(list, prefix2+v.Name())
+		for _, vv := range v.child() {
+			list = append(list, "   "+vv)
+		}
+	}
+	return list
 }

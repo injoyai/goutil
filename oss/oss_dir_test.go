@@ -1,6 +1,9 @@
 package oss
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestDir(t *testing.T) {
 	t.Log(ExecName())
@@ -25,4 +28,33 @@ func TestUserDir(t *testing.T) {
 
 func TestRangeFileInfo(t *testing.T) {
 	t.Log(ReadFilenames("./", -1))
+}
+
+func TestReadTree(t *testing.T) {
+	{
+		d, err := ReadTree("./")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		fmt.Printf("\n%s", d)
+	}
+
+	{
+		d, err := ReadTree("./compress")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		fmt.Printf("\n%s", d)
+	}
+
+	{
+		d, err := ReadTree("./compress/gzip")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		fmt.Printf("\n%s", d)
+	}
 }
