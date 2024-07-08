@@ -2,6 +2,7 @@ package excel
 
 import (
 	"bytes"
+	"encoding/csv"
 	"github.com/injoyai/conv"
 	"github.com/tealeg/xlsx"
 	"io"
@@ -57,4 +58,38 @@ func FromBytes(bs []byte) (result map[string][][]string, err error) {
 		result[sheet.Name] = rows
 	}
 	return
+}
+
+/*
+
+
+
+ */
+
+func FromCsv(i interface{}) (result map[string][][]string, err error) {
+	return FromCsvReader(bytes.NewReader(conv.Bytes(i)))
+}
+
+func FromCsvReader(r io.Reader) (result map[string][][]string, err error) {
+	x := csv.NewReader(r)
+	x.FieldsPerRecord = -1
+	result["Sheet1"], err = x.ReadAll()
+	return
+}
+
+func FromCsvBytes(bs []byte) (result map[string][][]string, err error) {
+	return FromCsvReader(bytes.NewReader(bs))
+}
+
+func ToCsv(data [][]interface{}) (*bytes.Buffer, error) {
+	buf := bytes.NewBuffer(nil)
+	buf.WriteString("\xEF\xBB\xBF")
+	w := csv.NewWriter(buf)
+	for _, rows := range data {
+		if err := w.Write(conv.Strings(rows)); err != nil {
+			return nil, err
+		}
+	}
+	w.Flush()
+	return buf, nil
 }
