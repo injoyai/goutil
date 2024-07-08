@@ -58,3 +58,13 @@ func TestReadTree(t *testing.T) {
 		fmt.Printf("\n%s", d)
 	}
 }
+
+func TestReadTreeFormat(t *testing.T) {
+	d, err := ReadTree("./compress")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Printf("\n%s", d.Format("- ", "- ", "> "))
+
+}
