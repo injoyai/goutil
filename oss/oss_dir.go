@@ -143,13 +143,28 @@ func ReadTree(dir string, levels ...int) (*Dir, error) {
 	}}
 	level := conv.DefaultInt(-1, levels...)
 	for _, entry := range entries {
-		if entry.IsDir() && (len(levels) == 0 || levels[0] != 0) {
-			d2, err := ReadTree(filepath.Join(dir, entry.Name()), level-1)
-			if err != nil {
-				return nil, err
+		if entry.IsDir() {
+			childDir := filepath.Join(dir, entry.Name())
+			if len(levels) == 0 || levels[0] != 0 {
+				d2, err := ReadTree(childDir, level-1)
+				if err != nil {
+					return nil, err
+				}
+				d.Dirs = append(d.Dirs, d2)
+			} else {
+				fi, err := entry.Info()
+				if err != nil {
+					return nil, err
+				}
+				d.Dirs = append(d.Dirs, &Dir{
+					FileInfo: &FileInfo{
+						FileInfo: fi,
+						Dir:      childDir,
+					},
+				})
 			}
-			d.Dirs = append(d.Dirs, d2)
-		} else if !entry.IsDir() {
+
+		} else {
 			fi, err := entry.Info()
 			if err != nil {
 				return nil, err
