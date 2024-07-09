@@ -246,15 +246,15 @@ type Dir struct {
 }
 
 func (this *Dir) String() string {
-	return this.Format("├—— ", "└—— ", "└—— ")
+	return this.Format("├—— ", "└—— ", "├—— ", "└—— ")
 }
 
-func (this *Dir) Format(prefix1, prefix2, dirPrefix string) string {
-	list := append([]string{this.Name()}, this.child(prefix1, prefix2, dirPrefix)...)
+func (this *Dir) Format(prefix1, prefix2, dirPrefix1, dirPrefix2 string) string {
+	list := append([]string{this.Name()}, this.child(prefix1, prefix2, dirPrefix1, dirPrefix2)...)
 	return strings.Join(list, "\n") + "\n"
 }
 
-func (this *Dir) child(filePrefix1, filePrefix2, dirPrefix string) []string {
+func (this *Dir) child(filePrefix1, filePrefix2, dirPrefix1, dirPrefix2 string) []string {
 	list := []string(nil)
 	for i, v := range this.Files {
 		if i == len(this.Files)-1 && len(this.Dirs) == 0 {
@@ -263,10 +263,15 @@ func (this *Dir) child(filePrefix1, filePrefix2, dirPrefix string) []string {
 		}
 		list = append(list, filePrefix1+v.Name()+" ("+SizeString(v.Size())+")")
 	}
-	empty := fmt.Sprintf(fmt.Sprintf("%%-%ds", len([]rune(dirPrefix))), "")
-	for _, v := range this.Dirs {
-		list = append(list, dirPrefix+v.Name())
-		for _, vv := range v.child(filePrefix1, filePrefix2, dirPrefix) {
+	empty := fmt.Sprintf(fmt.Sprintf("%%-%ds", len([]rune(dirPrefix1))), "")
+	for i, v := range this.Dirs {
+		childs := v.child(filePrefix1, filePrefix2, dirPrefix1, dirPrefix2)
+		if len(childs) > 0 || len(this.Dirs)-1 == i {
+			list = append(list, dirPrefix2+v.Name())
+		} else {
+			list = append(list, dirPrefix1+v.Name())
+		}
+		for _, vv := range childs {
 			list = append(list, empty+vv)
 		}
 	}
