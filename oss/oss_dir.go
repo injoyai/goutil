@@ -260,7 +260,7 @@ func (this *Dir) child(filePrefix1, filePrefix2, dirPrefix string) []string {
 		}
 		list = append(list, filePrefix1+v.Name()+" ("+SizeString(v.Size())+")")
 	}
-	empty := fmt.Sprintf(fmt.Sprintf("%%-%ds", len(dirPrefix)), "")
+	empty := fmt.Sprintf(fmt.Sprintf("%%-%ds", len([]rune(dirPrefix))), "")
 	for _, v := range this.Dirs {
 		list = append(list, dirPrefix+v.Name())
 		for _, vv := range v.child(filePrefix1, filePrefix2, dirPrefix) {
