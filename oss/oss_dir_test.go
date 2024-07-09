@@ -32,7 +32,7 @@ func TestRangeFileInfo(t *testing.T) {
 
 func TestReadTree(t *testing.T) {
 	{
-		d, err := ReadTree("./")
+		d, err := ReadTree("./", 1)
 		if err != nil {
 			t.Error(err)
 			return
