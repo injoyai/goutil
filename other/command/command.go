@@ -45,6 +45,15 @@ func (this *Command) paresFlags(flags ...*Flag) *cobra.Command {
 
  */
 
+func WithFlags(flags ...*Flag) *Flags {
+	c := &cobra.Command{}
+	for _, v := range flags {
+		c.PersistentFlags().StringVarP(&v.Value, v.Name, v.Short, v.Default, v.Memo)
+	}
+	c.Execute()
+	return newFlags(flags)
+}
+
 func newFlags(list []*Flag) *Flags {
 	f := &Flags{m: make(map[string]*Flag)}
 	for _, v := range list {
