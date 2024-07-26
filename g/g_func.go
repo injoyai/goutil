@@ -1,6 +1,8 @@
 package g
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"github.com/injoyai/base/bytes/crypt/md5"
 	"github.com/injoyai/base/chans"
@@ -43,6 +45,10 @@ func MD5(s string) string { return md5.Encrypt(s) }
 
 // HmacMD5 加密,返回hex的32位小写
 func HmacMD5(s, key string) string { return md5.Hmac(s, key) }
+
+func Base64(bs []byte) string { return base64.StdEncoding.EncodeToString(bs) }
+
+func HEX(bs []byte) string { return hex.EncodeToString(bs) }
 
 //========================================Runtime========================================
 
