@@ -7,7 +7,6 @@ import (
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/linux/bash"
 	"github.com/injoyai/goutil/oss/shell"
-	"io/fs"
 	"regexp"
 	"strings"
 )
@@ -49,7 +48,7 @@ type Pin interface {
 
 func List() ([]Pin, error) {
 	list := []Pin(nil)
-	err := oss.RangeFileInfo(gpioDir, func(info fs.FileInfo) (bool, error) {
+	err := oss.RangeFileInfo(gpioDir, func(info *oss.FileInfo) (bool, error) {
 		if info.IsDir() && regexp.MustCompile(`(gpio)\d+`).MatchString(info.Name()) {
 			after, _ := strings.CutPrefix(info.Name(), "gpio")
 			list = append(list, &pin{number: conv.Int(after)})
