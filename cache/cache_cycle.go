@@ -12,13 +12,13 @@ type Cycle struct {
 	offset     int                           //当前数据位置下标
 	length     int                           //列表长度
 	cycle      bool                          //循环使用,数据量已经超过列表的长度,覆盖了老数据
-	listen     *chans.Listen                 //数据监听
+	subscribe  *chans.Subscribe              //数据订阅
 	middleware []func(data interface{}) bool //中间件
 }
 
 // Subscribe 开启一个订阅数据的通道
-func (this *Cycle) Subscribe(cap ...uint) *chans.Subscribe {
-	return this.listen.Subscribe(cap...)
+func (this *Cycle) Subscribe(cap ...uint) *chans.Safe {
+	return this.subscribe.Subscribe(cap...)
 }
 
 // LoadingCycle 加载数据
@@ -79,7 +79,7 @@ func (this *Cycle) Add(data interface{}) *Cycle {
 			return this
 		}
 	}
-	this.listen.Publish(data)
+	this.subscribe.Publish(data)
 	this.offset = conv.SelectInt(this.offset >= len(this.list) || this.offset < 0, 0, this.offset)
 	this.list[this.offset] = data
 	this.offset++
@@ -92,9 +92,9 @@ func (this *Cycle) Add(data interface{}) *Cycle {
 
 func newCycle(length int) *Cycle {
 	return &Cycle{
-		list:   make([]interface{}, length),
-		offset: 0,
-		length: length,
-		listen: chans.NewListen(),
+		list:      make([]interface{}, length),
+		offset:    0,
+		length:    length,
+		subscribe: chans.NewSubscribe(),
 	}
 }
