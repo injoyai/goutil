@@ -13,6 +13,12 @@ import (
 	"strings"
 )
 
+var (
+	Bash = _bash{}
+	SH   = _sh{}
+	CMD  = _cmd{}
+)
+
 func Execf(format string, args ...interface{}) (string, error) {
 	return Exec(fmt.Sprintf(format, args...))
 }
@@ -96,6 +102,67 @@ func Start(filename string) error {
 		return exec.Command("cmd", "/c", "start "+filename).Start()
 	case "linux":
 		return systemctl.Restart(filename)
+	}
+	return nil
+}
+
+/*
+
+
+
+ */
+
+type _sh struct{}
+
+func (_sh) Cmd(args ...string) *exec.Cmd {
+	list := append([]string{"-c"}, args...)
+	return exec.Command("sh", list...)
+}
+
+type _bash struct{}
+
+func (_bash) Cmd(args ...string) *exec.Cmd {
+	list := append([]string{"-c"}, args...)
+	return exec.Command("bash", list...)
+}
+
+type _cmd struct{}
+
+func (_cmd) Cmd(args ...string) *exec.Cmd {
+	list := append([]string{"/c"}, args...)
+	return exec.Command("cmd.exe", list...)
+}
+
+func (this _cmd) Exec(args ...string) (string, error) {
+	result, err := this.Cmd(args...).CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	result, err = str.GbkToUtf8(result)
+	return string(result), err
+}
+
+func (this _cmd) Run(args ...string) error {
+	cmd := this.Cmd(args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	return cmd.Run()
+}
+
+// Start  "cmd", "/c", "start ./xxx.exe"
+func (this _cmd) Start(filename string) error {
+	_, err := this.Exec("start " + filename)
+	return err
+}
+
+// Stop 结束程序 "taskkill.exe", "/f", "/im", "edge.exe"
+func (this _cmd) Stop(name string) error {
+	result, err := this.Exec("taskkill.exe", "/f", "/im", name)
+	if err != nil && !strings.Contains(err.Error(), "exit status") {
+		return err
+	} else if err == nil && !strings.Contains(result, "成功") {
+		return errors.New(result)
 	}
 	return nil
 }

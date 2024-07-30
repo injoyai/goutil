@@ -3,7 +3,7 @@ module github.com/injoyai/goutil
 go 1.16
 
 require (
-	github.com/injoyai/base v1.0.10
+	github.com/injoyai/base v1.0.15
 	github.com/injoyai/conv v1.1.5
 	github.com/injoyai/io v0.1.8
 	github.com/injoyai/logs v1.0.7
@@ -45,8 +45,8 @@ require (
 	github.com/ugorji/go/codec v1.2.12
 	github.com/yuin/gopher-lua v1.1.0
 	golang.org/x/image v0.11.0
-	golang.org/x/sys v0.16.0
-	golang.org/x/text v0.12.0
+	golang.org/x/sys v0.20.0
+	golang.org/x/text v0.15.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/yaml.v3 v3.0.1
 	xorm.io/core v0.7.3
@@ -55,6 +55,7 @@ require (
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/beevik/ntp v1.4.3
 	github.com/chromedp/chromedp v0.9.5
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
@@ -65,7 +66,7 @@ require (
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/spf13/cobra v1.2.1
 	github.com/tebeka/selenium v0.9.9
-	golang.org/x/net v0.7.0
+	golang.org/x/net v0.25.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	qiniupkg.com/x v7.0.8+incompatible // indirect
 )
