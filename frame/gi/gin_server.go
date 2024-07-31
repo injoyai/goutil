@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/injoyai/goutil/frame/in"
 	"github.com/injoyai/logs"
+	"io"
 )
 
 type (
@@ -17,11 +18,14 @@ type Server struct {
 }
 
 func New(port int) *Server {
-	data := &Server{
-		Engine: in.InitGin(gin.Default()),
+	s := &Server{
+		Engine: gin.Default(),
 		Port:   port,
 	}
-	return data
+	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recover interface{}) {
+		in.MiddleRecover(recover, c.Writer)
+	}))
+	return s
 }
 
 func (this *Server) ALL(s string, fn gin.HandlerFunc) *Server {
