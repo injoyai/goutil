@@ -13,31 +13,31 @@ import (
 
 func Return(code int, data interface{}) { DefaultClient.Text(code, data) }
 
-func Return200(data interface{}) { Return(http.StatusOK, data) }
+func Return200(data interface{}) { DefaultClient.Text(http.StatusOK, data) }
 
 func Text(code int, data interface{}) { DefaultClient.Text(code, data) }
 
-func Text200(data interface{}) { Return(http.StatusOK, data) }
+func Text200(data interface{}) { DefaultClient.Text(http.StatusOK, data) }
 
 func Yaml(code int, data interface{}) { DefaultClient.Yaml(code, data) }
 
-func Yaml200(data interface{}) { Return(http.StatusOK, data) }
+func Yaml200(data interface{}) { DefaultClient.Yaml(http.StatusOK, data) }
 
 func Toml(code int, data interface{}) { DefaultClient.Toml(code, data) }
 
-func Toml200(data interface{}) { Return(http.StatusOK, data) }
+func Toml200(data interface{}) { DefaultClient.Toml(http.StatusOK, data) }
 
 func Xml(code int, data interface{}) { DefaultClient.Xml(code, data) }
 
-func Xml200(data interface{}) { Return(http.StatusOK, data) }
+func Xml200(data interface{}) { DefaultClient.Xml(http.StatusOK, data) }
 
 func Proto(code int, data proto.Message) { DefaultClient.Proto(code, data) }
 
-func Proto200(data proto.Message) { Proto(http.StatusOK, data) }
+func Proto200(data proto.Message) { DefaultClient.Proto(http.StatusOK, data) }
 
 func Msgpack(code int, data proto.Message) { DefaultClient.Msgpack(code, data) }
 
-func Msgpack200(data proto.Message) { Msgpack(http.StatusOK, data) }
+func Msgpack200(data proto.Message) { DefaultClient.Msgpack(http.StatusOK, data) }
 
 func Html(code int, data interface{}) { DefaultClient.Html(code, data) }
 
