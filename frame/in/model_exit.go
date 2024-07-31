@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultExitMark = "未初始化!!!,例如gin框架,使用in.InitGin(s)\n" // "EXITMARK"
+	DefaultExitMark = "未初始化!!!\n" // "EXITMARK"
 )
 
 type ExitOption func(e *Exit)

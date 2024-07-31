@@ -2,11 +2,13 @@ package gf
 
 import (
 	"fmt"
+	"github.com/gogf/gf/frame/gins"
 	"github.com/gogf/gf/net/ghttp"
 	"github.com/injoyai/goutil/frame/gf/swagger"
 	"github.com/injoyai/goutil/frame/in"
 	"github.com/injoyai/goutil/i/html"
 	"github.com/injoyai/goutil/net/ip"
+	"net/http"
 	"time"
 )
 
@@ -29,13 +31,18 @@ go tool pprof http://localhost:6060/pprof/heap
 // New 快速开始默认配置
 // @port,端口
 func New(name ...interface{}) *Server {
-	s := in.InitGf(name...)
+	s := gins.Server(name...)
 	s.SetClientMaxBodySize(8 << 20) //设置body最大数据,8m
 	s.SetAccessLogEnabled(false)    //请求日志
 	s.SetErrorLogEnabled(false)     //错误日志
 	s.BindStatusHandler(404, func(r *ghttp.Request) {
 		r.Response.ClearBuffer()
 		r.Response.WriteExit(html.PageNotFindRobot)
+	})
+	s.BindStatusHandler(http.StatusInternalServerError, func(r *ghttp.Request) {
+		body := r.Response.Buffer()
+		r.Response.ClearBuffer()
+		in.MiddleRecover(body, r.Response.Writer)
 	})
 	return &Server{Server: s}
 }
