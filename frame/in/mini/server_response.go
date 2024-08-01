@@ -87,6 +87,8 @@ func Json401() { Json(http.StatusUnauthorized, "验证失败") }
 
 func Json403() { Json(http.StatusForbidden, "没有权限") }
 
+func Json404() { Json(http.StatusNotFound, "接口不存在") }
+
 func Json415(data interface{}) { Json(http.StatusUnsupportedMediaType, data) }
 
 func Json500(data interface{}) { Json(http.StatusInternalServerError, data) }
