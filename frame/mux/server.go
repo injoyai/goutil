@@ -44,7 +44,7 @@ func (this *Server) Use(f ...func(r *Request)) {
 	})
 }
 
-func (this *Server) Run() error {
+func (this *Server) Run() (err error) {
 
 	f := func(port int) (err error) {
 		defer func() {
@@ -67,11 +67,11 @@ func (this *Server) Run() error {
 		wg.Add(1)
 		go func(port int) {
 			defer wg.Done()
-			f(port)
+			err = f(port)
 		}(port)
 	}
 	wg.Wait()
-	return nil
+	return
 }
 
 type Grouper struct {
