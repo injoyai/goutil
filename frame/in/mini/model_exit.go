@@ -112,10 +112,11 @@ func (this *Exit) Exit() {
 }
 
 // WriteTo 写入响应
+// 这里要先设置Header,再设置Code,否则Header可能无效(例mux)
 func (this *Exit) WriteTo(w http.ResponseWriter) {
-	w.WriteHeader(this.Code)
 	for i, v := range this.Header {
 		w.Header().Set(i, strings.Join(v, ","))
 	}
+	w.WriteHeader(this.Code)
 	w.Write(this.Body)
 }
