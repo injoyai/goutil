@@ -225,3 +225,28 @@ func (this *Request) GetHeaderVar(key string) *conv.Var {
 	}
 	return conv.New(ls[0])
 }
+
+func (this *Request) GetHeader(key string) string {
+	return this.Request.Header.Get(key)
+}
+
+func (this *Request) WriteTo(w io.Writer) error {
+	return this.Request.Write(w)
+}
+
+func (this *Request) Write(p []byte) (int, error) {
+	return this.Writer.Write(p)
+}
+
+func (this *Request) WriteJson(v interface{}) error {
+	return json.NewEncoder(this.Writer).Encode(v)
+}
+
+func (this *Request) WriteAny(v interface{}) error {
+	_, err := this.Writer.Write(conv.Bytes(v))
+	return err
+}
+
+func (this *Request) SetHeader(k, v string) {
+	this.Writer.Header().Set(k, v)
+}
