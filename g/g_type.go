@@ -208,18 +208,6 @@ func (this *_sortMaps) Less(i, j int) bool {
 	return this.less(this.Maps[i], this.Maps[j])
 }
 
-//========================================Key========================================
-
-type Key string
-
-func (this *Key) SetKey(key string) { *this = Key(key) }
-
-func (this *Key) Set(key string) { *this = Key(key) }
-
-func (this *Key) GetKey() string { return string(*this) }
-
-func (this *Key) Get() string { return string(*this) }
-
 //========================================Debugger========================================
 
 type Debugger bool
@@ -227,3 +215,10 @@ type Debugger bool
 func (this *Debugger) Debug(b ...bool) {
 	*this = Debugger(len(b) == 0 || b[0])
 }
+
+//========================================error========================================
+
+// Err 错误,好处是能定义在const
+type Err string
+
+func (this Err) Error() string { return string(this) }
