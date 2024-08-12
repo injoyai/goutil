@@ -51,7 +51,7 @@ func (this *Request) Websocket() (*Websocket, error) {
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
-	return up.Upgrade(this.Writer, this.Request, nil)
+	return up.Upgrade(this.Writer, this.Request, this.Header)
 }
 
 func (this *Request) GetRequest() *http.Request {
