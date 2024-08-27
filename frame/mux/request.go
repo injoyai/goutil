@@ -2,7 +2,6 @@ package mux
 
 import (
 	"encoding/json"
-	"github.com/gorilla/websocket"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	in "github.com/injoyai/goutil/frame/in/mini"
@@ -44,14 +43,6 @@ type Request struct {
 	JsonFrom  map[string]interface{} //解析body后的json
 	cache     *maps.Safe
 	handler   func(*Request)
-}
-
-func (this *Request) Websocket() (*Websocket, error) {
-	up := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-	return up.Upgrade(this.Writer, this.Request, this.Header)
 }
 
 func (this *Request) GetRequest() *http.Request {
