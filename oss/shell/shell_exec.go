@@ -1,109 +1,60 @@
 package shell
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"github.com/injoyai/goutil/oss/linux/bash"
-	"github.com/injoyai/goutil/oss/linux/systemctl"
 	"github.com/injoyai/goutil/str"
 	"io"
-	"os"
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
+	"unsafe"
 )
 
 var (
-	Bash = _bash{}
-	SH   = _sh{}
-	CMD  = _cmd{}
+	Bash       = &Shell{_bash{}}
+	SH         = &Shell{_sh{}}
+	CMD        = &Shell{_cmd{}}
+	Default    *Shell
+	defaultUse Use
 )
 
-func Execf(format string, args ...interface{}) (string, error) {
-	return Exec(fmt.Sprintf(format, args...))
-}
-
-func Exec(args ...string) (string, error) {
-	list := append([]string{"/c"}, args...)
-	switch runtime.GOOS {
-	case "windows":
-		result, err := exec.Command("cmd", list...).CombinedOutput()
-		if err != nil {
-			return "", err
-		}
-		result, err = str.GbkToUtf8(result)
-		return string(result), err
-	case "linux":
-		list[0] = "-c"
-		result, err := exec.Command("bash", list...).CombinedOutput()
-		if err != nil {
-			return "", err
-		}
-		return string(result), nil
+func init() {
+	if runtime.GOOS == "windows" {
+		defaultUse = _cmd{}
+	} else {
+		defaultUse = _bash{}
 	}
-	return "", errors.New("未知操作系统:" + runtime.GOOS)
+	Default = &Shell{defaultUse}
 }
 
-func Runf(format string, args ...interface{}) error {
-	return Run(fmt.Sprintf(format, args...))
+func Execf(format string, args ...interface{}) (*Result, error) {
+	return Default.Execf(format, args...)
+}
+
+func Exec(args ...string) (*Result, error) {
+	return Default.Exec(args...)
 }
 
 func Run(args ...string) error {
-	list := append([]string{"/c"}, args...)
-	switch runtime.GOOS {
-	case "windows":
-		cmd := exec.Command("cmd", list...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		return cmd.Run()
-	case "linux":
-		return bash.Run(args...)
-	}
-	return errors.New("未知操作系统:" + runtime.GOOS)
+	return Default.Run(args...)
 }
 
-func IO(w io.ReadWriter, args ...string) error {
-	list := append([]string{"/c"}, args...)
-	switch runtime.GOOS {
-	case "windows":
-		cmd := exec.Command("cmd", list...)
-		cmd.Stdout = w
-		cmd.Stderr = w
-		cmd.Stdin = w
-		return cmd.Run()
-	case "linux":
-		return bash.IO(w, args...)
-	}
-	return errors.New("未知操作系统:" + runtime.GOOS)
+func Output(w io.ReadWriter, args ...string) error {
+	return Default.Output(w, args...)
 }
 
 // Stop 结束程序 "taskkill.exe", "/f", "/im", "edge.exe"
 func Stop(name string) error {
-	switch runtime.GOOS {
-	case "windows":
-		result, err := Exec("taskkill.exe", "/f", "/im", name)
-		if err != nil && !strings.Contains(err.Error(), "exit status") {
-			return err
-		} else if err == nil && !strings.Contains(result, "成功") {
-			return errors.New(result)
-		}
-	case "linux":
-		return systemctl.Stop(name)
-	}
-	return nil
+	return Default.Stop(name)
 }
 
 // Start 启动程序
 // windows "cmd", "/c", "start ./xxx.exe"
 func Start(filename string) error {
-	switch runtime.GOOS {
-	case "windows":
-		return exec.Command("cmd", "/c", "start "+filename).Start()
-	case "linux":
-		return systemctl.Restart(filename)
-	}
-	return nil
+	return Default.Start(filename)
 }
 
 /*
@@ -112,57 +63,132 @@ func Start(filename string) error {
 
  */
 
-type _sh struct{}
+type _cmd struct{}
 
-func (_sh) Cmd(args ...string) *exec.Cmd {
-	list := append([]string{"-c"}, args...)
-	return exec.Command("sh", list...)
-}
+func (_cmd) Prefix() [2]string { return [2]string{"cmd", "/c"} }
+
+func (_cmd) Decode(p []byte) ([]byte, error) { return str.GbkToUtf8(p) }
 
 type _bash struct{}
 
-func (_bash) Cmd(args ...string) *exec.Cmd {
-	list := append([]string{"-c"}, args...)
-	return exec.Command("bash", list...)
+func (_bash) Prefix() [2]string { return [2]string{"bash", "-c"} }
+
+func (_bash) Decode(p []byte) ([]byte, error) { return p, nil }
+
+type _sh struct{}
+
+func (_sh) Prefix() [2]string { return [2]string{"sh", "-c"} }
+
+func (_sh) Decode(p []byte) ([]byte, error) { return p, nil }
+
+type Use interface {
+	Prefix() [2]string
+	Decode(p []byte) ([]byte, error)
 }
 
-type _cmd struct{}
-
-func (_cmd) Cmd(args ...string) *exec.Cmd {
-	list := append([]string{"/c"}, args...)
-	return exec.Command("cmd.exe", list...)
+type Shell struct {
+	Use
 }
 
-func (this _cmd) Exec(args ...string) (string, error) {
-	result, err := this.Cmd(args...).CombinedOutput()
-	if err != nil {
-		return "", err
+func (this *Shell) Execf(format string, args ...interface{}) (*Result, error) {
+	cmdline := fmt.Sprintf(format, args...)
+	return this.Exec(cmdline)
+}
+
+func (this *Shell) Exec(args ...string) (*Result, error) {
+	pre := this.Prefix()
+	list := append(pre[1:], args...)
+	cmd := exec.Command(pre[0], list...)
+	result := &Result{
+		buf:    bytes.NewBuffer(nil),
+		decode: this.Decode,
 	}
-	result, err = str.GbkToUtf8(result)
-	return string(result), err
+	cmd.Stdout = result.buf
+	cmd.Stderr = result.buf
+	return result, cmd.Run()
 }
 
-func (this _cmd) Run(args ...string) error {
-	cmd := this.Cmd(args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
+func (this *Shell) Run(args ...string) error {
+	pre := this.Prefix()
+	list := append(pre[1:], args...)
+	cmd := exec.Command(pre[0], list...)
 	return cmd.Run()
 }
 
+func (this *Shell) Output(w io.Writer, args ...string) error {
+	pre := this.Prefix()
+	list := append(pre[1:], args...)
+	cmd := exec.Command(pre[0], list...)
+	cmd.Stdout = w
+	cmd.Stderr = w
+	return cmd.Run()
+}
+
+func (this *Shell) Timeout(t time.Duration, args ...string) (*Result, error) {
+	pre := this.Prefix()
+	list := append(pre[1:], args...)
+	cmd := exec.Command(pre[0], list...)
+	result := &Result{
+		buf:    bytes.NewBuffer(nil),
+		decode: this.Decode,
+	}
+	cmd.Stdout = result.buf
+	cmd.Stderr = result.buf
+
+	var err error
+	timer := time.NewTimer(t)
+	defer timer.Stop()
+	done := make(chan error)
+	go func() { done <- cmd.Wait() }()
+	select {
+	case err = <-done:
+
+	case <-timer.C:
+		if err = cmd.Process.Kill(); err != nil {
+			err = fmt.Errorf("执行超时,关闭命令失败: %s", err.Error())
+		} else {
+			// wait for the command to return after killing it
+			<-done
+			err = errors.New("执行超时")
+		}
+	}
+
+	return result, err
+}
+
 // Start  "cmd", "/c", "start ./xxx.exe"
-func (this _cmd) Start(filename string) error {
-	_, err := this.Exec("start " + filename)
+func (this *Shell) Start(filename string) error {
+	_, err := this.Execf(StartFormat, filename)
 	return err
 }
 
 // Stop 结束程序 "taskkill.exe", "/f", "/im", "edge.exe"
-func (this _cmd) Stop(name string) error {
-	result, err := this.Exec("taskkill.exe", "/f", "/im", name)
+func (this *Shell) Stop(name string) error {
+	result, err := this.Execf(KillFormat, name)
 	if err != nil && !strings.Contains(err.Error(), "exit status") {
 		return err
-	} else if err == nil && !strings.Contains(result, "成功") {
-		return errors.New(result)
+	} else if err == nil && !strings.Contains(result.String(), "成功") {
+		return errors.New(result.String())
 	}
 	return nil
+}
+
+type Result struct {
+	buf    *bytes.Buffer
+	str    *string
+	decode func(p []byte) ([]byte, error)
+}
+
+func (this *Result) String() string {
+	if this.str == nil {
+		if this.decode != nil {
+			bs, err := this.decode(this.buf.Bytes())
+			if err == nil {
+				this.str = (*string)(unsafe.Pointer(&bs))
+				return *this.str
+			}
+		}
+		this.str = (*string)(unsafe.Pointer(this.buf))
+	}
+	return *this.str
 }

@@ -87,10 +87,10 @@ func (this *StoreCreateReq) check() error {
 	if err != nil {
 		return err
 	}
-	if strings.Contains(result, "Login Succeeded") {
+	if strings.Contains(result.String(), "Login Succeeded") {
 		return nil
 	}
-	return errors.New(result)
+	return errors.New(result.String())
 }
 
 // StoreCreate 添加新仓库
