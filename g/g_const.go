@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	StartTime = time.Now()
+	Uptime = time.Now()
 )
 
 var (

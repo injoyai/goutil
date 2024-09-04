@@ -7,7 +7,7 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/conv/codec"
-	"github.com/injoyai/goutil/oss/runtime"
+	"github.com/injoyai/goutil/oss/runtimes"
 	"math/rand"
 	"time"
 )
@@ -123,10 +123,8 @@ func Second() int { return time.Now().Second() }
 
 //========================================Go========================================
 
-var DefaultGoManage = runtime.DefaultGoManage
-
-func Go(f func(ctx context.Context, args ...interface{}), args ...interface{}) *runtime.GoItem {
-	return runtime.Go(f, args...)
+func Go(f runtimes.GoHandler, args ...interface{}) *runtimes.GoItem {
+	return runtimes.Go(f, args...)
 }
 
 //========================================Other========================================
@@ -137,5 +135,8 @@ func Cfg(path string, codec ...codec.Interface) *cfg.Entity { return cfg.New(pat
 // Chan chans.NewEntity
 func Chan(num int, cap ...int) *chans.Entity { return chans.NewEntity(num, cap...) }
 
-// NewCloser 安全的关闭,原子操作
-func NewCloser() *safe.Closer { return safe.NewCloser() }
+// Closer 安全的关闭,原子操作,实现接口
+func Closer() *safe.Closer { return safe.NewCloser() }
+
+// Runner 安全的执行,避免重复执行,实现接口
+func Runner(fn func(ctx context.Context) error) *safe.Runner { return safe.NewRunner(fn) }

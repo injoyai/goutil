@@ -24,9 +24,8 @@ func TestGo(t *testing.T) {
 
 func TestGoInfo(t *testing.T) {
 	DefaultGoManage.SetLimit(10)
-	f := func(ctx context.Context, args ...interface{}) []interface{} {
+	f := func(ctx context.Context, args ...interface{}) {
 		<-time.After(time.Second * 10)
-		return nil
 	}
 	item := Go(f)
 	<-time.After(time.Second * 2)
