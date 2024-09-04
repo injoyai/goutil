@@ -11,3 +11,8 @@ func Start2(filename string) error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "/c start " + filename}
 	return cmd.Run()
 }
+
+var (
+	StartFormat = "systemctl stop %s"
+	KillFormat  = "systemctl start %s"
+)
