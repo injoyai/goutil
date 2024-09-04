@@ -79,14 +79,20 @@ func funcSyncDate(args *Args) (interface{}, error) {
 	// 阿里ntp.aliyun.com 腾讯time1.cloud.tencent.com
 	host := args.GetString(1, "ntp.ntsc.ac.cn")
 	result, err := shell.Exec("ntpdate " + host)
-	return result, err
+	if err != nil {
+		return nil, err
+	}
+	return result.String(), err
 }
 
 // funcSetDate 设置时间
 func funcSetDate(args *Args) (interface{}, error) {
 	dateStr := args.GetString(1, "1970-01-01 08:00:00")
 	result, err := shell.Exec(fmt.Sprintf(`date --set="%s"`, dateStr))
-	return result, err
+	if err != nil {
+		return nil, err
+	}
+	return result.String(), err
 }
 
 // funcGetJson 解析json,读取其中数据
@@ -390,7 +396,11 @@ func funcShell(args *Args) (interface{}, error) {
 	for _, v := range args.Args {
 		list = append(list, v.String())
 	}
-	return shell.Exec(list...)
+	result, err := shell.Exec(list...)
+	if err != nil {
+		return nil, err
+	}
+	return result.String(), nil
 }
 
 // funcHTTP http请求,协程执行
