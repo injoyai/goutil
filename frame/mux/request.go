@@ -49,7 +49,7 @@ func (this *Request) GetRequest() *http.Request {
 	return this.Request
 }
 
-func (this *Request) SetCache(key string, value any) {
+func (this *Request) SetCache(key string, value interface{}) {
 	if this.cache == nil {
 		this.cache = maps.NewSafe()
 	}
@@ -63,7 +63,7 @@ func (this *Request) GetCache(key string) *conv.Var {
 	return this.cache.GetVar(key)
 }
 
-func (this *Request) Parse(ptr any) {
+func (this *Request) Parse(ptr interface{}) {
 	if this == nil || this.Request == nil {
 		return
 	}
