@@ -22,11 +22,11 @@ var (
 	}
 
 	HeaderCORS = http.Header{
-		"AllowOrigin":      []string{"*"},
-		"AllowMethods":     []string{"GET,PUT,POST,DELETE,PATCH,HEAD,CONNECT,OPTIONS,TRACE"},
-		"AllowCredentials": []string{"true"},
-		"AllowHeaders":     []string{"Origin,Content-Type,Accept,User-Agent,Cookie,Authorization,X-Auth-Token,X-Requested-With"},
-		"MaxAge":           []string{"3628800"},
+		"Access-Control-Allow-Origin":      []string{"*"},
+		"Access-Control-Allow-Methods":     []string{"GET,PUT,POST,DELETE,PATCH,HEAD,CONNECT,OPTIONS,TRACE"},
+		"Access-Control-Allow-Credentials": []string{"true"},
+		"Access-Control-Allow-Headers":     []string{"Origin,Content-Type,Accept,User-Agent,Cookie,Authorization,X-Auth-Token,X-Requested-With"},
+		"Access-Control-Allow-Max-Age":     []string{"3628800"},
 	}
 
 	CORS = HeaderCORS
