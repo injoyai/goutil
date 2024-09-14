@@ -1,12 +1,58 @@
 package in
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/injoyai/conv"
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
+
+var DefaultClient = New(WithDefault())
+
+// SetCacheByHandler 尝试从缓存中获取数据,如果不存在则通过函数获取,执行函数时,其他相同的key会等待此次结果
+func SetCacheByHandler(key interface{}, handler func() interface{}, expiration time.Duration) interface{} {
+	value, err := DefaultClient.GetOrSetByHandler(key, func() (interface{}, error) { return handler(), nil }, expiration)
+	CheckErr(err)
+	return value
+}
+
+// DelCache 删除缓存数据
+func DelCache(key ...interface{}) {
+	for _, v := range key {
+		DefaultClient.Del(v)
+	}
+}
+
+// SetCache 设置缓存,覆盖缓存
+func SetCache(key interface{}, value interface{}, expiration time.Duration) {
+	DefaultClient.Set(key, value, expiration)
+}
+
+// Recover 对http.Handler使用中间件
+func Recover(h http.Handler) http.Handler {
+	return DefaultClient.Recover(h)
+}
+
+// MiddleRecover 捕捉panic,或自定义panic,并输出到http.ResponseWriter
+func MiddleRecover(e interface{}, w http.ResponseWriter) {
+	DefaultClient.MiddleRecover(e, w)
+}
+
+// SetStatusCode 设置常用响应的状态码
+func SetStatusCode(succ, fail, unauthorized, forbidden interface{}) *Client {
+	return DefaultClient.SetStatusCode(succ, fail, unauthorized, forbidden)
+}
+
+func GetPageNum(r *http.Request) int {
+	return DefaultClient.GetPageNum(r)
+}
+
+func GetPageSize(r *http.Request) int {
+	return DefaultClient.GetPageSize(r)
+}
 
 //=================================Return=================================//
 
@@ -36,39 +82,26 @@ func Redirect308(addr string) { DefaultClient.Redirect(http.StatusPermanentRedir
 
 //=================================File=================================//
 
-// FilePath 返回本地文件
-func FilePath(name, path string) {
-	bs, err := os.ReadFile(path)
-	CheckErr(err)
-	DefaultClient.File(name, bs)
-}
-
 // FileLocal 返回本地文件
-func FileLocal(name, path string) {
-	FilePath(name, path)
-}
-
-func FileReader(name string, reader io.Reader) {
-	//适用于小文件
-	bs, err := io.ReadAll(reader)
+func FileLocal(name, filename string) {
+	f, err := os.Open(filename)
 	CheckErr(err)
-	DefaultClient.File(name, bs)
+	i, err := f.Stat()
+	CheckErr(err)
+	DefaultClient.File(name, i.Size(), f)
 }
 
-// FileBytes 返回文件
+// FileReader 返回文件流
+func FileReader(name string, r io.ReadCloser) {
+	DefaultClient.File(name, -1, r)
+}
+
+// FileBytes 返回文件,字节
 func FileBytes(name string, bs []byte) {
-	DefaultClient.File(name, bs)
+	DefaultClient.File(name, int64(len(bs)), io.NopCloser(bytes.NewReader(bs)))
 }
 
 //=================================Other=================================//
-
-func CopyReader(w http.ResponseWriter, filename string, r io.Reader) {
-	DefaultClient.CopyFile(w, filename, r)
-}
-
-func Copy(w http.ResponseWriter, r io.Reader) {
-	DefaultClient.Copy(w, r)
-}
 
 func Proxy(w http.ResponseWriter, r *http.Request, uri string) {
 	DefaultClient.Proxy(w, r, uri)
