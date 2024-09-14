@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gorilla/mux"
-	in "github.com/injoyai/goutil/frame/in/mini"
+	"github.com/injoyai/goutil/frame/in/v3"
 	"log"
 	"net/http"
 	"sync"
