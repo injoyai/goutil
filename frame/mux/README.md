@@ -4,7 +4,7 @@
 - [HTTP路由 `github.com/gorilla/mux`](https://github.com/gorilla/mux)
 - [基础类型 `github.com/injoyai/base/maps`](https://github.com/injoyai/base/maps)
 - [类型转换 `github.com/injoyai/conv`](https://github.com/injoyai/conv)
-- [响应工具 `github.com/injoyai/goutil/frame/in/mini`](https://github.com/injoyai/goutil/frame/in/mini)
+- [响应工具 `github.com/injoyai/goutil/frame/in/v3`](https://github.com/injoyai/goutil/frame/in/v3)
 
 ### 如何使用
 
@@ -12,7 +12,7 @@
 package main
 
 import (
-	in "github.com/injoyai/goutil/frame/in/mini"
+	"github.com/injoyai/goutil/frame/in/v3"
 	"github.com/injoyai/goutil/frame/mux"
 )
 
