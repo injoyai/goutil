@@ -10,12 +10,6 @@ import (
 	"time"
 )
 
-/*
-
-
-
- */
-
 type GoHandler func(ctx context.Context, args ...interface{})
 
 func Go(f GoHandler, args ...interface{}) *GoItem {
