@@ -21,21 +21,13 @@ func (this *Cycle) Subscribe(cap ...uint) *chans.Safe {
 	return this.subscribe.Subscribe(cap...)
 }
 
-// LoadingCycle 加载数据
-func LoadingCycle(name string) (*Cycle, error) {
-	f := newFile(name, "cycle")
-	length := f.GetInt("length")
-	if length <= 0 {
-		return nil, fmt.Errorf("长度错误: %d", length)
+// Padding 填充数据,未测试
+func (this *Cycle) Padding(data interface{}) *Cycle {
+	for i := range this.list {
+		this.list[i] = data
 	}
-	c := newCycle(length)
-	c.offset = f.GetInt("offset")
-	c.cycle = f.GetBool("cycle")
-	val, ok := f.MustGet("data").([]interface{})
-	if ok {
-		c.list = val
-	}
-	return c, nil
+	this.cycle = true
+	return this
 }
 
 // Save 数据持久化,保存至文件
@@ -97,4 +89,21 @@ func newCycle(length int) *Cycle {
 		length:    length,
 		subscribe: chans.NewSubscribe(),
 	}
+}
+
+// LoadingCycle 加载数据
+func LoadingCycle(name string) (*Cycle, error) {
+	f := newFile(name, "cycle")
+	length := f.GetInt("length")
+	if length <= 0 {
+		return nil, fmt.Errorf("长度错误: %d", length)
+	}
+	c := newCycle(length)
+	c.offset = f.GetInt("offset")
+	c.cycle = f.GetBool("cycle")
+	val, ok := f.MustGet("data").([]interface{})
+	if ok {
+		c.list = val
+	}
+	return c, nil
 }
