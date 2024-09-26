@@ -31,6 +31,11 @@ func SetCache(key interface{}, value interface{}, expiration time.Duration) {
 	DefaultClient.Set(key, value, expiration)
 }
 
+// HTTPHandler 对http.HandlerFunc使用中间件,http.ListenAndServe(":80",in.HTTPHandler(h))
+func HTTPHandler(h func(w http.ResponseWriter, r *http.Request)) http.Handler {
+	return DefaultClient.Recover(http.HandlerFunc(h))
+}
+
 // Recover 对http.Handler使用中间件
 func Recover(h http.Handler) http.Handler {
 	return DefaultClient.Recover(h)
