@@ -13,6 +13,6 @@ func Start2(filename string) error {
 }
 
 var (
-	StartFormat = "systemctl stop %s"
-	KillFormat  = "systemctl start %s"
+	StartFormat = "start %s"
+	KillFormat  = "taskkill.exe /f /im %s"
 )
