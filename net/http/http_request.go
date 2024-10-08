@@ -23,7 +23,8 @@ type Request struct {
 	queryMu sync.RWMutex //锁
 
 	// body参数,请求体,方便读取,提供GetBody等函数
-	// 否则需要从流中读取
+	// 否则需要从流中读取,备份的body,当请求失败并需要重试时,可以从这里复制
+	// todo 如果是文件的话,内存会占用比较大,如果优化
 	body     []byte
 	bodyBind interface{} //响应的body解析
 
@@ -262,7 +263,11 @@ func (this *Request) FormField(m map[string]interface{}) *Request {
 // SetBody 设置请求body,默认json解析
 func (this *Request) SetBody(i interface{}) *Request {
 	this.body = conv.Bytes(i)
+	this.Request.ContentLength = int64(len(this.body))
 	this.Request.Body = io.NopCloser(bytes.NewReader(this.body))
+	this.Request.GetBody = func() (io.ReadCloser, error) {
+		return io.NopCloser(bytes.NewReader(this.body)), nil
+	}
 	return this
 }
 
@@ -333,17 +338,20 @@ func (this *Request) Do() *Response {
 
 // NewRequest 新建请求内容
 func NewRequest(method, url string, body interface{}) *Request {
-	request, err := http.NewRequest(method, url, bytes.NewReader(conv.Bytes(body)))
-	if request == nil {
-		// 消耗点内存,方便不用每个函数都进行不是nil的判断
-		request = &http.Request{Header: map[string][]string{}}
+	request, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return &Request{
+			// 消耗点内存,方便不用每个函数都进行不是nil的判断
+			Request: &http.Request{Header: map[string][]string{}},
+			err:     err,
+		}
 	}
 	req := &Request{
 		Request: request,
 		query:   make(map[string]interface{}),
-		body:    conv.Bytes(body),
 		err:     err,
 	}
+	req.SetBody(body)
 	req.SetUserAgentDefault()
 	return req
 }
