@@ -2,10 +2,12 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/injoyai/io"
 	"golang.org/x/net/proxy"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -39,6 +41,12 @@ func NewClient() *Client {
 
 type Client struct {
 	*http.Client
+	debug bool
+}
+
+func (this *Client) Debug(b ...bool) *Client {
+	this.debug = len(b) == 0 || b[0]
+	return this
 }
 
 // SetProxy 设置代理
@@ -47,6 +55,7 @@ func (this *Client) SetProxy(u string) error {
 		//为空表示取消代理
 		if len(u) == 0 {
 			transport.Proxy = nil
+			transport.DialContext = nil
 			return nil
 		}
 		proxyUrl, err := url.Parse(u)
@@ -55,16 +64,15 @@ func (this *Client) SetProxy(u string) error {
 			return err
 		}
 		switch proxyUrl.Scheme {
-		case "http", "https":
-			transport.Proxy = http.ProxyURL(proxyUrl)
-		case "socks5":
-			dialer, err := proxy.FromURL(proxyUrl, proxy.Direct)
+		case "socks5", "socks5h":
+			dialer, err := proxy.FromURL(proxyUrl, this)
 			if err != nil {
 				return err
 			}
-			//transport.DialContext
-			transport.Dial = dialer.Dial
-		default:
+			transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return dialer.Dial(network, addr)
+			}
+		default: //"http", "https"
 			transport.Proxy = http.ProxyURL(proxyUrl)
 		}
 		return nil
@@ -75,9 +83,7 @@ func (this *Client) SetProxy(u string) error {
 // SetTimeout 设置请求超时时间
 // 下载大文件的时候需要设置长的超时时间
 func (this *Client) SetTimeout(t time.Duration) *Client {
-	if this.Client != nil {
-		this.Client.Timeout = t
-	}
+	this.Client.Timeout = t
 	return this
 }
 
@@ -202,8 +208,8 @@ func (this *Client) DoRequest(method, url string, body interface{}) *Response {
 }
 
 func (this *Client) Do(request *Request) (resp *Response) {
-	if request.err != nil {
-		return newResponseErr(request.err)
+	if request.Err() != nil {
+		return newResponseErr(request.Err())
 	}
 	start := time.Now()
 	defer func() {
@@ -216,13 +222,29 @@ func (this *Client) Do(request *Request) (resp *Response) {
 	request.Request.Body = io.NopCloser(bytes.NewReader(request.body))
 	r, err := this.Client.Do(request.Request)
 	resp = newResponse(request, r, start, err)
-	if request.debug {
+	if this.debug || request.debug {
 		fmt.Println(resp.String())
 	}
 	if resp.Err() != nil && !request.done() {
 		return this.Do(request)
 	}
 	return
+}
+
+func (this *Client) Dial(network, addr string) (net.Conn, error) {
+	d := &net.Dialer{
+		Timeout:   this.Client.Timeout,
+		KeepAlive: this.Client.Timeout,
+	}
+	return d.Dial(network, addr)
+}
+
+func (this *Client) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
+	d := &net.Dialer{
+		Timeout:   this.Client.Timeout,
+		KeepAlive: this.Client.Timeout,
+	}
+	return d.DialContext(ctx, network, addr)
 }
 
 /*
