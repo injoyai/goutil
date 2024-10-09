@@ -2,14 +2,17 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/injoyai/goutil/frame/in"
+	"github.com/injoyai/goutil/frame/in/v3"
 	"github.com/injoyai/goutil/g"
 	"io"
 )
 
 func main() {
 	s := gin.Default()
-	in.DefaultClient.InitGin(s)
+	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, err interface{}) {
+		in.MiddleRecover(err, c.Writer)
+	}))
+
 	//in.DefaultClient.SetCode("SUCCESS", "FAIL")
 
 	s.GET("/1", func(context *gin.Context) {
@@ -29,9 +32,9 @@ func main() {
 	})
 	s.Any("/get", func(context *gin.Context) {
 
-		x := in.GetString(context, "x")
+		x := in.GetVar(context.Request, "x").String()
 
-		x2 := in.GetBodyMap(context).GetString("x")
+		x2 := in.GetBodyMap(context.Request).GetString("x")
 		bs, _ := io.ReadAll(context.Request.Body)
 		in.Succ(g.Map{
 			"x":    x,

@@ -3,10 +3,72 @@ package in
 import (
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/conv/codec"
 	"io"
 	"net/http"
 	"strings"
 )
+
+func GetVar(r *http.Request, key string) *conv.Var {
+	//尝试从query中获取
+	if v := GetQueryVar(r, key); !v.IsNil() {
+		return v
+	}
+	//优先从body获取
+	if v := GetBodyVar(r, key); !v.IsNil() {
+		return v
+	}
+	//尝试从header中获取
+	if v := GetHeaderVar(r, key); !v.IsNil() {
+		return v
+	}
+	return conv.Nil()
+}
+
+func GetQueryVar(r *http.Request, key string) *conv.Var {
+	ls, ok := r.URL.Query()[key]
+	if !ok || len(ls) == 0 {
+		return conv.Nil()
+	}
+	return conv.New(ls[0])
+}
+
+func GetBodyVar(r *http.Request, key string) *conv.Var {
+
+	//通过json解析
+	if strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		body, _ := r.GetBody()
+		defer body.Close()
+		return conv.NewMap(body, codec.Json).GetVar(key)
+	}
+
+	if r.Form == nil {
+		r.ParseForm()
+	}
+
+	//尝试从from中获取
+	if r.Form != nil {
+		if ls, ok := r.Form[key]; ok && len(ls) > 0 {
+			return conv.New(ls[0])
+		}
+	}
+
+	return conv.Nil()
+}
+
+func GetBodyMap(r *http.Request, codec ...codec.Interface) *conv.Map {
+	body, _ := r.GetBody()
+	defer body.Close()
+	return conv.NewMap(body, codec...)
+}
+
+func GetHeaderVar(r *http.Request, key string) *conv.Var {
+	ls, ok := r.Header[key]
+	if !ok || len(ls) == 0 {
+		return conv.Nil()
+	}
+	return conv.New(ls[0])
+}
 
 func NewRequest(r *http.Request) *Request {
 	x := &Request{

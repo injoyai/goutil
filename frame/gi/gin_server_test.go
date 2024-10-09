@@ -2,7 +2,7 @@ package gi
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/injoyai/goutil/frame/in"
+	"github.com/injoyai/goutil/frame/in/v3"
 	"testing"
 )
 
