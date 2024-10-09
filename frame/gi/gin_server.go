@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/injoyai/goutil/frame/in"
-	"github.com/injoyai/logs"
 	"io"
 )
 
@@ -53,10 +52,6 @@ func (this *Server) DELETE(s string, fn gin.HandlerFunc) *Server {
 	return this
 }
 
-func (this *Server) Run(ports ...int) {
-	addr := []string(nil)
-	for _, v := range ports {
-		addr = append(addr, fmt.Sprintf(":%d", v))
-	}
-	logs.PrintErr(this.Engine.Run(addr...))
+func (this *Server) Run() error {
+	return this.Engine.Run(fmt.Sprintf(":%d", this.Port))
 }
