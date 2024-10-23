@@ -68,8 +68,23 @@ func (this *Request) Parse(ptr interface{}) {
 		return
 	}
 
-	//通过json解析
-	if strings.Contains(this.Header.Get("Content-Type"), "application/json") {
+	//multipart/form-data
+	if strings.Contains(this.Header.Get("Content-Type"), "multipart/form-data") {
+		//通过form-data解析
+		if this.Request.Form == nil {
+			if this.Request.ParseMultipartForm(1<<20) == nil {
+				m := map[string]interface{}{}
+				for k, v := range this.Request.Form {
+					m[k] = v[0]
+				}
+				err := conv.Unmarshal(this.Request.Form, ptr)
+				if err != nil {
+					in.Json415(err)
+				}
+			}
+		}
+	} else {
+		//通过json解析
 		defer this.Body.Close()
 		bs, err := io.ReadAll(this.Body)
 		in.CheckErr(err)
@@ -92,20 +107,6 @@ func (this *Request) Parse(ptr interface{}) {
 		err := conv.Unmarshal(m, ptr)
 		if err != nil {
 			in.Json415(err)
-		}
-	}
-
-	//如果不是json,则使用自带的form解析
-	if this.Request.Form == nil {
-		if this.Request.ParseMultipartForm(1<<20) == nil {
-			m := map[string]interface{}{}
-			for k, v := range this.Request.Form {
-				m[k] = v[0]
-			}
-			err := conv.Unmarshal(this.Request.Form, ptr)
-			if err != nil {
-				in.Json415(err)
-			}
 		}
 	}
 
