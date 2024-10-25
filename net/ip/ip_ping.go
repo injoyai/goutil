@@ -51,12 +51,14 @@ type Pinger struct {
 	buf  []byte
 }
 
-func (this *Pinger) SetTimeout(t time.Duration) {
+func (this *Pinger) SetTimeout(t time.Duration) *Pinger {
 	this.t = t
+	return this
 }
 
-func (this *Pinger) SetHost(host []string) {
+func (this *Pinger) SetHost(host []string) *Pinger {
 	this.Host = host
+	return this
 }
 
 func (this *Pinger) For(ctx context.Context, interval time.Duration, f func(time.Duration, error)) {
