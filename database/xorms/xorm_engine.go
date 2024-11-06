@@ -2,9 +2,9 @@ package xorms
 
 import (
 	"fmt"
-	_ "github.com/denisenkom/go-mssqldb"
-	_ "github.com/glebarez/go-sqlite"
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/denisenkom/go-mssqldb" 需要手动加载驱动,减少不必要的开销
+	//_ "github.com/glebarez/go-sqlite"
+	//_ "github.com/go-sql-driver/mysql"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
 	"os"
@@ -93,7 +93,7 @@ func (this *Engine) Where(query interface{}, args ...interface{}) *Session {
 }
 
 /*
-New
+New 需要手动引用驱动
 mysql _ "github.com/go-sql-driver/mysql"
 sqlite _ "github.com/glebarez/go-sqlite"
 sqlserver _ "github.com/denisenkom/go-mssqldb"
