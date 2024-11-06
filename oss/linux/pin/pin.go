@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
-	"github.com/injoyai/goutil/oss/linux/bash"
 	"github.com/injoyai/goutil/oss/shell"
 	"regexp"
 	"strings"
@@ -66,20 +65,14 @@ func Get(number int) (Pin, error) {
 }
 
 // Open 打开引脚
-func Open(number int, model Model) (Pin, error) {
+func Open(number int) (Pin, error) {
 	p := &pin{number: number}
-	if err := p.Open(); err != nil {
-		return nil, err
-	}
-	if err := p.SetModel(model); err != nil {
-		return nil, err
-	}
-	return p, nil
+	return p, p.Open()
 }
 
 // Close 关闭引脚
 func Close(number int) error {
-	_, err := shell.Execf("echo %d > %s/unexport", number, gpioDir)
+	_, err := shell.SH.Execf("echo %d > %s/unexport", number, gpioDir)
 	return err
 }
 
@@ -92,9 +85,9 @@ func (this *pin) Open() error {
 	if oss.Exists(fmt.Sprintf("%s/gpio%d", gpioDir, this.number)) {
 		return nil
 	}
-	_, err := bash.Execf("echo %d > %s/export", this.number, gpioDir)
+	_, err := shell.SH.Execf("echo %d > %s/export", this.number, gpioDir)
 	if err == nil {
-		_, err = bash.Execf("chmod 777 %s/gpio%d/value", gpioDir, this.number)
+		_, err = shell.SH.Execf("chmod 777 %s/gpio%d/value", gpioDir, this.number)
 	}
 	return err
 }
@@ -104,22 +97,29 @@ func (this *pin) GetNumber() int {
 }
 
 func (this *pin) GetModel() (Model, error) {
-	result, err := bash.Execf("cat %s/gpio%d/direction", gpioDir, this.number)
-	return Model(result), err
+	result, err := shell.SH.Execf("cat %s/gpio%d/direction", gpioDir, this.number)
+	if err != nil {
+		return "", err
+	}
+	mode, _ := strings.CutSuffix(result.String(), "\n")
+	return Model(mode), nil
 }
 
 func (this *pin) SetModel(model Model) error {
-	_, err := bash.Execf("echo %d > %s/direction", model, gpioDir)
+	_, err := shell.SH.Execf("echo %d > %s/direction", model, gpioDir)
 	return err
 }
 
 func (this *pin) GetValue() (bool, error) {
-	result, err := bash.Execf("cat %s/gpio%d/value", gpioDir, this.number)
-	return result == "1", err
+	result, err := shell.SH.Execf("cat %s/gpio%d/value", gpioDir, this.number)
+	if err != nil {
+		return false, err
+	}
+	return result.String() == "1\n", nil
 }
 
 func (this *pin) SetValue(b int) error {
-	_, err := bash.Execf("echo %d > %s/gpio%d/value", b, gpioDir, this.number)
+	_, err := shell.SH.Execf("echo %d > %s/gpio%d/value", b, gpioDir, this.number)
 	return err
 }
 
