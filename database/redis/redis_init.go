@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/conv/cfg"
+	"github.com/injoyai/conv/cfg/v2"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/str"
 	"github.com/redis/go-redis/v9"
@@ -28,8 +28,8 @@ func New(addr, pwd string, db ...int) *Client {
 	})
 }
 
-func WithCfg(path ...string) *Client {
-	return WithDMap(cfg.Default.GetDMap(conv.DefaultString("redis", path...)))
+func WithCfg(key ...string) *Client {
+	return WithDMap(cfg.GetDMap(conv.DefaultString("redis", key...)))
 }
 
 func WithDMap(m *conv.Map) *Client {
