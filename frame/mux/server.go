@@ -2,9 +2,11 @@ package mux
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/injoyai/goutil/frame/in/v3"
+	"io/fs"
 	"log"
 	"net/http"
 	"sync"
@@ -13,16 +15,13 @@ import (
 func New() *Server {
 	s := &Server{
 		Port:    []int{80},
-		Server:  &http.Server{},
 		Grouper: &Grouper{Router: mux.NewRouter()},
 	}
 	return s
 }
 
 type Server struct {
-	Port   []int
-	Server *http.Server
-
+	Port []int
 	*Grouper
 }
 
@@ -104,6 +103,25 @@ func (this *Grouper) Group(path string, handler func(g *Grouper)) *Grouper {
 		handler(g)
 	}
 	return g
+}
+
+func (this *Grouper) Static(path string, dir string) *Grouper {
+	path = this.Prefix + path
+	s := http.StripPrefix(path, http.FileServer(http.Dir(dir)))
+	this.Router.PathPrefix(path).Handler(s)
+	return this
+}
+
+// StaticEmbed 放在最后执行,这个会占用Grouper下所有的路由
+func (this *Grouper) StaticEmbed(path string, e embed.FS, dir string) error {
+	web, err := fs.Sub(e, dir)
+	if err != nil {
+		return err
+	}
+	path = this.Prefix + path
+	s := http.StripPrefix(path, http.FileServer(http.FS(web)))
+	this.Router.PathPrefix(path).Handler(s)
+	return nil
 }
 
 func (this *Grouper) ALL(path string, handler func(r *Request)) *Grouper {
