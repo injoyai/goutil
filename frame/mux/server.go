@@ -6,16 +6,39 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/injoyai/goutil/frame/in/v3"
+	"github.com/injoyai/goutil/frame/middle"
 	"io/fs"
 	"log"
 	"net/http"
 	"sync"
 )
 
-func New() *Server {
+type Option func(s *Server)
+
+// WithCORS 设置跨域
+func WithCORS() Option {
+	return func(s *Server) {
+		s.Use(func(r *Request) { middle.WithCORS(r.Writer) })
+	}
+}
+
+// WithPort 设置端口
+func WithPort(port ...int) Option {
+	return func(s *Server) { s.SetPort(port...) }
+}
+
+// WithPrefix 设置全局前缀,注意使用
+func WithPrefix(prefix string) Option {
+	return func(s *Server) { s.Grouper.Prefix = prefix }
+}
+
+func New(op ...Option) *Server {
 	s := &Server{
 		Port:    []int{80},
 		Grouper: &Grouper{Router: mux.NewRouter()},
+	}
+	for _, v := range op {
+		v(s)
 	}
 	return s
 }
@@ -105,6 +128,7 @@ func (this *Grouper) Group(path string, handler func(g *Grouper)) *Grouper {
 	return g
 }
 
+// Static 放在最后执行,这个会占用Grouper下所有的路由
 func (this *Grouper) Static(path string, dir string) *Grouper {
 	path = this.Prefix + path
 	s := http.StripPrefix(path, http.FileServer(http.Dir(dir)))
