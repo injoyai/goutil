@@ -73,6 +73,10 @@ func Html(code int, data interface{}) { DefaultClient.Html(code, data) }
 
 func Html200(data interface{}) { DefaultClient.Html(http.StatusOK, data) }
 
+func Reader(code int, r io.ReadCloser) { DefaultClient.Reader(code, r) }
+
+func Reader200(r io.ReadCloser) { DefaultClient.Reader(http.StatusOK, r) }
+
 // Redirect301 永久重定向,GET和HEAD自动请求,其他需要用户确认
 func Redirect301(addr string) { DefaultClient.Redirect(http.StatusMovedPermanently, addr) }
 

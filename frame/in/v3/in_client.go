@@ -168,6 +168,10 @@ func (this *Client) File(name string, size int64, r io.ReadCloser) {
 		ReadCloser: r}).Exit()
 }
 
+func (this *Client) Reader(httpCode int, r io.ReadCloser) {
+	this.NewExit(httpCode, &READER{ReadCloser: r}).Exit()
+}
+
 // NewExit 自定义退出
 func (this *Client) NewExit(httpCode int, i IMarshal) *Exit {
 	return NewExit(httpCode, i, this.ExitOption...)
