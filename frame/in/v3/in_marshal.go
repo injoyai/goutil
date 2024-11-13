@@ -100,3 +100,18 @@ func (this *FILE) Header() http.Header {
 		"Content-Length":      []string{strconv.FormatInt(this.Size, 10)},
 	}
 }
+
+type READER struct {
+	io.ReadCloser
+}
+
+func (this *READER) Read(p []byte) (int, error) {
+	if this.ReadCloser == nil {
+		return 0, io.EOF
+	}
+	return this.ReadCloser.Read(p)
+}
+
+func (this *READER) Header() http.Header {
+	return http.Header{}
+}
