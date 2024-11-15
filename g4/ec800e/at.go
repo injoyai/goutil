@@ -269,6 +269,13 @@ func (this *AT) deal(bs []byte) {
 			//信号数据
 			this.wait.Done("+CSQ", s[6:])
 
+		case strings.HasPrefix(s, "+QLTS: "):
+			//网络时间 +QLTS: "2019/01/13,03:40:48+32,0"
+			if len(s[7:]) >= 20 {
+				logs.Debug(s[8:27])
+				this.wait.Done("+QLTS", s[8:27])
+			}
+
 		case strings.HasPrefix(s, "+QPING: "):
 			//ping响应
 			/*
@@ -557,4 +564,14 @@ func (this *AT) CPIN() (bool, error) {
 		return false, err
 	}
 	return result == "READY", nil
+}
+
+// GetTime 获取网络时间
+func (this *AT) GetTime() (time.Time, error) {
+	command := "+QLTS"
+	result, err := this.send(command, this.encode(command+"=1")) //=0不准
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Parse("2006/01/02,15:04:05", result)
 }
