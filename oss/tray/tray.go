@@ -60,9 +60,8 @@ func (this *UI) SetHint(hint string) *UI {
 }
 
 // AddSeparator 添加分割线
-func (this *UI) AddSeparator() *UI {
+func (this *UI) AddSeparator() {
 	systray.AddSeparator()
-	return this
 }
 
 // AddMenu 添加普通菜单
