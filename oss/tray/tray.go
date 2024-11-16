@@ -37,7 +37,7 @@ func Run(op ...Option) <-chan struct{} {
 	systray.Run(
 		func() {
 			ui.SetHint("Go 程序")
-			ui.SetIcon(DefaultIcon)
+			ui.SetIco(DefaultIcon)
 			for _, v := range op {
 				v(ui)
 			}
@@ -53,8 +53,8 @@ type UI struct {
 	OnClose func()
 }
 
-// SetIcon 设置图标
-func (this *UI) SetIcon(icon []byte) *UI {
+// SetIco 设置图标
+func (this *UI) SetIco(icon []byte) *UI {
 	systray.SetIcon(icon)
 	return this
 }
@@ -140,7 +140,7 @@ func (this *Menu) OnClick(fn func()) *Menu {
 	return this
 }
 
-func (this *Menu) SetIcon(icon []byte) *Menu {
+func (this *Menu) SetIco(icon []byte) *Menu {
 	this.MenuItem.SetIcon(icon)
 	return this
 }
