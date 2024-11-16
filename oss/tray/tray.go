@@ -3,80 +3,105 @@ package tray
 import (
 	"github.com/getlantern/systray"
 	"github.com/injoyai/base/safe"
+	"github.com/injoyai/goutil/oss"
+	"github.com/injoyai/goutil/oss/win"
+	"path/filepath"
 )
 
-type Option func(ui *UI)
+type Option func(s *Stray)
 
+// WithStartup 添加自启菜单
+func WithStartup() Option {
+	return func(s *Stray) {
+		s.AddMenuCheck().SetName("自启").OnClick(func(m *Menu) {
+			filename := oss.ExecName()
+			if !m.Checked() {
+				win.CreateStartupShortcut(filename)
+			} else {
+				oss.Remove(oss.UserStartupDir(filepath.Base(filename) + ".link"))
+			}
+		})
+	}
+}
+
+// WithShow 添加显示GUI
+func WithShow(f func(m *Menu)) Option {
+	return func(s *Stray) {
+		s.AddMenu().SetName("显示").OnClick(f)
+	}
+}
+
+// WithSeparator 添加横线
 func WithSeparator() Option {
-	return func(ui *UI) {
+	return func(ui *Stray) {
 		ui.AddSeparator()
 	}
 }
 
+// WithExit 添加退出菜单
 func WithExit() Option {
-	return func(ui *UI) {
-		ui.AddMenu().
+	return func(s *Stray) {
+		s.AddMenu().
 			SetName("退出").
-			OnClick(func() {
-				ui.Close()
+			OnClick(func(m *Menu) {
+				s.Close()
 			})
 	}
 }
 
 func Run(op ...Option) <-chan struct{} {
-	ui := &UI{
+	s := &Stray{
 		Closer: safe.NewCloser(),
 	}
-	ui.Closer.SetCloseFunc(func(err error) error {
-		if ui.OnClose != nil {
-			ui.OnClose()
+	s.Closer.SetCloseFunc(func(err error) error {
+		if s.OnClose != nil {
+			s.OnClose()
 		}
 		systray.Quit()
 		return nil
 	})
 	systray.Run(
 		func() {
-			ui.SetHint("Go 程序")
-			ui.SetIco(DefaultIcon)
+			s.SetHint("Go 程序")
+			s.SetIco(DefaultIcon)
 			for _, v := range op {
-				v(ui)
+				v(s)
 			}
 		},
-		func() { ui.Closer.Close() },
+		func() { s.Closer.Close() },
 	)
-	return ui.Closer.Done()
+	return s.Closer.Done()
 }
 
-type UI struct {
+type Stray struct {
 	*safe.Closer
-	OnReady []func()
 	OnClose func()
 }
 
 // SetIco 设置图标
-func (this *UI) SetIco(icon []byte) *UI {
+func (this *Stray) SetIco(icon []byte) *Stray {
 	systray.SetIcon(icon)
 	return this
 }
 
 // SetHint 设置提示
-func (this *UI) SetHint(hint string) *UI {
+func (this *Stray) SetHint(hint string) *Stray {
 	systray.SetTooltip(hint)
 	return this
 }
 
 // AddSeparator 添加分割线
-func (this *UI) AddSeparator() {
+func (this *Stray) AddSeparator() {
 	systray.AddSeparator()
 }
 
 // AddMenu 添加普通菜单
-func (this *UI) AddMenu() *Menu {
+func (this *Stray) AddMenu() *Menu {
 	return NewMenu()
 }
 
 // AddMenuCheck 添加选择菜单
-func (this *UI) AddMenuCheck() *MenuCheck {
+func (this *Stray) AddMenuCheck() *MenuCheck {
 	return NewMenuCheck()
 }
 
@@ -119,7 +144,7 @@ func newMenu(mu *systray.MenuItem) *Menu {
 type Menu struct {
 	*systray.MenuItem
 	*safe.Closer
-	onClick func()
+	onClick func(m *Menu)
 }
 
 func (this *Menu) run() {
@@ -129,13 +154,13 @@ func (this *Menu) run() {
 			return
 		case <-this.MenuItem.ClickedCh:
 			if this.onClick != nil {
-				this.onClick()
+				this.onClick(this)
 			}
 		}
 	}
 }
 
-func (this *Menu) OnClick(fn func()) *Menu {
+func (this *Menu) OnClick(fn func(m *Menu)) *Menu {
 	this.onClick = fn
 	return this
 }
