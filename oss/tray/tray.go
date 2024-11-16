@@ -7,6 +7,12 @@ import (
 
 type Option func(ui *UI)
 
+func WithSeparator() Option {
+	return func(ui *UI) {
+		ui.AddSeparator()
+	}
+}
+
 func WithExit() Option {
 	return func(ui *UI) {
 		ui.AddMenu().
