@@ -7,6 +7,7 @@ import (
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
 	"github.com/injoyai/goutil/oss"
+	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -54,6 +55,14 @@ func CreateStartupShortcut(target string) error {
 	return shortcut.Create()
 }
 
+// RemoveStartupShortcut 一处开机自启快捷方式
+func RemoveStartupShortcut(target string) error {
+	_, name := filepath.Split(target)
+	name = strings.Split(name, ".")[0]
+	filename := oss.UserStartupDir(name + ".lnk")
+	return os.Remove(filename)
+}
+
 // CreateDesktopShortcut 创建桌面快捷方式
 // 例 CreateDesktopShortcut("google","https://google.cn")
 func CreateDesktopShortcut(name, target string) error {
@@ -73,6 +82,16 @@ func CreateDesktopShortcut(name, target string) error {
 		WorkingDirectory: "",
 	}
 	return shortcut.Create()
+}
+
+// RemoveDesktopShortcut 删除桌面快捷方式
+func RemoveDesktopShortcut(name string) error {
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+	shortcutPath := filepath.Join(u.HomeDir, "Desktop", name+".lnk")
+	return os.Remove(shortcutPath)
 }
 
 // CreateShortcut 创建快捷方式
