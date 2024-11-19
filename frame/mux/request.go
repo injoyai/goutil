@@ -78,9 +78,7 @@ func (this *Request) Parse(ptr interface{}) {
 					m[k] = v[0]
 				}
 				err := conv.Unmarshal(this.Request.Form, ptr)
-				if err != nil {
-					in.Json415(err)
-				}
+				in.CheckErr(err)
 			}
 		}
 	} else {
@@ -89,25 +87,19 @@ func (this *Request) Parse(ptr interface{}) {
 		bs, err := io.ReadAll(this.Body)
 		in.CheckErr(err)
 		err = conv.Unmarshal(bs, ptr)
-		if err != nil {
-			in.Json415(err)
-		}
+		in.CheckErr(err)
 	}
 
 	//先尝试从header获取参数,也就是说改优先级最低
 	if m := this.GetHeaderGMap(); len(m) > 0 {
 		err := conv.Unmarshal(m, ptr)
-		if err != nil {
-			in.Json415(err)
-		}
+		in.CheckErr(err)
 	}
 
 	//再尝试从url获取
 	if m := this.GetQueryGMap(); len(m) > 0 {
 		err := conv.Unmarshal(m, ptr)
-		if err != nil {
-			in.Json415(err)
-		}
+		in.CheckErr(err)
 	}
 
 }
