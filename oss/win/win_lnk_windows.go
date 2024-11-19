@@ -7,6 +7,7 @@ import (
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
 	"github.com/injoyai/goutil/oss"
+	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -32,47 +33,61 @@ type Shortcut struct {
 	WorkingDirectory string
 }
 
+// Create 创建快捷方式
 func (this *Shortcut) Create() error {
 	return CreateShortcut(this)
 }
 
-// CreateStartupShortcut 创建开机自启快捷方式
-func CreateStartupShortcut(target string) error {
+// Remove 移除快捷方式
+func (this *Shortcut) Remove() error {
+	return os.Remove(this.ShortcutPath)
+}
+
+// NewStartupShortcut 新建开机自启实例
+func NewStartupShortcut(target string) *Shortcut {
 	_, name := filepath.Split(target)
 	name = strings.Split(name, ".")[0]
-	filename := oss.UserStartupDir(name + ".lnk")
-	shortcut := &Shortcut{
-		ShortcutPath:     filename,
-		Target:           target,
-		IconLocation:     "",
-		Arguments:        "",
-		Description:      "",
-		Hotkey:           "",
-		WindowStyle:      "1",
-		WorkingDirectory: "",
+	shortcutPath := oss.UserStartupDir(name + ".lnk")
+	return &Shortcut{
+		ShortcutPath: shortcutPath,
+		Target:       target,
+		WindowStyle:  "1",
 	}
-	return shortcut.Create()
+}
+
+// NewDesktopShortcut 新建桌面快捷方式实例
+func NewDesktopShortcut(name, target string) *Shortcut {
+	u, err := user.Current()
+	if err != nil {
+		return nil
+	}
+	shortcutPath := filepath.Join(u.HomeDir, "Desktop", name+".lnk")
+	return &Shortcut{
+		ShortcutPath: shortcutPath,
+		Target:       target,
+		WindowStyle:  "1",
+	}
+}
+
+// CreateStartupShortcut 创建开机自启快捷方式
+func CreateStartupShortcut(target string) error {
+	return NewStartupShortcut(target).Create()
+}
+
+// RemoveStartupShortcut 一处开机自启快捷方式
+func RemoveStartupShortcut(target string) error {
+	return NewStartupShortcut(target).Remove()
 }
 
 // CreateDesktopShortcut 创建桌面快捷方式
 // 例 CreateDesktopShortcut("google","https://google.cn")
 func CreateDesktopShortcut(name, target string) error {
-	u, err := user.Current()
-	if err != nil {
-		return err
-	}
-	shortcutPath := filepath.Join(u.HomeDir, "Desktop", name+".lnk")
-	shortcut := &Shortcut{
-		ShortcutPath:     shortcutPath,
-		Target:           target,
-		IconLocation:     "",
-		Arguments:        "",
-		Description:      "",
-		Hotkey:           "",
-		WindowStyle:      "1",
-		WorkingDirectory: "",
-	}
-	return shortcut.Create()
+	return NewDesktopShortcut(name, target).Create()
+}
+
+// RemoveDesktopShortcut 删除桌面快捷方式
+func RemoveDesktopShortcut(name string) error {
+	return NewDesktopShortcut(name, "").Remove()
 }
 
 // CreateShortcut 创建快捷方式

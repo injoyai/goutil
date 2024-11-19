@@ -58,6 +58,7 @@ require (
 	github.com/beevik/ntp v1.4.3
 	github.com/chromedp/chromedp v0.9.5
 	github.com/docker/distribution v2.8.3+incompatible // indirect
+	github.com/getlantern/systray v1.2.2
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4
 	github.com/gorilla/mux v1.8.0
