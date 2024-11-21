@@ -119,7 +119,13 @@ func (this *Request) GetVar(key string) *conv.Var {
 	}
 
 	//再从header获取参数
-	return this.GetHeaderVar(key)
+	v = this.GetHeaderVar(key)
+	if !v.IsNil() {
+		return v
+	}
+
+	//最后尝试从cache获取参数
+	return this.GetCache(key)
 }
 
 func (this *Request) GetQueryGMap() map[string]interface{} {
