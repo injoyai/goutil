@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type Option func(s *Server)
@@ -18,7 +19,44 @@ type Option func(s *Server)
 // WithCORS 设置跨域
 func WithCORS() Option {
 	return func(s *Server) {
-		s.Use(func(r *Request) { middle.WithCORS(r.Writer) })
+		s.Use(func(r *Request, next func()) {
+			next()
+			middle.WithCORS(r.Writer)
+		})
+	}
+}
+
+// WithSwagger 设置swagger
+func WithSwagger(swag *middle.Swagger) Option {
+	return func(s *Server) {
+		s.Use(func(r *Request, next func()) {
+			if swag.Use(r.Writer, r.Request) {
+				r.Exit()
+			}
+		})
+	}
+}
+
+// WithLog 设置日志
+func WithLog() Option {
+	return func(s *Server) {
+		s.Use(func(r *Request, next func()) {
+			start := time.Now()
+			defer func() { log.Printf("%-7s %s  耗时: %s\n", r.Method, r.URL, time.Now().Sub(start)) }()
+			next()
+		})
+	}
+}
+
+func WithPing(content ...interface{}) Option {
+	delete(in.DefaultClient.BindMap, "/ping")
+	return func(s *Server) {
+		s.GET("/ping", func(r *Request) {
+			if len(content) > 0 {
+				in.Text200(content[0])
+			}
+			in.Succ(nil)
+		})
 	}
 }
 
@@ -45,25 +83,39 @@ func New(op ...Option) *Server {
 
 type Server struct {
 	Port []int
+	use  []func(r *Request, next func())
 	*Grouper
 }
 
+// ServeHTTP 实现http.Handler接口
+func (this *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	req := NewRequest(w, r)
+	r = r.WithContext(context.WithValue(r.Context(), "request", req))
+	this.next(0, req)
+}
+
+// next 递归执行中间件,不用忘记调用next函数
+func (this *Server) next(i int, r *Request) {
+	if i >= len(this.use) {
+		this.Router.ServeHTTP(r.Writer, r.Request)
+	} else {
+		do := false
+		next := func() { do = true; this.next(i+1, r) }
+		this.use[i](r, next)
+		if !do {
+			next()
+		}
+	}
+}
+
+// SetPort 设置端口
 func (this *Server) SetPort(port ...int) *Server {
 	this.Port = port
 	return this
 }
 
-func (this *Server) Use(f ...func(r *Request)) {
-	this.Router.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			req := NewRequest(w, r)
-			for _, v := range f {
-				v(req)
-			}
-			r = r.WithContext(context.WithValue(r.Context(), "_cache", req.cache))
-			next.ServeHTTP(w, r)
-		})
-	})
+func (this *Server) Use(f ...func(r *Request, next func())) {
+	this.use = append(this.use, f...)
 }
 
 func (this *Server) Run() (err error) {
@@ -74,7 +126,7 @@ func (this *Server) Run() (err error) {
 		}()
 		s := &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
-			Handler: in.Recover(this.Router),
+			Handler: in.Recover(this),
 		}
 		log.Println("HTTP服务开启监听", s.Addr)
 		return s.ListenAndServe()
@@ -149,66 +201,42 @@ func (this *Grouper) StaticEmbed(path string, e embed.FS, dir string) error {
 }
 
 func (this *Grouper) ALL(path string, handler func(r *Request)) *Grouper {
-	path = this.Prefix + path
-	middle := this.middle
-	this.Router.Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodHead, http.MethodPatch, http.MethodConnect, http.MethodOptions, http.MethodTrace).
-		Path(path).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := NewRequest(w, r)
-		for _, f := range middle {
-			f(req)
-		}
-		handler(req)
-	})
-	return this
+	return this.do([]string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodHead, http.MethodPatch, http.MethodConnect, http.MethodOptions, http.MethodTrace}, path, handler)
 }
 
 func (this *Grouper) GET(path string, handler func(r *Request)) *Grouper {
-	path = this.Prefix + path
-	middle := this.middle
-	this.Router.Methods(http.MethodGet).Path(path).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := NewRequest(w, r)
-		for _, f := range middle {
-			f(req)
-		}
-		handler(req)
-	})
-	return this
+	return this.do([]string{http.MethodGet}, path, handler)
 }
 
 func (this *Grouper) POST(path string, handler func(r *Request)) *Grouper {
-	path = this.Prefix + path
-	middle := this.middle
-	this.Router.Methods(http.MethodPost).Path(path).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := NewRequest(w, r)
-		for _, f := range middle {
-			f(req)
-		}
-		handler(req)
-	})
-	return this
+	return this.do([]string{http.MethodPost}, path, handler)
 }
 
 func (this *Grouper) PUT(path string, handler func(r *Request)) *Grouper {
-	path = this.Prefix + path
-	middle := this.middle
-	this.Router.Methods(http.MethodPut).Path(path).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := NewRequest(w, r)
-		for _, f := range middle {
-			f(req)
-		}
-		handler(req)
-	})
-	return this
+	return this.do([]string{http.MethodPut}, path, handler)
 }
 
 func (this *Grouper) DELETE(path string, handler func(r *Request)) *Grouper {
+	return this.do([]string{http.MethodDelete}, path, handler)
+}
+
+func (this *Grouper) do(method []string, path string, handler func(r *Request)) *Grouper {
 	path = this.Prefix + path
-	middle := this.middle
-	this.Router.Methods(http.MethodDelete).Path(path).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := NewRequest(w, r)
-		for _, f := range middle {
+	middles := this.middle
+	this.Router.Methods(method...).Path(path).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req *Request
+		var ok bool
+
+		if v := r.Context().Value("request"); v == nil {
+			req = NewRequest(w, r)
+		} else if req, ok = v.(*Request); !ok {
+			req = NewRequest(w, r)
+		}
+
+		for _, f := range middles {
 			f(req)
 		}
+
 		handler(req)
 	})
 	return this

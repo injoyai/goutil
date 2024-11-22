@@ -8,29 +8,52 @@ import (
 )
 
 var DefaultSwagger = &Swagger{
-	Path:     "/swagger/swagger.json",
+	Path:     "/swagger",
+	JsonPath: "/swagger/swagger.json",
 	Filename: "./docs/swagger.json",
 }
 
 type Swagger struct {
-	Path     string //json路由 例/swagger/swagger.json
+	Path     string //swagger的路由
+	JsonPath string //json路由
 	Filename string //json文件名称
 }
 
-func (this *Swagger) UI(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf(swaggerUI, this.Path)))
-	w.WriteHeader(200)
+func (this *Swagger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Path {
+	case this.Path:
+		DefaultSwagger.UI(w)
+	case this.JsonPath:
+		DefaultSwagger.Json(w)
+	}
 }
 
-func (this *Swagger) Json(w http.ResponseWriter, r *http.Request) {
+func (this *Swagger) Use(w http.ResponseWriter, r *http.Request) bool {
+	switch r.URL.Path {
+	case this.Path:
+		DefaultSwagger.UI(w)
+		return true
+	case this.JsonPath:
+		DefaultSwagger.Json(w)
+		return true
+	}
+	return false
+}
+
+func (this *Swagger) UI(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf(swaggerUI, this.JsonPath)))
+}
+
+func (this *Swagger) Json(w http.ResponseWriter) {
 	f, err := os.Open(this.Filename)
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 	defer f.Close()
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 	io.Copy(w, f)
 }
 
