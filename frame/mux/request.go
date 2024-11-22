@@ -45,6 +45,10 @@ type Request struct {
 	handler   func(*Request)
 }
 
+func (this *Request) Exit() {
+	in.DefaultClient.Exit()
+}
+
 func (this *Request) GetRequest() *http.Request {
 	return this.Request
 }
