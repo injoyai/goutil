@@ -70,8 +70,17 @@ func Open(number int) (Pin, error) {
 	return p, p.Open()
 }
 
-// OpenOut 打开引脚并设置输出
-func OpenOut(number int) (Pin, error) {
+// OpenInput 打开引脚并设置输入
+func OpenInput(number int) (Pin, error) {
+	p := &pin{number: number}
+	if err := p.Open(); err != nil {
+		return nil, err
+	}
+	return p, p.SetModel(Input)
+}
+
+// OpenOutput 打开引脚并设置输出
+func OpenOutput(number int) (Pin, error) {
 	p := &pin{number: number}
 	if err := p.Open(); err != nil {
 		return nil, err
