@@ -70,6 +70,24 @@ func Open(number int) (Pin, error) {
 	return p, p.Open()
 }
 
+// OpenInput 打开引脚并设置输入
+func OpenInput(number int) (Pin, error) {
+	p := &pin{number: number}
+	if err := p.Open(); err != nil {
+		return nil, err
+	}
+	return p, p.SetModel(Input)
+}
+
+// OpenOutput 打开引脚并设置输出
+func OpenOutput(number int) (Pin, error) {
+	p := &pin{number: number}
+	if err := p.Open(); err != nil {
+		return nil, err
+	}
+	return p, p.SetModel(Output)
+}
+
 // Close 关闭引脚
 func Close(number int) error {
 	_, err := shell.SH.Execf("echo %d > %s/unexport", number, gpioDir)
@@ -106,7 +124,7 @@ func (this *pin) GetModel() (Model, error) {
 }
 
 func (this *pin) SetModel(model Model) error {
-	_, err := shell.SH.Execf("echo %d > %s/direction", model, gpioDir)
+	_, err := shell.SH.Execf("echo '%s' > %s/gpio%d/direction", model, gpioDir, this.number)
 	return err
 }
 
