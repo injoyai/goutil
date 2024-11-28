@@ -10,6 +10,13 @@ import (
 
 type Option func(s *Stray)
 
+// WithLabel 新增Label菜单
+func WithLabel(name string) Option {
+	return func(s *Stray) {
+		s.AddMenu().SetName(name).Disable()
+	}
+}
+
 // WithStartup 添加自启菜单
 func WithStartup() Option {
 	return func(s *Stray) {
@@ -46,6 +53,13 @@ func WithExit() Option {
 			OnClick(func(m *Menu) {
 				s.Close()
 			})
+	}
+}
+
+// WithHint 修改提示信息
+func WithHint(hint string) Option {
+	return func(s *Stray) {
+		s.SetHint(hint)
 	}
 }
 
