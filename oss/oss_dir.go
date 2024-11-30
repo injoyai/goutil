@@ -21,8 +21,15 @@ func ExecName() string {
 }
 
 // ExecDir 当前执行的程序路径
-func ExecDir() string {
-	return filepath.Dir(ExecName())
+func ExecDir(join ...string) string {
+	dir := filepath.Dir(ExecName())
+	if len(join) == 0 {
+		return dir
+	}
+	ls := make([]string, len(join)+1)
+	ls[0] = dir
+	copy(ls[1:], join)
+	return filepath.Join(ls...)
 }
 
 // FuncName 当前执行的函数名称
@@ -38,9 +45,15 @@ func FuncDir() string {
 }
 
 // UserDir 系统用户路径 C:\Users\QL1211
-func UserDir() string {
+func UserDir(join ...string) string {
 	dir, _ := os.UserHomeDir()
-	return dir
+	if len(join) == 0 {
+		return dir
+	}
+	ls := make([]string, len(join)+1)
+	ls[0] = dir
+	copy(ls[1:], join)
+	return filepath.Join(ls...)
 }
 
 // UserDataDir 系统用户数据路径,AppData/Local
@@ -69,11 +82,6 @@ func UserDesktopDir(join ...string) string {
 // UserInjoyDir 个人数据路径
 func UserInjoyDir(join ...string) string {
 	return UserLocalDir(append([]string{DefaultName}, join...)...)
-}
-
-// UserInjoyCacheDir 个人缓存数据路径
-func UserInjoyCacheDir(join ...string) string {
-	return UserInjoyDir(append([]string{"/data/cache"}, join...)...)
 }
 
 // UserDefaultDir 默认系统用户数据子路径(个人使用)
