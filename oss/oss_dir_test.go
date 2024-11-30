@@ -7,7 +7,7 @@ import (
 
 func TestDir(t *testing.T) {
 	t.Log(ExecName())
-	t.Log(ExecDir())
+	t.Log(ExecDir("/a/b"))
 	t.Log(FuncName())
 	t.Log(FuncDir())
 	t.Log(UserDir())
