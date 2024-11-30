@@ -8,18 +8,18 @@ import (
 	"path/filepath"
 )
 
-type Option func(s *Stray)
+type Option func(s *Tray)
 
 // WithLabel 新增Label菜单
 func WithLabel(name string) Option {
-	return func(s *Stray) {
+	return func(s *Tray) {
 		s.AddMenu().SetName(name).Disable()
 	}
 }
 
 // WithStartup 添加自启菜单
 func WithStartup() Option {
-	return func(s *Stray) {
+	return func(s *Tray) {
 		s.AddMenuCheck().SetName("自启").OnClick(func(m *Menu) {
 			filename := oss.ExecName()
 			if !m.Checked() {
@@ -33,21 +33,21 @@ func WithStartup() Option {
 
 // WithShow 添加显示GUI
 func WithShow(f func(m *Menu)) Option {
-	return func(s *Stray) {
+	return func(s *Tray) {
 		s.AddMenu().SetName("显示").OnClick(f)
 	}
 }
 
 // WithSeparator 添加横线
 func WithSeparator() Option {
-	return func(ui *Stray) {
+	return func(ui *Tray) {
 		ui.AddSeparator()
 	}
 }
 
 // WithExit 添加退出菜单
 func WithExit() Option {
-	return func(s *Stray) {
+	return func(s *Tray) {
 		s.AddMenu().
 			SetName("退出").
 			OnClick(func(m *Menu) {
@@ -58,13 +58,13 @@ func WithExit() Option {
 
 // WithHint 修改提示信息
 func WithHint(hint string) Option {
-	return func(s *Stray) {
+	return func(s *Tray) {
 		s.SetHint(hint)
 	}
 }
 
 func Run(op ...Option) <-chan struct{} {
-	s := &Stray{
+	s := &Tray{
 		Closer: safe.NewCloser(),
 	}
 	s.Closer.SetCloseFunc(func(err error) error {
@@ -87,35 +87,35 @@ func Run(op ...Option) <-chan struct{} {
 	return s.Closer.Done()
 }
 
-type Stray struct {
+type Tray struct {
 	*safe.Closer
 	OnClose func()
 }
 
 // SetIco 设置图标
-func (this *Stray) SetIco(icon []byte) *Stray {
+func (this *Tray) SetIco(icon []byte) *Tray {
 	systray.SetIcon(icon)
 	return this
 }
 
 // SetHint 设置提示
-func (this *Stray) SetHint(hint string) *Stray {
+func (this *Tray) SetHint(hint string) *Tray {
 	systray.SetTooltip(hint)
 	return this
 }
 
 // AddSeparator 添加分割线
-func (this *Stray) AddSeparator() {
+func (this *Tray) AddSeparator() {
 	systray.AddSeparator()
 }
 
 // AddMenu 添加普通菜单
-func (this *Stray) AddMenu() *Menu {
+func (this *Tray) AddMenu() *Menu {
 	return NewMenu()
 }
 
 // AddMenuCheck 添加选择菜单
-func (this *Stray) AddMenuCheck() *MenuCheck {
+func (this *Tray) AddMenuCheck() *MenuCheck {
 	return NewMenuCheck()
 }
 
