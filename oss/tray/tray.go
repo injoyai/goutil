@@ -56,6 +56,13 @@ func WithExit() Option {
 	}
 }
 
+// WithIco 设置图标
+func WithIco(ico []byte) Option {
+	return func(s *Tray) {
+		s.SetIco(ico)
+	}
+}
+
 // WithHint 修改提示信息
 func WithHint(hint string) Option {
 	return func(s *Tray) {
