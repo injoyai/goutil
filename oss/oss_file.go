@@ -79,6 +79,7 @@ func New(filename string, v ...interface{}) error {
 	defer f.Close()
 	for _, k := range v {
 		switch r := k.(type) {
+		case nil:
 		case io.Reader:
 			if _, err = io.Copy(f, r); err != nil {
 				return err
