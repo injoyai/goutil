@@ -45,5 +45,6 @@ func Export(data [][]interface{}) (*bytes.Buffer, error) {
 			return nil, err
 		}
 	}
+	w.Flush()
 	return buf, nil
 }
