@@ -1,8 +1,9 @@
 package csv
 
 import (
-	"bufio"
+	"bytes"
 	"encoding/csv"
+	"github.com/injoyai/conv"
 	"os"
 )
 
@@ -33,7 +34,16 @@ func ImportRange(filename string, fn func(line []string) bool) error {
 	}
 }
 
-func Export(data [][]interface{}) (*bufio.Reader, error) {
-
-	return nil, nil
+func Export(data [][]interface{}) (*bytes.Buffer, error) {
+	buf := bytes.NewBuffer(nil)
+	if _, err := buf.WriteString("\xEF\xBB\xBF"); err != nil {
+		return nil, err
+	}
+	w := csv.NewWriter(buf)
+	for _, v := range data {
+		if err := w.Write(conv.Strings(v)); err != nil {
+			return nil, err
+		}
+	}
+	return buf, nil
 }
