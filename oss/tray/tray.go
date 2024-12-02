@@ -5,7 +5,9 @@ import (
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/win"
+	"github.com/injoyai/logs"
 	"path/filepath"
+	"strings"
 )
 
 type Option func(s *Tray)
@@ -20,12 +22,18 @@ func WithLabel(name string) Option {
 // WithStartup 添加自启菜单
 func WithStartup() Option {
 	return func(s *Tray) {
-		s.AddMenuCheck().SetName("自启").OnClick(func(m *Menu) {
-			filename := oss.ExecName()
+		filename := oss.ExecName()
+		_, name := filepath.Split(filename)
+		name = strings.Split(name, ".")[0]
+		startupFilename := oss.UserStartupDir(name + ".lnk")
+		s.AddMenuCheck().SetChecked(oss.Exists(startupFilename)).
+			SetName("自启").OnClick(func(m *Menu) {
 			if !m.Checked() {
-				win.CreateStartupShortcut(filename)
+				logs.PrintErr(win.CreateStartupShortcut(filename))
+				m.Check()
 			} else {
-				oss.Remove(oss.UserStartupDir(filepath.Base(filename) + ".link"))
+				logs.PrintErr(oss.Remove(startupFilename))
+				m.Uncheck()
 			}
 		})
 	}
