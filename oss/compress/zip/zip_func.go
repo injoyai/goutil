@@ -48,8 +48,12 @@ func compareZip(file *os.File, zipWriter *zip.Writer, prefix string, join bool) 
 	if join {
 		header.Name = filepath.Join(prefix, header.Name)
 		prefix = filepath.Join(prefix, fileInfo.Name())
-		header.Name = strings.ReplaceAll(header.Name, "\\", "/")
-		header.Method = zip.Deflate //压缩的关键
+		//header.Name = strings.ReplaceAll(header.Name, "\\", "/")
+		if fileInfo.IsDir() {
+			header.Name += "/"
+		} else {
+			header.Method = zip.Deflate //压缩的关键
+		}
 		writer, err := zipWriter.CreateHeader(header)
 		if err != nil {
 			return err
