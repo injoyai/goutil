@@ -8,7 +8,6 @@ import (
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/maps/wait"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/oss"
 	uuid "github.com/satori/go.uuid"
 	"math"
 	"runtime/debug"
@@ -147,34 +146,22 @@ func Done(key string, value interface{}) { wait.Done(key, value) }
 //========================================OS========================================
 
 // Input 监听用户输入
-func Input(hint ...interface{}) string { return oss.Input(hint...) }
+func Input(hint ...interface{}) (s string) {
+	if len(hint) > 0 {
+		fmt.Println(hint...)
+	}
+	fmt.Scanln(&s)
+	return
+}
 
 // InputVar 监听用户输入,返回*conv.Var
-func InputVar(hint ...interface{}) *conv.Var { return oss.InputVar(hint...) }
-
-// ListenExit 监听退出信号
-func ListenExit(fn ...func()) { oss.ListenExit(fn...) }
-
-// ExecName 当前执行的程序名称
-func ExecName() string { return oss.ExecName() }
-
-// ExecDir 当前执行的程序路径
-func ExecDir() string { return oss.ExecDir() }
-
-// FuncName 当前执行的函数名称
-func FuncName() string { return oss.FuncName() }
-
-// FuncDir 当前执行的函数路径
-func FuncDir() string { return oss.FuncDir() }
-
-// UserDir 系统用户路径
-func UserDir() string { return oss.UserDir() }
-
-// UserDataDir 系统用户数据路径
-func UserDataDir() string { return oss.UserDataDir() }
-
-// UserDefaultDir 默认系统用户数据子路径(个人使用)
-func UserDefaultDir() string { return oss.UserDefaultDir() }
+func InputVar(hint ...interface{}) *conv.Var {
+	input := Input(hint...)
+	if len(input) == 0 {
+		return conv.Nil()
+	}
+	return conv.New(input)
+}
 
 //========================================Math========================================
 
