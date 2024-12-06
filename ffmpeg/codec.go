@@ -12,3 +12,6 @@ const (
 	MPEG1     VCodec = "libx264"
 	msmpeg4v2 VCodec = "msmpeg4v2"
 )
+
+// ACodec 音频解码类型
+type ACodec string

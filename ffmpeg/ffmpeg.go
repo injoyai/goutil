@@ -24,10 +24,13 @@ func (this *Ffmpeg) SetOutput(output string) *Ffmpeg {
 
 // SetVideoCodec 设置输出的视频编码
 func (this *Ffmpeg) SetVideoCodec(codec string) *Ffmpeg {
+	this.Args["-codec:v"] = codec
 	return this
 }
 
+// SetAudioCodec 设置输出的音频编码
 func (this *Ffmpeg) SetAudioCodec(codec string) *Ffmpeg {
+	this.Args["-codec:a"] = codec
 	return this
 }
 
