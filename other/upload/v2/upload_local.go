@@ -1,7 +1,6 @@
 package upload
 
 import (
-	"github.com/injoyai/base/bytes/crypt/md5"
 	"github.com/injoyai/goutil/oss"
 	"io"
 	"os"
@@ -12,16 +11,14 @@ var _ Uploader = (*Local)(nil)
 
 var DefaultDir = oss.ExecDir("/data/upload/")
 
-func NewLocal(dir string, rename ...bool) Uploader {
+func NewLocal(dir string) *Local {
 	return &Local{
-		dir:    dir,
-		rename: len(rename) > 0 && rename[0],
+		dir: dir,
 	}
 }
 
 type Local struct {
-	dir    string
-	rename bool //是否重命名
+	dir string
 }
 
 func (this *Local) Upload(filename string, reader io.Reader) (URL, error) {
@@ -29,9 +26,6 @@ func (this *Local) Upload(filename string, reader io.Reader) (URL, error) {
 	dir = filepath.Join(this.dir, dir)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, err
-	}
-	if this.rename {
-		name = md5.Encrypt(name)
 	}
 	filename = filepath.Join(dir, name)
 	f, err := os.Create(filename)
