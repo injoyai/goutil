@@ -1,12 +1,12 @@
 package g
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/injoyai/base/bytes"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/script/js"
 	"github.com/injoyai/goutil/str"
-	json "github.com/json-iterator/go"
 	"sort"
 	"sync"
 )

@@ -7,7 +7,6 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/conv/codec"
-	"github.com/injoyai/goutil/oss/runtimes"
 	"math/rand"
 	"time"
 )
@@ -120,12 +119,6 @@ func Minute() int { return time.Now().Minute() }
 
 // Second 秒[0-59]
 func Second() int { return time.Now().Second() }
-
-//========================================Go========================================
-
-func Go(f runtimes.GoHandler, args ...interface{}) *runtimes.GoItem {
-	return runtimes.Go(f, args...)
-}
 
 //========================================Other========================================
 
