@@ -2,15 +2,15 @@ package upload
 
 import (
 	"fmt"
-	"github.com/injoyai/base/bytes/crypt/md5"
 	"github.com/minio/minio-go"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
-func NewMinio(cfg *MinioConfig) (Uploader, error) {
+func NewMinio(cfg *MinioConfig) (*Minio, error) {
 	secure := false
 	endpoint := cfg.Endpoint
 	switch {
@@ -35,7 +35,6 @@ type MinioConfig struct {
 	AccessKey  string //访问key
 	SecretKey  string //秘钥
 	BucketName string //桶名称
-	Rename     bool   //是否重命名文件
 }
 
 type Minio struct {
@@ -44,20 +43,17 @@ type Minio struct {
 }
 
 func (this *Minio) Upload(filename string, reader io.Reader) (URL, error) {
-	if this.cfg.Rename {
-		filename = md5.Encrypt(filename)
-	}
 	_, err := this.PutObject(this.cfg.BucketName, filename, reader, -1, minio.PutObjectOptions{})
 	return HttpUrl(fmt.Sprintf("%s/%s/%s", this.cfg.Endpoint, this.cfg.BucketName, filename)), err
 }
 
 func (this *Minio) List(join ...string) ([]*Info, error) {
 	list := []*Info(nil)
-	for v := range this.Client.ListObjects(this.cfg.BucketName, "", false, make(chan struct{})) {
+	for v := range this.Client.ListObjectsV2(this.cfg.BucketName, filepath.Join(join...), true, make(chan struct{})) {
 		list = append(list, &Info{
 			Name: fmt.Sprintf("%s/%s/%s", this.cfg.Endpoint, this.cfg.BucketName, v.Key),
 			Size: v.Size,
-			Dir:  false,
+			Dir:  v.Size == 0 && v.Owner.ID == "",
 			Time: v.LastModified.Unix(),
 		})
 	}
