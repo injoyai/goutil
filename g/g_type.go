@@ -13,11 +13,10 @@ type (
 	Any   = interface{}
 	List  []interface{}
 	Bytes = bytes.Entity
+	M     = Map
 )
 
 //========================================Map========================================
-
-type M = Map
 
 type Map map[string]interface{}
 
