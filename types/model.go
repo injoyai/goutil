@@ -1,14 +1,14 @@
 package types
 
 type Resp struct {
-	Code interface{} `json:"code"` //状态
-	Data interface{} `json:"data"` //数据
-	Msg  string      `json:"msg"`  //消息
+	Code interface{} `json:"code"`           //状态
+	Data interface{} `json:"data,omitempty"` //数据
+	Msg  string      `json:"msg,omitempty"`  //消息
 }
 
 type KV struct {
 	K string      `json:"key"`
-	V interface{} `json:"value"`
+	V interface{} `json:"value,omitempty"`
 	L string      `json:"label,omitempty"`
 }
 
