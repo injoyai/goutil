@@ -2,7 +2,6 @@ package stun
 
 import (
 	"github.com/pion/stun"
-	"net"
 )
 
 var DefaultServer = "stun.l.google.com:19302"
@@ -38,9 +37,4 @@ func GetNetAddr(serverAddr ...string) (addr stun.XORMappedAddress, err error) {
 	}
 
 	return
-}
-
-type NetAddr struct {
-	IP   net.IP
-	Port int
 }
