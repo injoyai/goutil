@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gorilla/websocket"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/frame/in/v3"
 	"net/http"
 )
 
@@ -16,17 +17,15 @@ const (
 	WSPong   = websocket.PongMessage
 )
 
-func (this *Request) Websocket() (*Websocket, error) {
+func (this *Request) Websocket() *Websocket {
 	up := websocket.Upgrader{
 		ReadBufferSize:  1024 * 2,
 		WriteBufferSize: 1024 * 2,
 		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
 	ws, err := up.Upgrade(this.Writer, this.Request, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &Websocket{ctx: this.Context(), Conn: ws}, nil
+	in.CheckErr(err)
+	return &Websocket{ctx: this.Context(), Conn: ws}
 }
 
 type Websocket struct {
