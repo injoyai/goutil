@@ -1,4 +1,4 @@
-package g
+package types
 
 type Resp struct {
 	Code interface{} `json:"code"` //状态
@@ -12,7 +12,7 @@ type KV struct {
 	L string      `json:"label,omitempty"`
 }
 
-type Msg struct {
+type Message struct {
 	Type string      `json:"type"`           //请求类型,例如测试连接ping,写入数据write... 推荐请求和响应通过code区分
 	Code int         `json:"code,omitempty"` //请求结果,推荐 请求:0(或null)  响应: 200成功,500失败... 同http好记一点
 	UID  string      `json:"uid,omitempty"`  //消息的唯一ID,例如UUID
@@ -21,17 +21,17 @@ type Msg struct {
 }
 
 // IsRequest 默认code为0是,视作请求
-func (this *Msg) IsRequest() bool {
+func (this *Message) IsRequest() bool {
 	return this.Code == 0
 }
 
 // IsResponse 默认code>0时视为响应
-func (this *Msg) IsResponse() bool {
+func (this *Message) IsResponse() bool {
 	return this.Code != 0
 }
 
-func (this *Msg) Response(code int, data interface{}, msg string) *Msg {
-	return &Msg{
+func (this *Message) Response(code int, data interface{}, msg string) *Message {
+	return &Message{
 		Type: this.Type,
 		Code: code,
 		UID:  this.UID,
