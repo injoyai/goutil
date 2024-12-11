@@ -154,6 +154,16 @@ func Input(hint ...interface{}) (s string) {
 	return
 }
 
+// InputUntil 监听用户输入直到满足条件
+func InputUntil(hint string, f func(s string) bool) (s string) {
+	for {
+		s = Input(hint)
+		if f(s) {
+			return
+		}
+	}
+}
+
 // InputVar 监听用户输入,返回*conv.Var
 func InputVar(hint ...interface{}) *conv.Var {
 	input := Input(hint...)
