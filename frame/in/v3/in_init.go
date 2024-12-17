@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 )
 
@@ -159,5 +160,163 @@ func Errf(format string, args ...interface{}) {
 func CheckErr(err error, failMsg ...string) {
 	if err != nil {
 		Err(conv.DefaultString(err.Error(), failMsg...))
+	}
+}
+
+// Range 取值范围
+func Range(value interface{}, min, max int, message string) {
+	Min(value, min, message)
+	Max(value, max, message)
+}
+
+// Min 介于当前go mod版本
+func Min(value interface{}, min int, message string) {
+	fail := true
+	switch val := value.(type) {
+	case nil:
+
+	case int:
+		fail = val < min
+
+	case int8:
+		fail = int(val) < min
+
+	case int16:
+		fail = int(val) < min
+
+	case int32:
+		fail = int(val) < min
+
+	case int64:
+		fail = int(val) < min
+
+	case uint:
+		fail = int(val) < min
+
+	case uint8:
+		fail = int(val) < min
+
+	case uint16:
+		fail = int(val) < min
+
+	case uint32:
+		fail = int(val) < min
+
+	case uint64:
+		fail = int(val) < min
+
+	case float32:
+		fail = val < float32(min)
+
+	case float64:
+		fail = val < float64(min)
+
+	case string:
+		fail = len(val) < min
+
+	case []byte:
+		fail = len(val) < min
+
+	default:
+
+		r := reflect.ValueOf(value)
+		switch r.Kind() {
+		case reflect.Pointer:
+			Min(r.Elem().Interface(), min, message)
+			return
+
+		case reflect.Slice, reflect.Array:
+			fail = r.Len() < min
+
+		case reflect.Map:
+			fail = r.Len() < min
+
+		case reflect.Chan:
+			fail = r.Len() < min
+
+		default:
+
+		}
+
+	}
+
+	if fail {
+		Err(message)
+	}
+}
+
+// Max 介于当前go mod版本
+func Max(value interface{}, max int, message string) {
+	fail := true
+	switch val := value.(type) {
+	case nil:
+
+	case int:
+		fail = val > max
+
+	case int8:
+		fail = int(val) > max
+
+	case int16:
+		fail = int(val) > max
+
+	case int32:
+		fail = int(val) > max
+
+	case int64:
+		fail = int(val) > max
+
+	case uint:
+		fail = int(val) > max
+
+	case uint8:
+		fail = int(val) > max
+
+	case uint16:
+		fail = int(val) > max
+
+	case uint32:
+		fail = int(val) > max
+
+	case uint64:
+		fail = int(val) > max
+
+	case float32:
+		fail = val > float32(max)
+
+	case float64:
+		fail = val > float64(max)
+
+	case string:
+		fail = len(val) > max
+
+	case []byte:
+		fail = len(val) > max
+
+	default:
+
+		r := reflect.ValueOf(value)
+		switch r.Kind() {
+		case reflect.Pointer:
+			Max(r.Elem().Interface(), max, message)
+			return
+
+		case reflect.Slice, reflect.Array:
+			fail = r.Len() > max
+
+		case reflect.Map:
+			fail = r.Len() > max
+
+		case reflect.Chan:
+			fail = r.Len() > max
+
+		default:
+
+		}
+
+	}
+
+	if fail {
+		Err(message)
 	}
 }
