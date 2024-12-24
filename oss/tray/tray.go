@@ -1,6 +1,7 @@
 package tray
 
 import (
+	"fmt"
 	"github.com/getlantern/systray"
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/goutil/oss"
@@ -117,6 +118,11 @@ func (this *Tray) SetIco(icon []byte) *Tray {
 func (this *Tray) SetHint(hint string) *Tray {
 	systray.SetTooltip(hint)
 	return this
+}
+
+// SetHintf 设置提示,格式化
+func (this *Tray) SetHintf(format string, args ...interface{}) *Tray {
+	return this.SetHint(fmt.Sprintf(format, args...))
 }
 
 // AddSeparator 添加分割线
