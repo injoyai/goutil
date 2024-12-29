@@ -47,27 +47,24 @@ func (this *File) GetAndSetByExtend(key string, extend conv.Extend) interface{} 
 	return val
 }
 
+// Set 设置参数
+func (this *File) Set(key string, val interface{}) *File {
+	this.Map.Set(key, val)
+	return this
+}
+
 // SetMap 批量设置参数
-func (this *File) SetMap(m map[string]interface{}) {
+func (this *File) SetMap(m map[string]interface{}) *File {
 	for k, v := range m {
 		this.Set(k, v)
 	}
-}
-
-// Get 获取参数
-func (this *File) Get(key string) (interface{}, bool) {
-	v := this.Map.GetVar(key)
-	return v.Val(), !v.IsNil()
-}
-
-// Set 设置参数
-func (this *File) Set(key string, val interface{}) {
-	this.Map.Set(key, val)
+	return this
 }
 
 // Del 删除参数
-func (this *File) Del(key string) {
+func (this *File) Del(key string) *File {
 	this.Map.Del(key)
+	return this
 }
 
 // Save 保存配置文件,存在则覆盖
