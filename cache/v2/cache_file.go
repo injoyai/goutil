@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -15,7 +15,7 @@ func newFile(name, group string) *File {
 		name:  name,
 		group: group,
 	}
-	bs, _ := ioutil.ReadFile(data.Filename())
+	bs, _ := os.ReadFile(data.Filename())
 	data.Map = conv.NewMap(bs)
 	return data
 }
@@ -47,24 +47,27 @@ func (this *File) GetAndSetByExtend(key string, extend conv.Extend) interface{} 
 	return val
 }
 
-// Set 设置参数
-func (this *File) Set(key string, val interface{}) *File {
-	this.Map.Set(key, val)
-	return this
-}
-
 // SetMap 批量设置参数
-func (this *File) SetMap(m map[string]interface{}) *File {
+func (this *File) SetMap(m map[string]interface{}) {
 	for k, v := range m {
 		this.Set(k, v)
 	}
-	return this
+}
+
+// Get 获取参数
+func (this *File) Get(key string) (interface{}, bool) {
+	v := this.Map.GetVar(key)
+	return v.Val(), !v.IsNil()
+}
+
+// Set 设置参数
+func (this *File) Set(key string, val interface{}) {
+	this.Map.Set(key, val)
 }
 
 // Del 删除参数
-func (this *File) Del(key string) *File {
+func (this *File) Del(key string) {
 	this.Map.Del(key)
-	return this
 }
 
 // Save 保存配置文件,存在则覆盖
