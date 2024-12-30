@@ -9,6 +9,6 @@ func Start2(filename string) error {
 }
 
 var (
-	StartFormat = "systemctl stop %s"
-	KillFormat  = "systemctl start %s"
+	StartFormat = "systemctl start %s"
+	KillFormat  = "systemctl stop %s"
 )
