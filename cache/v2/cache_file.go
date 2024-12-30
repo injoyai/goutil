@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -15,7 +15,7 @@ func newFile(name, group string) *File {
 		name:  name,
 		group: group,
 	}
-	bs, _ := ioutil.ReadFile(data.Filename())
+	bs, _ := os.ReadFile(data.Filename())
 	data.Map = conv.NewMap(bs)
 	return data
 }
