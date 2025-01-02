@@ -42,6 +42,11 @@ func Recover(h http.Handler) http.Handler {
 	return DefaultClient.Recover(h)
 }
 
+// RecoverFunc 对http.Handler使用中间件
+func RecoverFunc(f func(w http.ResponseWriter, r *http.Request)) http.Handler {
+	return DefaultClient.Recover(http.HandlerFunc(f))
+}
+
 // MiddleRecover 捕捉panic,或自定义panic,并输出到http.ResponseWriter
 func MiddleRecover(e interface{}, w http.ResponseWriter) {
 	DefaultClient.MiddleRecover(e, w)
