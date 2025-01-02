@@ -75,6 +75,7 @@ func WithExit(op ...OptionMenu) Option {
 	return func(s *Tray) {
 		s.AddMenu().
 			SetName("退出").
+			SetIcon(IconExit).
 			OnClick(func(m *Menu) {
 				s.Close()
 			}).
@@ -110,7 +111,7 @@ func Run(op ...Option) <-chan struct{} {
 	systray.Run(
 		func() {
 			s.SetHint("Go 程序")
-			s.SetIco(DefaultIcon)
+			s.SetIco(IconGo)
 			for _, v := range op {
 				v(s)
 			}
@@ -241,6 +242,11 @@ func (this *Menu) SetName(name string) *Menu {
 
 func (this *Menu) SetHint(hint string) *Menu {
 	this.MenuItem.SetTooltip(hint)
+	return this
+}
+
+func (this *Menu) SetIcon(icon []byte) *Menu {
+	this.MenuItem.SetIcon(icon)
 	return this
 }
 
