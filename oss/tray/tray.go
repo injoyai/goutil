@@ -5,6 +5,7 @@ import (
 	"github.com/getlantern/systray"
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/goutil/oss"
+	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/oss/win"
 	"github.com/injoyai/logs"
 	"path/filepath"
@@ -20,6 +21,15 @@ type (
 func WithLabel(name string, op ...OptionMenu) Option {
 	return func(s *Tray) {
 		s.AddMenu().SetName(name).Disable().SetOptions(op...)
+	}
+}
+
+// WithShell 执行脚本
+func WithShell(name string, cmd string, op ...OptionMenu) Option {
+	return func(s *Tray) {
+		s.AddMenu().SetName(name).OnClick(func(m *Menu) {
+			shell.Run(cmd)
+		}).SetOptions(op...)
 	}
 }
 
