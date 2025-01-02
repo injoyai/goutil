@@ -11,39 +11,45 @@ import (
 	"strings"
 )
 
-type Option func(s *Tray)
+type (
+	Option     func(s *Tray)
+	OptionMenu func(m *Menu)
+)
 
 // WithLabel 新增Label菜单
-func WithLabel(name string) Option {
+func WithLabel(name string, op ...OptionMenu) Option {
 	return func(s *Tray) {
-		s.AddMenu().SetName(name).Disable()
+		s.AddMenu().SetName(name).Disable().SetOptions(op...)
 	}
 }
 
 // WithStartup 添加自启菜单
-func WithStartup() Option {
+func WithStartup(op ...OptionMenu) Option {
 	return func(s *Tray) {
 		filename := oss.ExecName()
 		_, name := filepath.Split(filename)
 		name = strings.Split(name, ".")[0]
 		startupFilename := oss.UserStartupDir(name + ".lnk")
-		s.AddMenuCheck().SetChecked(oss.Exists(startupFilename)).
-			SetName("自启").OnClick(func(m *Menu) {
-			if !m.Checked() {
-				logs.PrintErr(win.CreateStartupShortcut(filename))
-				m.Check()
-			} else {
-				logs.PrintErr(oss.Remove(startupFilename))
-				m.Uncheck()
-			}
-		})
+		s.AddMenuCheck().
+			SetChecked(oss.Exists(startupFilename)).
+			SetName("自启").
+			OnClick(func(m *Menu) {
+				if !m.Checked() {
+					logs.PrintErr(win.CreateStartupShortcut(filename))
+					m.Check()
+				} else {
+					logs.PrintErr(oss.Remove(startupFilename))
+					m.Uncheck()
+				}
+			}).
+			SetOptions(op...)
 	}
 }
 
 // WithShow 添加显示GUI
-func WithShow(f func(m *Menu)) Option {
+func WithShow(f func(m *Menu), op ...OptionMenu) Option {
 	return func(s *Tray) {
-		s.AddMenu().SetName("显示").OnClick(f)
+		s.AddMenu().SetName("显示").OnClick(f).SetOptions(op...)
 	}
 }
 
@@ -55,13 +61,14 @@ func WithSeparator() Option {
 }
 
 // WithExit 添加退出菜单
-func WithExit() Option {
+func WithExit(op ...OptionMenu) Option {
 	return func(s *Tray) {
 		s.AddMenu().
 			SetName("退出").
 			OnClick(func(m *Menu) {
 				s.Close()
-			})
+			}).
+			SetOptions(op...)
 	}
 }
 
@@ -193,6 +200,13 @@ func (this *Menu) run() {
 			}
 		}
 	}
+}
+
+func (this *Menu) SetOptions(op ...OptionMenu) *Menu {
+	for _, v := range op {
+		v(this)
+	}
+	return this
 }
 
 func (this *Menu) OnClick(fn func(m *Menu)) *Menu {
