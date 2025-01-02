@@ -97,7 +97,7 @@ func WithHint(hint string) Option {
 	}
 }
 
-func Run(op ...Option) <-chan struct{} {
+func Run(op ...Option) error {
 	s := &Tray{
 		Closer: safe.NewCloser(),
 	}
@@ -118,7 +118,8 @@ func Run(op ...Option) <-chan struct{} {
 		},
 		func() { s.Closer.Close() },
 	)
-	return s.Closer.Done()
+	<-s.Closer.Done()
+	return s.Closer.Err()
 }
 
 type Tray struct {
