@@ -225,11 +225,6 @@ func (this *Menu) OnClick(fn func(m *Menu)) *Menu {
 	return this
 }
 
-func (this *Menu) SetIco(icon []byte) *Menu {
-	this.MenuItem.SetIcon(icon)
-	return this
-}
-
 func (this *Menu) AddMenu() *Menu {
 	mu := this.MenuItem.AddSubMenuItem("", "")
 	return newMenu(mu)

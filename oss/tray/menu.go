@@ -6,9 +6,9 @@ func Name(name string) OptionMenu {
 	}
 }
 
-func Ico(ico []byte) OptionMenu {
+func Icon(ico []byte) OptionMenu {
 	return func(m *Menu) {
-		m.SetIco(ico)
+		m.SetIcon(ico)
 	}
 }
 
