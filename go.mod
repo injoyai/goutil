@@ -63,6 +63,7 @@ require (
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4
 	github.com/gorilla/mux v1.8.0
 	github.com/jinzhu/gorm v1.9.11
+	github.com/jlaffaye/ftp v0.2.0
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/pion/stun v0.6.1
 	github.com/qiniu/x v7.0.8+incompatible // indirect
