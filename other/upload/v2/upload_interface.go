@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"errors"
 	"fmt"
 	"github.com/injoyai/conv"
 	"io"
@@ -36,6 +37,7 @@ var (
 	TypeMinio = "minio"
 	TypeQiniu = "qiniu"
 	TypeBaidu = "baidu"
+	TypeFtp   = "ftp"
 )
 
 func New(Type string, cfg conv.Extend) (Uploader, error) {
@@ -56,8 +58,22 @@ func New(Type string, cfg conv.Extend) (Uploader, error) {
 			Domain: cfg.GetString("domain"),
 			Space:  cfg.GetString("space"),
 		})
+	case TypeFtp:
+		return DialFTP(
+			cfg.GetString("address"),
+			cfg.GetString("username"),
+			cfg.GetString("password"),
+		)
 	case TypeBaidu:
 		return NewBaidu(), nil
 	}
 	return nil, fmt.Errorf("未知类型:%s", Type)
 }
+
+type Null string
+
+func (this Null) String() string {
+	return string(this)
+}
+
+func (this Null) Download(filename string) error { return errors.New("无下载地址") }
