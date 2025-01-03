@@ -1,7 +1,6 @@
 package upload
 
 import (
-	"errors"
 	"fmt"
 	"github.com/injoyai/conv"
 	"io"
@@ -69,11 +68,3 @@ func New(Type string, cfg conv.Extend) (Uploader, error) {
 	}
 	return nil, fmt.Errorf("未知类型:%s", Type)
 }
-
-type Null string
-
-func (this Null) String() string {
-	return string(this)
-}
-
-func (this Null) Download(filename string) error { return errors.New("无下载地址") }
