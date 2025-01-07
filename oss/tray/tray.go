@@ -63,6 +63,13 @@ func WithShow(f func(m *Menu), op ...OptionMenu) Option {
 	}
 }
 
+// WithSetting 配置菜单
+func WithSetting(f func(m *Menu), op ...OptionMenu) Option {
+	return func(s *Tray) {
+		s.AddMenu().SetName("配置").SetIcon(IconSetting).OnClick(f).SetOptions(op...)
+	}
+}
+
 // WithSeparator 添加横线
 func WithSeparator() Option {
 	return func(ui *Tray) {
