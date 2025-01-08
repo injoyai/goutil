@@ -56,6 +56,13 @@ func WithStartup(op ...OptionMenu) Option {
 	}
 }
 
+// WithButton 添加按钮
+func WithButton(name string, f func(m *Menu), op ...OptionMenu) Option {
+	return func(s *Tray) {
+		s.AddMenu().SetName(name).OnClick(f).SetOptions(op...)
+	}
+}
+
 // WithShow 添加显示GUI
 func WithShow(f func(m *Menu), op ...OptionMenu) Option {
 	return func(s *Tray) {
