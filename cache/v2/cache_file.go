@@ -10,7 +10,8 @@ import (
 	"path/filepath"
 )
 
-func newFile(name, group string) *File {
+func newFile(name string, groups ...string) *File {
+	group := conv.GetDefaultString("var", groups...)
 	data := &File{
 		name:  name,
 		group: group,
