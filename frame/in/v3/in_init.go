@@ -147,6 +147,10 @@ func Succ(data interface{}, count ...int64) { DefaultClient.Succ(data, count...)
 
 func Fail(data interface{}) { DefaultClient.Fail(data) }
 
+func Forbidden() { DefaultClient.Forbidden() }
+
+func Unauthorized() { DefaultClient.Unauthorized() }
+
 // Err 退出,并校验错误
 func Err(data interface{}, succData ...interface{}) {
 	if data == nil {
