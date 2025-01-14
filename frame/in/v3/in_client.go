@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"unsafe"
 )
 
 type Option func(c *Client)
@@ -39,11 +40,12 @@ func WithQL() Option {
 		c.SetExitOption(func(e *Exit) {
 			e.SetHeaderCORS()
 		})
-		c.SetStatusCode(
+		c.SetHandlerWithCode(
 			http.StatusOK,
 			http.StatusInternalServerError,
 			http.StatusUnauthorized,
-			http.StatusForbidden)
+			http.StatusForbidden,
+		)
 	}
 }
 
@@ -53,7 +55,7 @@ func WithQJ() Option {
 		c.SetExitOption(func(e *Exit) {
 			e.SetHeaderCORS()
 		})
-		c.SetStatusCode("SUCCESS", "FAIL", "FAIL", "FAIL")
+		c.SetHandlerWithCode("SUCCESS", "FAIL", "FAIL", "FAIL")
 		c.HandlerUnauthorized = func() { c.Text(http.StatusUnauthorized, "验证失败") }
 		c.HandlerForbidden = func() { c.Text(http.StatusForbidden, "没有权限") }
 	}
@@ -68,11 +70,12 @@ func New(op ...Option) *Client {
 		BindMap:     map[string]http.HandlerFunc{},
 	}
 	c.Bind("/ping", func(w http.ResponseWriter, r *http.Request) { c.Succ(nil) })
-	c.SetStatusCode(
+	c.SetHandlerWithCode(
 		http.StatusOK,
 		http.StatusInternalServerError,
 		http.StatusUnauthorized,
-		http.StatusForbidden)
+		http.StatusForbidden,
+	)
 	for _, f := range op {
 		f(c)
 	}
@@ -92,42 +95,12 @@ type Client struct {
 	HandlerForbidden    func()                                 //权限不足
 }
 
-// SetStatusCode 设置响应成功失败
-func (this *Client) SetStatusCode(succ, fail, unauthorized, forbidden interface{}) *Client {
-	this.HandlerSucc = func(data interface{}, count ...int64) {
-		if len(count) > 0 {
-			this.Json(http.StatusOK, &ResponseCount{
-				Code:    succ,
-				Data:    data,
-				Message: "成功",
-				Count:   count[0],
-			})
-			return
-		}
-		this.Json(http.StatusOK, &Response{
-			Code:    succ,
-			Data:    data,
-			Message: "成功",
-		})
-	}
-	this.HandlerFail = func(msg interface{}) {
-		this.Json(http.StatusOK, &Response{
-			Code:    fail,
-			Message: conv.String(msg),
-		})
-	}
-	this.HandlerUnauthorized = func() {
-		this.Json(http.StatusOK, &Response{
-			Code:    unauthorized,
-			Message: "验证失败",
-		})
-	}
-	this.HandlerForbidden = func() {
-		this.Json(http.StatusOK, &Response{
-			Code:    forbidden,
-			Message: "权限不足",
-		})
-	}
+// SetHandlerWithCode 设置响应成功失败等
+func (this *Client) SetHandlerWithCode(succ, fail, unauthorized, forbidden interface{}) *Client {
+	this.HandlerSucc = this.NewSuccWithCode(succ)
+	this.HandlerFail = this.NewFailWithCode(fail)
+	this.HandlerUnauthorized = this.NewUnauthorizedWithCode(unauthorized)
+	this.HandlerForbidden = this.NewForbiddenWithCode(forbidden)
 	return this
 }
 
@@ -187,20 +160,7 @@ func (this *Client) Exit() {
 // Succ 成功退出,自定义
 func (this *Client) Succ(data interface{}, count ...int64) {
 	if this.HandlerSucc == nil {
-		if len(count) > 0 {
-			this.Json(http.StatusOK, &ResponseCount{
-				Code:    http.StatusOK,
-				Data:    data,
-				Message: "成功",
-				Count:   count[0],
-			})
-			return
-		}
-		this.Json(http.StatusOK, &Response{
-			Code:    http.StatusOK,
-			Data:    data,
-			Message: "成功",
-		})
+		this.HandlerSucc = this.NewSuccWithCode(http.StatusOK)
 	}
 	this.HandlerSucc(data, count...)
 }
@@ -208,30 +168,21 @@ func (this *Client) Succ(data interface{}, count ...int64) {
 // Fail 失败退出,自定义
 func (this *Client) Fail(msg interface{}) {
 	if this.HandlerFail == nil {
-		this.Json(http.StatusOK, &Response{
-			Code:    http.StatusInternalServerError,
-			Message: conv.String(msg),
-		})
+		this.HandlerFail = this.NewFailWithCode(http.StatusInternalServerError)
 	}
 	this.HandlerFail(msg)
 }
 
 func (this *Client) Unauthorized() {
 	if this.HandlerUnauthorized == nil {
-		this.Json(http.StatusOK, &Response{
-			Code:    http.StatusUnauthorized,
-			Message: "验证失败",
-		})
+		this.HandlerUnauthorized = this.NewUnauthorizedWithCode(http.StatusUnauthorized)
 	}
 	this.HandlerUnauthorized()
 }
 
 func (this *Client) Forbidden() {
 	if this.HandlerForbidden == nil {
-		this.Json(http.StatusOK, &Response{
-			Code:    http.StatusForbidden,
-			Message: "没有权限",
-		})
+		this.HandlerForbidden = this.NewForbiddenWithCode(http.StatusForbidden)
 	}
 	this.HandlerForbidden()
 }
@@ -274,28 +225,29 @@ func (this *Client) Recover(h http.Handler) http.Handler {
 	})
 }
 
-// MiddleRecover 例gf等web框架只需要这一半即可
+// MiddleRecover 例gf等web框架只需要这一半即可,但是Bind会失效
 func (this *Client) MiddleRecover(e interface{}, w http.ResponseWriter) {
 	switch w2 := e.(type) {
 	case *Exit:
 		w2.WriteTo(w)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(conv.String(e)))
+		s := conv.String(e)
+		w.Write(*(*[]byte)(unsafe.Pointer(&s)))
 	}
 }
 
 //=================================Other=================================//
 
 func (this *Client) GetPageNum(r *http.Request) int {
-	if v, ok := r.URL.Query()[this.FiledPage]; ok {
-		return conv.Int(v) - 1
+	if v, ok := r.URL.Query()[this.FiledPage]; ok && len(v) > 0 {
+		return conv.Int(v[0]) - 1
 	}
 	return 0
 }
 
 func (this *Client) GetPageSize(r *http.Request) int {
-	if v, ok := r.URL.Query()[this.FiledSize]; ok {
+	if v, ok := r.URL.Query()[this.FiledSize]; ok && len(v) > 0 {
 		return conv.Int(v)
 	}
 	return this.DefaultSize

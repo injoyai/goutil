@@ -52,9 +52,9 @@ func MiddleRecover(e interface{}, w http.ResponseWriter) {
 	DefaultClient.MiddleRecover(e, w)
 }
 
-// SetStatusCode 设置常用响应的状态码
-func SetStatusCode(succ, fail, unauthorized, forbidden interface{}) *Client {
-	return DefaultClient.SetStatusCode(succ, fail, unauthorized, forbidden)
+// SetHandlerWithCode 设置常用响应的状态码
+func SetHandlerWithCode(succ, fail, unauthorized, forbidden interface{}) *Client {
+	return DefaultClient.SetHandlerWithCode(succ, fail, unauthorized, forbidden)
 }
 
 func GetPageNum(r *http.Request) int {
