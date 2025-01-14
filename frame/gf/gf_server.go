@@ -35,7 +35,7 @@ func New(name ...interface{}) *Server {
 	s.SetClientMaxBodySize(8 << 20) //设置body最大数据,8m
 	s.SetAccessLogEnabled(false)    //请求日志
 	s.SetErrorLogEnabled(false)     //错误日志
-	s.BindStatusHandler(404, func(r *ghttp.Request) {
+	s.BindStatusHandler(http.StatusNotFound, func(r *ghttp.Request) {
 		r.Response.ClearBuffer()
 		r.Response.WriteExit(html.PageNotFindRobot)
 	})
