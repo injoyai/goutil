@@ -49,3 +49,27 @@ type Obj struct {
 func (this *Obj) Print() {
 	fmt.Println(this.Name, this.Age)
 }
+
+func TestHTTP(t *testing.T) {
+	x := New(script.WithBaseFunc)
+	result, err := x.Exec(`
+x=logs.Debug(666)
+logs.Debug(x)
+logs.Debug(x[0],x[1])
+http.Url("http://192.168.192.2:8181").Get().GetBodyString()
+c=net.Dial("tcp",":10086")
+logs.Debug(c)
+sleep(5)
+c.Close()
+global.Map.Set("key",123)
+value=global.Map.GetString("key")
+logs.Debug(value)
+
+
+`)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(result)
+}

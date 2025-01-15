@@ -1,6 +1,15 @@
 package script
 
 func WithBaseFunc(i Client) {
+
+	i.Set("global", NewGlobal())
+	i.Set("net", new(Net))
+	i.Set("ios", new(Ios))
+	i.Set("logs", new(Logs))
+	i.Set("http", NewHTTP())
+	i.Set("conv", NewConv())
+	i.Set("cfg", NewCfg())
+
 	setFunc := i.Set
 	setFunc("print", funcPrint)
 	setFunc("println", funcPrintln)
@@ -46,7 +55,7 @@ func WithBaseFunc(i Client) {
 	setFunc("toBin", funcToBIN)
 	setFunc("toHex", funcToHex)
 	setFunc("getByte", funcGetByte)
-	setFunc("http", funcHTTP)
+	//setFunc("http", funcHTTP)
 	setFunc("udp", funcUDP)
 	setFunc("sum", funcSum)
 	setFunc("addInt", funcAddInt)

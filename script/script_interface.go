@@ -60,6 +60,14 @@ func (this *Args) GetMap(idx int, def ...map[string]interface{}) map[string]inte
 	return this.Get(idx).Map(def...)
 }
 
+func (this *Args) GetGMap(idx int, def ...map[string]interface{}) map[string]interface{} {
+	return this.Get(idx).GMap(def...)
+}
+
+func (this *Args) GetDMap(idx int, def ...interface{}) *conv.Map {
+	return this.Get(idx).DMap(def...)
+}
+
 func (this *Args) GetArray(idx int, def ...[]interface{}) []interface{} {
 	return this.Get(idx).Interfaces(def...)
 }

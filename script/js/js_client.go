@@ -57,6 +57,11 @@ func (this *Client) Tag() *maps.Safe {
 }
 
 func (this *Client) Exec(text string, option ...func(client script.Client)) (interface{}, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			panic(this.Otto.MakeCustomError("", fmt.Sprint(err)))
+		}
+	}()
 	for _, v := range option {
 		v(this)
 	}
@@ -137,7 +142,7 @@ func (this *Client) toFunc(fn script.Func) func(call otto.FunctionCall) otto.Val
 		if err != nil {
 			panic(err)
 		}
-		result, err := otto.ToValue(value)
+		result, err := this.ToValue(value)
 		if err != nil {
 			panic(err)
 		}

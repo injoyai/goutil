@@ -60,7 +60,7 @@ func funcSprintf(args *Args) interface{} {
 }
 
 func funcSleep(args *Args) {
-	time.Sleep(time.Duration(args.GetInt(1) * 1e6))
+	time.Sleep(time.Millisecond * time.Duration(args.GetFloat64(1)*1000))
 }
 
 var r = rand.New(rand.NewSource(time.Now().Unix()))
