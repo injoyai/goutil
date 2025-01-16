@@ -29,6 +29,10 @@ func funcGo(args *Args) error {
 	return nil
 }
 
+func funcPanic(args *Args) {
+	panic(args.Get(1).Val())
+}
+
 // funcPrint 打印输出
 func funcPrint(args *Args) error {
 	msg := fmt.Sprint(args.Interfaces()...)
