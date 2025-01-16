@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"github.com/injoyai/conv"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -22,12 +21,12 @@ func Read(filename string) ([]byte, error) {
 
 // ReadReader 读取reader
 func ReadReader(r io.Reader) ([]byte, error) {
-	return ioutil.ReadAll(r)
+	return io.ReadAll(r)
 }
 
 // ReadBytes 读取文件内容
 func ReadBytes(filename string) ([]byte, error) {
-	return ioutil.ReadFile(filename)
+	return os.ReadFile(filename)
 }
 
 // ReadString 读取文件
