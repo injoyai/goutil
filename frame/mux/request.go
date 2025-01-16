@@ -42,11 +42,26 @@ type Request struct {
 	QueryForm url.Values             //解析后的query参数
 	JsonFrom  map[string]interface{} //解析body后的json
 	cache     *maps.Safe
-	handler   func(*Request)
+	body      *[]byte
 }
 
 func (this *Request) Exit() {
 	in.DefaultClient.Exit()
+}
+
+func (this *Request) GetBodyBytes() []byte {
+	if this.body != nil {
+		return *this.body
+	}
+	defer this.Body.Close()
+	bs, err := io.ReadAll(this.Body)
+	in.CheckErr(err)
+	this.body = &bs
+	return bs
+}
+
+func (this *Request) GetBodyString() string {
+	return string(this.GetBodyBytes())
 }
 
 func (this *Request) GetRequest() *http.Request {
