@@ -71,8 +71,11 @@ func WithPrefix(prefix string) Option {
 }
 
 func New(op ...Option) *Server {
+	ctx, cancel := context.WithCancel(context.Background())
 	s := &Server{
 		Port:    []int{80},
+		ctx:     ctx,
+		cancel:  cancel,
 		Grouper: &Grouper{Router: mux.NewRouter()},
 	}
 	for _, v := range op {
@@ -82,9 +85,16 @@ func New(op ...Option) *Server {
 }
 
 type Server struct {
-	Port []int
-	use  []func(r *Request, next func())
+	Port   []int
+	use    []func(r *Request, next func())
+	ctx    context.Context
+	cancel context.CancelFunc
 	*Grouper
+}
+
+func (this *Server) Close() error {
+	this.cancel()
+	return nil
 }
 
 // ServeHTTP 实现http.Handler接口
@@ -128,6 +138,10 @@ func (this *Server) Run() (err error) {
 			Addr:    fmt.Sprintf(":%d", port),
 			Handler: in.Recover(this),
 		}
+		go func() {
+			<-this.ctx.Done()
+			s.Close()
+		}()
 		log.Println("HTTP服务开启监听", s.Addr)
 		return s.ListenAndServe()
 	}
