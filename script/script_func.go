@@ -3,17 +3,15 @@ package script
 import (
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"github.com/injoyai/base/bytes/crypt/crc"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/net/ip"
 	"github.com/injoyai/goutil/notice"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/str"
-	"github.com/injoyai/io/dial"
+	"github.com/robertkrimen/otto"
 	"math"
 	"math/rand"
 	"strings"
@@ -23,9 +21,13 @@ import (
 var (
 	holdTime  = maps.NewSafe()
 	holdCount = maps.NewSafe()
-	cacheMap  = maps.NewSafe()
-	udp       = maps.NewSafe()
 )
+
+func funcGo(args *Args) error {
+	f := args.Get(1).Val().(func(i ...interface{}) (otto.Value, error))
+	go f()
+	return nil
+}
 
 // funcPrint 打印输出
 func funcPrint(args *Args) error {
@@ -172,26 +174,6 @@ func funcHoldCount(args *Args) interface{} {
 	}
 	holdCount.Del(key)
 	return false
-}
-
-// funcSetCache 设置缓存
-func funcSetCache(args *Args) {
-	key := args.GetString(1)
-	val := args.GetString(2)
-	expiration := args.GetFloat64(3, 0)
-	cacheMap.Set(key, val, time.Duration(float64(time.Second)*expiration))
-}
-
-// funcGetCache 获取缓存
-func funcGetCache(args *Args) interface{} {
-	key := args.GetString(1)
-	return cacheMap.GetInterface(key)
-}
-
-// funcDelCache 删除缓存
-func funcDelCache(args *Args) {
-	key := args.GetString(1)
-	cacheMap.Del(key)
 }
 
 // funcLen 取字符长度
@@ -401,33 +383,6 @@ func funcShell(args *Args) (interface{}, error) {
 		return nil, err
 	}
 	return result.String(), nil
-}
-
-// funcHTTP http请求,协程执行
-func funcHTTP(args *Args) error {
-	method := strings.ToUpper(args.GetString(1))
-	url := args.GetString(2)
-	body := args.GetString(3)
-	expect := args.GetString(4) //预期 code=200
-	resp := http.Url(url).SetBody(body).SetMethod(method).Do()
-	if resp.Err() != nil {
-		return resp.Err()
-	}
-	m := resp.GetBodyDMap()
-	if list := strings.SplitN(expect, "=", 2); len(list) == 2 {
-		if m.GetString(list[0]) != list[1] {
-			return errors.New(resp.GetBodyString())
-		}
-	} else if m.GetInt("code") != 200 {
-		return errors.New(resp.GetBodyString())
-	}
-	return nil
-}
-
-func funcUDP(args *Args) error {
-	addr := args.GetString(1)
-	data := args.GetString(2)
-	return dial.WriteUDP(addr, []byte(data))
 }
 
 func funcCrc16(args *Args) interface{} {
