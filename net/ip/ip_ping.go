@@ -37,18 +37,24 @@ func NewPinger() *Pinger {
 			"www.tencent.com", //腾讯 约10ms
 		},
 		i:   0,
-		c:   nil,
 		t:   time.Second,
 		buf: make([]byte, 1024),
 	}
 }
 
 type Pinger struct {
+	net.Conn
 	Host []string
 	i    int
-	c    net.Conn
 	t    time.Duration
 	buf  []byte
+}
+
+func (this *Pinger) Close() error {
+	if this.Conn != nil {
+		return this.Conn.Close()
+	}
+	return nil
 }
 
 func (this *Pinger) SetTimeout(t time.Duration) *Pinger {
@@ -74,28 +80,28 @@ func (this *Pinger) For(ctx context.Context, interval time.Duration, f func(time
 }
 
 func (this *Pinger) Ping() (time.Duration, error) {
-	if this.c == nil {
+	if this.Conn == nil {
 		conn, err := net.DialTimeout("ip:icmp", this.Host[this.i%len(this.Host)], this.t)
 		if err != nil {
 			return 0, err
 		}
-		this.c = conn
+		this.Conn = conn
 		this.i++
 	}
 	t := time.Now()
-	if err := this.c.SetDeadline(time.Now().Add(this.t)); err != nil {
-		this.c = nil
+	if err := this.Conn.SetDeadline(time.Now().Add(this.t)); err != nil {
+		this.Conn = nil
 		return 0, err
 	}
-	if _, err := this.c.Write([]byte{
+	if _, err := this.Conn.Write([]byte{
 		8, 0, 247, 253, 0, 1, 0, 1, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0}); err != nil {
 		return 0, err
 	}
-	if _, err := this.c.Read(this.buf); err != nil {
-		this.c = nil
+	if _, err := this.Conn.Read(this.buf); err != nil {
+		this.Conn = nil
 		return 0, err
 	}
 	return time.Since(t), nil
