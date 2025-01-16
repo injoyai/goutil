@@ -23,6 +23,7 @@ func WithObject(i Client) {
 
 func WithFunc(i Client) {
 	i.Set("go", funcGo)
+	i.Set("panic", funcPanic)
 	i.Set("print", funcPrint)
 	i.Set("println", funcPrintln)
 	i.Set("printf", funcPrintf)

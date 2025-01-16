@@ -57,6 +57,7 @@ func TestHTTP(t *testing.T) {
 	})
 	result, err := x.Exec(`
 //test()
+//panic(668)
 x=logs.Debug(666)
 logs.Debug(x)
 logs.Debug(x[0],x[1])
