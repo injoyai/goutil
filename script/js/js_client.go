@@ -19,6 +19,7 @@ func New(option ...func(c script.Client)) *Client {
 	cli := &Client{
 		Otto: vm,
 	}
+	cli.Set("nil", otto.NullValue())
 	cli.SetFunc("print", func(args *script.Args) (interface{}, error) {
 		fmt.Println(args.Interfaces()...)
 		return nil, nil
@@ -36,7 +37,6 @@ func New(option ...func(c script.Client)) *Client {
 		}
 		return nil, nil
 	})
-	//cli.Exec("var console={\nlog:function(any){\nprint(any)\n}\n}")
 	for _, v := range option {
 		v(cli)
 	}
@@ -56,10 +56,10 @@ func (this *Client) Tag() *maps.Safe {
 	return this.tag
 }
 
-func (this *Client) Exec(text string, option ...func(client script.Client)) (interface{}, error) {
+func (this *Client) Exec(text string, option ...func(client script.Client)) (result interface{}, err error) {
 	defer func() {
-		if err := recover(); err != nil {
-			panic(this.Otto.MakeCustomError("", fmt.Sprint(err)))
+		if e := recover(); e != nil {
+			err = fmt.Errorf("%v", e)
 		}
 	}()
 	for _, v := range option {
@@ -119,7 +119,7 @@ func (this *Client) Close() error {
 }
 
 func (this *Client) toFunc(fn script.Func) func(call otto.FunctionCall) otto.Value {
-	return func(call otto.FunctionCall) otto.Value {
+	return func(call otto.FunctionCall) (val otto.Value) {
 		defer func() {
 			if err := recover(); err != nil {
 				panic(call.Otto.MakeCustomError("", fmt.Sprint(err)))
@@ -127,6 +127,12 @@ func (this *Client) toFunc(fn script.Func) func(call otto.FunctionCall) otto.Val
 		}()
 		args := []*conv.Var(nil)
 		for _, v := range call.ArgumentList {
+			if v.IsFunction() {
+				args = append(args, conv.New(func(i ...interface{}) (otto.Value, error) {
+					return v.Call(Nil)
+				}))
+				continue
+			}
 			val, err := v.Export()
 			if err != nil {
 				panic(err)

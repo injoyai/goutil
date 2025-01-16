@@ -99,7 +99,7 @@ type Decode struct {
 }
 
 func (this *Decode) newScript(cache g.Map, opts ...func(c script.Client)) script.Client {
-	s := js.New(script.WithBaseFunc)
+	s := js.New(script.WithFunc)
 	s.Set("get", func(args *script.Args) interface{} {
 		return cache[args.Get(1).String()]
 	})
