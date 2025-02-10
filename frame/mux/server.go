@@ -4,14 +4,19 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/gorilla/mux"
 	"github.com/injoyai/goutil/frame/in/v3"
 	"github.com/injoyai/goutil/frame/middle"
+	"github.com/injoyai/logs"
 	"io/fs"
-	"log"
 	"net/http"
 	"sync"
 	"time"
+)
+
+var (
+	Log = logs.NewEntity("信息").SetSelfLevel(logs.LevelInfo).SetColor(color.FgCyan).SetFormatter(logs.TimeFormatter)
 )
 
 type Option func(s *Server)
@@ -42,7 +47,7 @@ func WithLog() Option {
 	return func(s *Server) {
 		s.Use(func(r *Request, next func()) {
 			start := time.Now()
-			defer func() { log.Printf("%-7s %s  耗时: %s\n", r.Method, r.URL, time.Now().Sub(start)) }()
+			defer func() { Log.Printf("%-7s %s  耗时: %s\n", r.Method, r.URL, time.Now().Sub(start)) }()
 			next()
 		})
 	}
@@ -132,7 +137,7 @@ func (this *Server) Run() (err error) {
 
 	f := func(port int) (err error) {
 		defer func() {
-			log.Println("HTTP服务结束监听:", err)
+			Log.Println("HTTP服务结束监听:", err)
 		}()
 		s := &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
@@ -142,7 +147,7 @@ func (this *Server) Run() (err error) {
 			<-this.ctx.Done()
 			s.Close()
 		}()
-		log.Println("HTTP服务开启监听", s.Addr)
+		Log.Printf("[%s] 开启HTTP服务成功...\n", s.Addr)
 		return s.ListenAndServe()
 	}
 
