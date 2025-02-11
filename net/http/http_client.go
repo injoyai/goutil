@@ -134,29 +134,34 @@ func (this *Client) GetToWriterWithPlan(url string, w io.Writer, f func(p *Plan)
 }
 
 func (this *Client) GetToFile(url string, filename string) (int64, error) {
+	resp := this.DoRequest(http.MethodGet, url, nil)
+	if resp.Err() != nil {
+		return 0, resp.Err()
+	}
+	defer resp.Response.Body.Close()
 	w, err := os.Create(filename)
 	if err != nil {
 		return 0, err
 	}
 	defer w.Close()
-	n, err := this.GetToWriter(url, w)
-	if err != nil {
-		os.Remove(filename)
-	}
-	return n, err
+	return io.Copy(w, resp.Response.Body)
 }
 
 func (this *Client) GetToFileWithPlan(url string, filename string, f func(p *Plan)) (int64, error) {
+	resp := this.DoRequest(http.MethodGet, url, nil)
+	if resp.Err() != nil {
+		return 0, resp.Err()
+	}
+	defer resp.Response.Body.Close()
 	w, err := os.Create(filename)
 	if err != nil {
 		return 0, err
 	}
 	defer w.Close()
-	n, err := this.GetToWriterWithPlan(url, w, f)
-	if err != nil {
-		os.Remove(filename)
-	}
-	return n, err
+	return resp.CopyWithPlan(w, func(p *io.Plan) {
+		p.Total = resp.ContentLength
+		f(p)
+	})
 }
 
 func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Response {
