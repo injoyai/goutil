@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/injoyai/conv"
 	"github.com/injoyai/io"
 	"net/http"
 	"time"
@@ -45,6 +46,15 @@ func GetReader(url string) (io.ReadCloser, error) {
 // GetBytes 使用GET请求获取响应字节
 func GetBytes(url string) ([]byte, error) {
 	return DefaultClient.GetBytes(url)
+}
+
+// GetBodyDMap 获取body内容,解析成*conv.Map
+func GetBodyDMap(url string) (*conv.Map, error) {
+	resp := DefaultClient.Get(url)
+	if resp.Err() != nil {
+		return nil, resp.Err()
+	}
+	return resp.GetBodyDMap(), nil
 }
 
 // GetToWriter 使用GET请求获取响应字节写入writer,适用于下载请求
