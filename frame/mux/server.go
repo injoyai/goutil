@@ -219,6 +219,14 @@ func (this *Grouper) StaticEmbed(path string, e embed.FS, dir string) error {
 	return nil
 }
 
+// StaticFS 放在最后执行,这个会占用Grouper下所有的路由
+func (this *Grouper) StaticFS(path string, fs fs.FS) error {
+	path = this.Prefix + path
+	s := http.StripPrefix(path, http.FileServer(http.FS(fs)))
+	this.Router.PathPrefix(path).Handler(s)
+	return nil
+}
+
 func (this *Grouper) ALL(path string, handler func(r *Request)) *Grouper {
 	return this.do([]string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodHead, http.MethodPatch, http.MethodConnect, http.MethodOptions, http.MethodTrace}, path, handler)
 }
