@@ -42,6 +42,7 @@ func FromReader(r io.Reader) (result map[string][][]string, err error) {
 }
 
 func FromBytes(bs []byte) (result map[string][][]string, err error) {
+	result = make(map[string][][]string)
 	file, err := xlsx.OpenBinary(bs)
 	if err != nil {
 		return nil, err
