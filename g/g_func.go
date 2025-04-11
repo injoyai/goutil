@@ -10,6 +10,8 @@ import (
 	"github.com/injoyai/conv"
 	uuid "github.com/satori/go.uuid"
 	"math"
+	"reflect"
+	"runtime"
 	"runtime/debug"
 	"time"
 )
@@ -171,6 +173,11 @@ func InputVar(hint ...interface{}) *conv.Var {
 		return conv.Nil()
 	}
 	return conv.New(input)
+}
+
+// FuncName 获取函数名
+func FuncName(f interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 }
 
 //========================================Math========================================
