@@ -71,6 +71,7 @@ require (
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/spf13/cobra v1.2.1
 	github.com/tebeka/selenium v0.9.9
+	github.com/tickstep/cloudpan189-api v0.1.0
 	golang.org/x/net v0.27.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	qiniupkg.com/x v7.0.8+incompatible // indirect
