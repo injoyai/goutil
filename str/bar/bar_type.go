@@ -55,6 +55,9 @@ func (this *Bar) format() *Format {
 		Used: element(func() string {
 			return fmt.Sprintf("%0.1fs", time.Now().Sub(this.start).Seconds())
 		}),
+		UsedSecond: element(func() string {
+			return fmt.Sprintf("%0.1fs", time.Now().Sub(this.start).Seconds())
+		}),
 		Remain: element(func() string {
 			spend := time.Now().Sub(this.start)
 			remain := "0s"
@@ -78,6 +81,7 @@ type Format struct {
 	SpeedUnit    Element //进度速度带单位,例 13MB/s
 	SpeedUnitAvg Element //进度平均速度带单位,例 13MB/s
 	Used         Element //已经耗时,例 2m20s
+	UsedSecond   Element //已经耗时,例 600s
 	Remain       Element //预计剩余时间 例 1m18s
 }
 
