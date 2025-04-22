@@ -14,11 +14,12 @@ type Bar interface {
 type Base interface {
 	fmt.Stringer
 	io.Closer
-	Add(n int64)           //添加数量
-	Set(current int64)     //设置当前数量
-	SetTotal(total int64)  //设置总数量
-	SetWriter(w io.Writer) //设置writer
-	OnFinal(f func(b Bar)) //完成事件
+	Add(n int64)                         //添加数量
+	Set(current int64)                   //设置当前数量
+	SetTotal(total int64)                //设置总数量
+	SetFormat(format func(b Bar) string) //设置样式
+	SetWriter(w io.Writer)               //设置writer
+	OnFinal(f func(b Bar))               //完成事件
 
 	Last() int64                          //最后数量
 	Current() int64                       //当前数量
@@ -27,8 +28,10 @@ type Base interface {
 	LastTime() time.Time                  //最后时间
 	Flush() bool                          //刷入writer
 	IntervalFlush(interval time.Duration) //间隔刷新
+	Done() <-chan struct{}                //
 
-	DownloadHTTP(source, filename string, proxy ...string) (int64, error) //http下载
+	DownloadHTTP(source, filename string, proxy ...string) (int64, error) //通过http下载
+	Copy(w io.Writer, r io.Reader) (int64, error)                         //复制
 }
 
 type Element = fmt.Stringer

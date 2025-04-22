@@ -1,6 +1,7 @@
 package bar
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/base/safe"
@@ -12,12 +13,40 @@ import (
 	"time"
 )
 
+func WithTotal(total int64) Option {
+	return func(b Base) {
+		b.SetTotal(total)
+	}
+}
+
+func WithFormat(format func(b Bar) string) Option {
+	return func(b Base) {
+		b.SetFormat(format)
+	}
+}
+
+func WithDefaultFormat(op ...PlanOption) Option {
+	return WithFormat(func(b Bar) string {
+		return fmt.Sprintf("\r%s  %s  %s",
+			b.Plan(op...),
+			b.RateSizeUnit(),
+			b.SpeedUnit(),
+		)
+	})
+}
+
+func WithWriter(writer io.Writer) Option {
+	return func(b Base) {
+		b.SetWriter(writer)
+	}
+}
+
 type Option func(b Base)
 
-func New(total int64, op ...Option) Base {
+func New(op ...Option) Bar {
 	b := &base{
 		current: 0,
-		total:   total,
+		total:   0,
 		format:  DefaultFormat,
 		writer:  os.Stdout,
 		Closer:  safe.NewCloser(),
@@ -25,6 +54,12 @@ func New(total int64, op ...Option) Base {
 		cache:     maps.NewSafe(),
 		startTime: time.Now(),
 	}
+	b.SetCloseFunc(func(err error) error {
+		if b.writer != nil {
+			b.writer.Write([]byte("\n"))
+		}
+		return nil
+	})
 	for _, v := range op {
 		v(b)
 	}
@@ -61,6 +96,10 @@ func (this *base) Set(current int64) {
 
 func (this *base) SetTotal(total int64) {
 	this.total = total
+}
+
+func (this *base) SetFormat(format func(b Bar) string) {
+	this.format = format
 }
 
 func (this *base) SetWriter(w io.Writer) {
@@ -105,7 +144,7 @@ func (this *base) Flush() (closed bool) {
 		return false
 	}
 	s := this.String()
-	if !(len(s) > 0 && s[0] == '\r') {
+	if s == "" || s[0] != '\r' {
 		s = "\r" + s
 	}
 	this.writer.Write([]byte(s))
@@ -290,4 +329,29 @@ func (this *base) DownloadHTTP(source, filename string, proxy ...string) (int64,
 		this.Set(p.Current)
 		this.Flush()
 	})
+}
+
+func (this *base) Copy(w io.Writer, r io.Reader) (int64, error) {
+	return this.CopyN(w, r, 4<<10)
+}
+
+func (this *base) CopyN(w io.Writer, r io.Reader, bufSize int64) (int64, error) {
+	buff := bufio.NewReader(r)
+	total := int64(0)
+	buf := make([]byte, bufSize)
+	for {
+		n, err := buff.Read(buf)
+		if err != nil && err != io.EOF {
+			return total, err
+		}
+		total += int64(n)
+		this.Add(int64(n))
+		this.Flush()
+		if _, err := w.Write(buf[:n]); err != nil {
+			return total, err
+		}
+		if err == io.EOF {
+			return total, nil
+		}
+	}
 }
