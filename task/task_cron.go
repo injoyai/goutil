@@ -27,6 +27,10 @@ func (this *Cron) Start() *Cron {
 	return this
 }
 
+func (this *Cron) Run() {
+	this.c.Run()
+}
+
 func (this *Cron) Stop() *Cron {
 	this.c.Stop()
 	return this
