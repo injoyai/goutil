@@ -13,25 +13,49 @@ import (
 
 var _ Uploader = (*Cloud189)(nil)
 
-func NewCloud189(username, password string) (*Cloud189, error) {
-	appToken, err := cloudpan.AppLogin(username, password)
-	if err != nil {
-		return nil, err
-	}
+type Cloud189ConfigCache interface {
+	Set(*cloudpan.AppLoginToken) error
+	Get() (*cloudpan.AppLoginToken, error)
+}
 
-	//webTokenStr := cloudpan.RefreshCookieToken(appToken.SessionKey)
-	//webToken.CookieLoginUser = webTokenStr
+type Cloud189Config struct {
+	Username string
+	Password string
+	Size     int
+	Retry    int
+	Cache    Cloud189ConfigCache
+}
 
-	return &Cloud189{
-		Token:  *appToken,
-		Client: cloudpan.NewPanClient(cloudpan.WebLoginToken{}, *appToken),
-	}, nil
+func NewCloud189(cfg Cloud189Config) (*Cloud189, error) {
+	c := &Cloud189{Config: cfg}
+	return c, c.refreshToken()
 }
 
 type Cloud189 struct {
 	Token  cloudpan.AppLoginToken //token
 	Client *cloudpan.PanClient    //客户端
-	Limit  int64                  //分片大小,待实现
+	Config Cloud189Config
+}
+
+func (this *Cloud189) refreshToken() error {
+	if this.Config.Cache == nil {
+		appToken, err := cloudpan.AppLogin(this.Config.Username, this.Config.Password)
+		if err != nil {
+			return err
+		}
+		this.Client = cloudpan.NewPanClient(cloudpan.WebLoginToken{}, *appToken)
+		return nil
+	}
+	appToken, err := this.Config.Cache.Get()
+	if err != nil || appToken.SskAccessTokenExpiresIn < time.Now().UnixMilli() {
+		appToken, err = cloudpan.AppLogin(this.Config.Username, this.Config.Password)
+	}
+	if err != nil {
+		return err
+	}
+	this.Client = cloudpan.NewPanClient(cloudpan.WebLoginToken{}, *appToken)
+	this.Config.Cache.Set(appToken)
+	return nil
 }
 
 func (this *Cloud189) Upload(filename string, r io.Reader) (URL, error) {
@@ -57,19 +81,38 @@ func (this *Cloud189) Upload(filename string, r io.Reader) (URL, error) {
 		return nil, err
 	}
 
+	size := this.Config.Size
+	if size <= 0 {
+		size = len(bs)
+	}
+
 	//上传数据
-	err = this.Client.AppUploadFileData(createRes.FileUploadUrl, createRes.UploadFileId, createRes.XRequestId, &cloudpan.AppFileUploadRange{}, func(method, url string, headers map[string]string) (resp *http.Response, err error) {
-		req, err := http.NewRequest(method, url, bytes.NewReader(bs))
+	for offset := 0; offset < len(bs); offset += this.Config.Size {
+		if offset+this.Config.Size > len(bs) {
+			size = len(bs) - offset
+		}
+		for n := 0; n <= this.Config.Retry; n++ {
+			err = this.Client.AppUploadFileData(createRes.FileUploadUrl, createRes.UploadFileId, createRes.XRequestId,
+				&cloudpan.AppFileUploadRange{
+					Offset: int64(offset),
+					Len:    int64(size),
+				}, func(method, url string, headers map[string]string) (resp *http.Response, err error) {
+					req, err := http.NewRequest(method, url, bytes.NewReader(bs))
+					if err != nil {
+						return nil, err
+					}
+					for k, v := range headers {
+						req.Header.Set(k, v)
+					}
+					return http.DefaultClient.Do(req)
+				})
+			if err == nil {
+				break
+			}
+		}
 		if err != nil {
 			return nil, err
 		}
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
-		return http.DefaultClient.Do(req)
-	})
-	if err != nil {
-		return nil, err
 	}
 
 	//提交数据
@@ -110,10 +153,6 @@ func (this *Cloud189) List(join ...string) ([]*Info, error) {
 		})
 	}
 	return ls, nil
-}
-
-func (this *Cloud189) login() {
-
 }
 
 type Url string
