@@ -58,6 +58,15 @@ func (this *Cloud189) refreshToken() error {
 	return nil
 }
 
+func (this *Cloud189) Rename(filename, newname string) error {
+	fileInfo, err := this.Client.AppFileInfoByPath(0, filename)
+	if err != nil {
+		return err
+	}
+	_, err = this.Client.AppRenameFile(fileInfo.FileId, newname)
+	return err
+}
+
 func (this *Cloud189) Upload(filename string, r io.Reader) (URL, error) {
 	dir, name := filepath.Split(filename)
 	dirInfo, err := this.Client.AppFileInfoByPath(0, dir)
