@@ -3,12 +3,16 @@ package upload
 import (
 	"fmt"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/logs"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type Uploader interface {
 	Upload(filename string, reader io.Reader) (URL, error) //上传文件,返回下载地址
-	List(join ...string) ([]*Info, error)
+	List(join ...string) ([]*Info, error)                  //目录列表
 }
 
 type URL interface {
@@ -75,4 +79,36 @@ func New(Type string, cfg conv.Extend) (Uploader, error) {
 		})
 	}
 	return nil, fmt.Errorf("未知类型:%s", Type)
+}
+
+// SyncDir 同步目录
+func SyncDir(up Uploader, localDir, remoteDir string) error {
+	entries, err := os.ReadDir(localDir)
+	if err != nil {
+		logs.Err(err)
+		return err
+	}
+	for _, info := range entries {
+		if info.IsDir() {
+			newRemoteDir := filepath.Join(remoteDir, info.Name())
+			newRemoteDir = strings.ReplaceAll(newRemoteDir, "\\", "/")
+			if err := SyncDir(up, filepath.Join(localDir, info.Name()), newRemoteDir); err != nil {
+				return err
+			}
+		} else {
+			f, err := os.Open(filepath.Join(localDir, info.Name()))
+			if err != nil {
+				logs.Err(err)
+				return err
+			}
+			remoteFilename := filepath.Join(remoteDir, info.Name())
+			remoteFilename = strings.ReplaceAll(remoteFilename, "\\", "/")
+			if _, err := up.Upload(remoteFilename, f); err != nil {
+				logs.Debug(remoteFilename)
+				logs.Err(err)
+				return err
+			}
+		}
+	}
+	return nil
 }

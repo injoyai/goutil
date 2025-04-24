@@ -194,7 +194,7 @@ func ReadDirNames(dir string, level ...int) ([]string, error) {
 func RangeFile(dir string, fn func(info *FileInfo, f *os.File) (bool, error), level ...int) error {
 	return RangeFileInfo(dir, func(info *FileInfo) (bool, error) {
 		if !info.IsDir() {
-			f, err := os.Open(filepath.Join(dir, info.Name()))
+			f, err := os.Open(info.Filename())
 			if err != nil {
 				return false, err
 			}

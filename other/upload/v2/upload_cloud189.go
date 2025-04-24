@@ -2,10 +2,14 @@ package upload
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/injoyai/base/bytes/crypt/md5"
+	"github.com/injoyai/goutil/oss"
 	"github.com/tickstep/cloudpan189-api/cloudpan"
+	"github.com/tickstep/cloudpan189-api/cloudpan/apierror"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -46,9 +50,14 @@ func (this *Cloud189) refreshToken() error {
 		this.Client = cloudpan.NewPanClient(cloudpan.WebLoginToken{}, *appToken)
 		return nil
 	}
+
 	appToken, err := this.Config.Cache.Get()
 	if err != nil || appToken.SskAccessTokenExpiresIn < time.Now().UnixMilli() {
-		appToken, err = cloudpan.AppLogin(this.Config.Username, this.Config.Password)
+		token, err := cloudpan.AppLogin(this.Config.Username, this.Config.Password)
+		if err != nil {
+			return err
+		}
+		appToken = token
 	}
 	if err != nil {
 		return err
@@ -71,6 +80,13 @@ func (this *Cloud189) Upload(filename string, r io.Reader) (URL, error) {
 	dir, name := filepath.Split(filename)
 	dirInfo, err := this.Client.AppFileInfoByPath(0, dir)
 	if err != nil {
+		if err.Code == apierror.ApiCodeFileNotFoundCode {
+			_, err = this.Client.AppMkdirRecursive(0, "", dir, 0, strings.Split(dir, "/"))
+			if err != nil {
+				return nil, err
+			}
+			return this.Upload(filename, r)
+		}
 		return nil, err
 	}
 
@@ -172,4 +188,31 @@ func (this Url) String() string {
 
 func (this Url) Download(filename string) error {
 	return nil
+}
+
+func NewCloud189FileCache(filename string) Cloud189ConfigCache {
+	oss.NewNotExist(filename, "{}")
+	return &cloud189ConfigCache{filename: filename}
+}
+
+type cloud189ConfigCache struct {
+	filename string
+}
+
+func (this *cloud189ConfigCache) Get() (*cloudpan.AppLoginToken, error) {
+	cfg := new(cloudpan.AppLoginToken)
+	bs, err := os.ReadFile(this.filename)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(bs, cfg)
+	return cfg, nil
+}
+
+func (this *cloud189ConfigCache) Set(token *cloudpan.AppLoginToken) error {
+	bs, err := json.Marshal(token)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(this.filename, bs, 0644)
 }
