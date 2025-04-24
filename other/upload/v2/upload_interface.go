@@ -32,11 +32,12 @@ const (
 type Equal uint8
 
 var (
-	TypeLocal = "local"
-	TypeMinio = "minio"
-	TypeQiniu = "qiniu"
-	TypeBaidu = "baidu"
-	TypeFtp   = "ftp"
+	TypeLocal    = "local"
+	TypeMinio    = "minio"
+	TypeQiniu    = "qiniu"
+	TypeBaidu    = "baidu"
+	TypeCloud189 = "cloud189"
+	TypeFtp      = "ftp"
 )
 
 func New(Type string, cfg conv.Extend) (Uploader, error) {
@@ -65,6 +66,13 @@ func New(Type string, cfg conv.Extend) (Uploader, error) {
 		)
 	case TypeBaidu:
 		return NewBaidu(), nil
+	case TypeCloud189:
+		return NewCloud189(Cloud189Config{
+			Username: cfg.GetString("username"),
+			Password: cfg.GetString("password"),
+			Size:     cfg.GetInt("size"),
+			Retry:    cfg.GetInt("retry"),
+		})
 	}
 	return nil, fmt.Errorf("未知类型:%s", Type)
 }
