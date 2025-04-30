@@ -93,11 +93,11 @@ func (this *Client) Exec(text string, option ...func(i script.Client)) (interfac
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	if err := this.client.DoString(text); err != nil {
-		return conv.Nil(), dealErr(err)
+		return conv.Nil, dealErr(err)
 	}
 	result := this.client.Get(-1)
 	if result == nil || result == lua.LNil {
-		return conv.Nil(), nil
+		return conv.Nil, nil
 	}
 	this.client.Pop(1)
 	return conv.New(result.String()), nil
@@ -109,7 +109,7 @@ func (this *Client) GetVar(key string) *conv.Var {
 	defer this.mu.RUnlock()
 	value := this.client.GetGlobal(key)
 	if value == lua.LNil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(value.String())
 }

@@ -2,11 +2,8 @@ package g
 
 import (
 	"context"
-	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/conv/cfg"
-	"github.com/injoyai/conv/codec"
 	"math/rand"
 	"time"
 )
@@ -29,7 +26,7 @@ func Rand() *rand.Rand {
 // RandString 随机字符串
 func RandString(length int, str ...string) string {
 	r := Rand()
-	xs := conv.GetDefaultString(rs, str...)
+	xs := conv.Default[string](rs, str...)
 	var s []byte
 	for i := 0; i < length; i++ {
 		n := r.Intn(len(xs))
@@ -122,11 +119,11 @@ func Second() int { return time.Now().Second() }
 
 //========================================Other========================================
 
-// Cfg 读取配置文件
-func Cfg(path string, codec ...codec.Interface) *cfg.Entity { return cfg.New(path, codec...) }
-
-// Chan chans.NewEntity
-func Chan(num int, cap ...int) *chans.Entity { return chans.NewEntity(num, cap...) }
+//// Cfg 读取配置文件
+//func Cfg(path string, codec ...codec.Interface) *cfg.Entity { return cfg.New(path, codec...) }
+//
+//// Chan chans.NewEntity
+//func Chan(num int, cap ...int) *chans.Entity { return chans.NewEntity(num, cap...) }
 
 // Closer 安全的关闭,原子操作,实现接口
 func Closer() *safe.Closer { return safe.NewCloser() }

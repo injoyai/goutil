@@ -22,7 +22,7 @@ type Flags struct{}
 func (this *Flags) GetVar(key string) *conv.Var {
 	f := flag.Lookup(key)
 	if f == nil || f.Value.String() == "" {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(f.Value.String())
 }

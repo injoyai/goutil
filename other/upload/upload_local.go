@@ -1,7 +1,7 @@
 package upload
 
 import (
-	"github.com/injoyai/base/bytes/crypt/md5"
+	"github.com/injoyai/base/crypt/md5"
 	"github.com/injoyai/goutil/oss"
 	"io"
 	"os"

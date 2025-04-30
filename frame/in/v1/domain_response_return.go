@@ -87,7 +87,7 @@ func Errf(format string, args ...interface{}) {
 // Err 退出,并校验错误
 func Err(data interface{}, succData ...interface{}) {
 	if data == nil {
-		Succ(conv.DefaultInterface(nil, succData...))
+		Succ(conv.Default[any](nil, succData...))
 	} else {
 		Fail(data)
 	}

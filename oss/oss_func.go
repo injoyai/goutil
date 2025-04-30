@@ -49,7 +49,7 @@ func Input(hint ...interface{}) (s string) {
 func InputVar(hint ...interface{}) *conv.Var {
 	input := Input(hint...)
 	if len(input) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(input)
 }
@@ -57,5 +57,5 @@ func InputVar(hint ...interface{}) *conv.Var {
 // AfterExit 延迟退出
 func AfterExit(t time.Duration, code ...int) {
 	<-time.After(t)
-	os.Exit(conv.DefaultInt(0, code...))
+	os.Exit(conv.Default[int](0, code...))
 }

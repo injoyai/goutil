@@ -33,7 +33,7 @@ func SizeUnit(b int64) (float64, string) {
 // SizeString 字节数量字符表现方式,例 15.8MB, 会四舍五入
 func SizeString(b int64, decimal ...int) string {
 	size, unit := SizeUnit(b)
-	d := conv.GetDefaultInt(1, decimal...)
+	d := conv.Default[int](1, decimal...)
 	return fmt.Sprintf(fmt.Sprintf("%%.%df%%s", d), size, unit)
 }
 
@@ -41,6 +41,6 @@ func SizeString(b int64, decimal ...int) string {
 func SizeSpeed(b int64, sub time.Duration, decimal ...int) string {
 	size, unit := SizeUnit(b)
 	spend := size / sub.Seconds()
-	d := conv.GetDefaultInt(1, decimal...)
+	d := conv.Default[int](1, decimal...)
 	return fmt.Sprintf(fmt.Sprintf("%%.%df%%s/s", d), spend, unit)
 }

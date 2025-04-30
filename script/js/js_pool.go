@@ -11,8 +11,8 @@ var (
 )
 
 func NewPool(num int, option ...func(c script.Client)) *Pool {
-	length := conv.SelectInt(num <= 0, 1, num)
-	length = conv.SelectInt(length <= 0, 1, length)
+	length := conv.Select[int](num <= 0, 1, num)
+	length = conv.Select[int](length <= 0, 1, length)
 	p := &Pool{
 		length: length,
 		list:   make([]*Client, 0, length),

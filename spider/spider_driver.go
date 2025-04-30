@@ -20,12 +20,12 @@ func (this *WebDriver) Wait(t time.Duration) *WebDriver {
 
 // WaitSecond 等待n秒
 func (this *WebDriver) WaitSecond(n ...int) *WebDriver {
-	return this.Wait(time.Duration(conv.GetDefaultInt(1, n...)) * time.Second)
+	return this.Wait(time.Duration(conv.Default[int](1, n...)) * time.Second)
 }
 
 // WaitMinute 等待n分钟
 func (this *WebDriver) WaitMinute(n ...int) *WebDriver {
-	return this.Wait(time.Duration(conv.GetDefaultInt(1, n...)) * time.Minute)
+	return this.Wait(time.Duration(conv.Default[int](1, n...)) * time.Minute)
 }
 
 // Text 返回页面数据

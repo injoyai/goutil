@@ -154,7 +154,7 @@ func Unauthorized() { DefaultClient.Unauthorized() }
 // Err 退出,并校验错误
 func Err(data interface{}, succData ...interface{}) {
 	if data == nil {
-		Succ(conv.DefaultInterface(nil, succData...))
+		Succ(conv.Default[any](nil, succData...))
 	} else {
 		Fail(data)
 	}
@@ -168,7 +168,7 @@ func Errf(format string, args ...interface{}) {
 // CheckErr 检测错误(遇到错误结束)
 func CheckErr(err error, failMsg ...string) {
 	if err != nil {
-		Err(conv.DefaultString(err.Error(), failMsg...))
+		Err(conv.Default[string](err.Error(), failMsg...))
 	}
 }
 

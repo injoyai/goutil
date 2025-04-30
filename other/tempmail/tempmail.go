@@ -21,7 +21,7 @@ type Client struct {
 
 // List 最新邮件列表
 func (this *Client) List(limits ...int) ([]*Mail, error) {
-	limit := conv.DefaultInt(0, limits...)
+	limit := conv.Default[int](0, limits...)
 	u := fmt.Sprintf("https://tempmail.plus/api/mails?email=%s%%40mailto.plus&first_id=0&epin=&limit=%d", this.Username, limit)
 	resp, err := http.Get(u)
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"github.com/injoyai/base/maps/wait/v2"
+	"github.com/injoyai/base/maps/wait"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/logs"
 	"io"

@@ -11,7 +11,7 @@ var DefaultDir = "./data/cache/"
 // 万次读写速度4.18秒
 // 万次协程读写速度2.21秒
 func NewFile(name string, groups ...string) *File {
-	group := conv.GetDefaultString("var", groups...)
+	group := conv.Default[string]("var", groups...)
 	return newFile(name, group)
 }
 
@@ -27,8 +27,8 @@ func NewCycle(num int) *Cycle {
 // 千万次读速度 2.3s
 // 百万次读写速度1.2秒
 // 百万次携程读写速度1.25秒
-func NewMap(m ...maps.Map) *maps.Safe {
-	return maps.NewSafe(m...)
+func NewMap() *maps.Safe {
+	return maps.NewSafe()
 }
 
 // NewFileLog 文件日志
