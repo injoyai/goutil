@@ -1119,8 +1119,8 @@ github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NH
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d h1:/WZQPMZNsjZ7IlCpsLGdQBINg5bxKQ1K1sh6awxLtkA=
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
-github.com/injoyai/base v1.2.5 h1:i0l5YDOKmu7OwSDaYkbbn8d33PkTv9UpKjDxp1MRrU4=
-github.com/injoyai/base v1.2.5/go.mod h1:BsXiJ6/hXpswWxI4zLdKz+pW2Cwo+qhdfyaWDfR/vwg=
+github.com/injoyai/base v1.2.6 h1:9UrjUrA04vmXBpa9kRGsFX21MCgJi0XAJkz3eN1zS+g=
+github.com/injoyai/base v1.2.6/go.mod h1:BsXiJ6/hXpswWxI4zLdKz+pW2Cwo+qhdfyaWDfR/vwg=
 github.com/injoyai/conv v1.2.2 h1:nxFD3zCYq/ZvVE6xAExBR+agi6gB+vc9O0si67VAsPk=
 github.com/injoyai/conv v1.2.2/go.mod h1:s05l3fQJQ4mT4VX+KIdbvCWQB0YzZHprmUfUu2uxd1k=
 github.com/injoyai/io v1.2.1 h1:YdKWL7ZSC3d3CyWaKAVk6VLw5Dm41qGsFJl3YN6fwps=
