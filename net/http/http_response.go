@@ -102,7 +102,10 @@ func (this *Response) Cookies() (cookie []*http.Cookie) {
 // CopyWith 复制数据,并监听
 func (this *Response) CopyWith(w io.Writer, fn func(bs []byte)) (int64, error) {
 	defer this.Response.Body.Close()
-	return io.CopyWith(w, this.Response.Body, fn)
+	return io.CopyWith(w, this.Response.Body, func(p []byte) ([]byte, error) {
+		fn(p)
+		return p, nil
+	})
 }
 
 // CopyWithPlan 复制数据并监听进度

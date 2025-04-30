@@ -134,7 +134,7 @@ func ReadTree(dir string, levels ...int) (*Dir, error) {
 	if err != nil {
 		return nil, err
 	}
-	level := conv.DefaultInt(-1, levels...)
+	level := conv.Default[int](-1, levels...)
 	for _, entry := range entries {
 		if entry.IsDir() {
 			d2, err := ReadTree(filepath.Join(dir, entry.Name()), level-1)

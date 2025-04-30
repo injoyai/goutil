@@ -17,11 +17,11 @@ func (this *Element) Wait(t time.Duration) *Element {
 }
 
 func (this *Element) WaitSec(n ...int) *Element {
-	return this.Wait(time.Duration(conv.GetDefaultInt(1, n...)) * time.Second)
+	return this.Wait(time.Duration(conv.Default[int](1, n...)) * time.Second)
 }
 
 func (this *Element) WaitMin(n ...int) *Element {
-	return this.Wait(time.Duration(conv.GetDefaultInt(1, n...)) * time.Minute)
+	return this.Wait(time.Duration(conv.Default[int](1, n...)) * time.Minute)
 }
 
 func (this *Element) Write(s string) error {

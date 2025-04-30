@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/conv/cfg/v2"
+	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/str"
 	"github.com/redis/go-redis/v9"
@@ -24,12 +24,12 @@ func New(addr, pwd string, db ...int) *Client {
 	return NewClient(&Config{
 		Addr:     addr,
 		Password: pwd,
-		DB:       conv.GetDefaultInt(0, db...),
+		DB:       conv.Default[int](0, db...),
 	})
 }
 
 func WithCfg(key ...string) *Client {
-	return WithDMap(cfg.GetDMap(conv.DefaultString("redis", key...)))
+	return WithDMap(cfg.GetDMap(conv.Default[string]("redis", key...)))
 }
 
 func WithDMap(m *conv.Map) *Client {
@@ -101,7 +101,7 @@ func (this *Client) GetVar(key string) *conv.Var {
 		if result.Err() != Nil && this.OnGetVarErr != nil {
 			this.OnGetVarErr(result.Err())
 		}
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(this.GetCmd(key).Val())
 }
@@ -112,8 +112,8 @@ func (this *Client) Set(key string, value interface{}, expiration time.Duration)
 
 // Cache 优先从内存中获取数据,不存在则尝试重redis中获取,小于等于0是不过期
 func (this *Client) Cache(key string, fn func() (interface{}, error), expiration time.Duration, cacheExpirations ...time.Duration) (interface{}, error) {
-	cacheExpiration := conv.SelectDuration(expiration > 0 && this.CacheExpiration > expiration, expiration, this.CacheExpiration)
-	cacheExpiration = conv.DefaultDuration(cacheExpiration, cacheExpirations...)
+	cacheExpiration := conv.Select[time.Duration](expiration > 0 && this.CacheExpiration > expiration, expiration, this.CacheExpiration)
+	cacheExpiration = conv.Default[time.Duration](cacheExpiration, cacheExpirations...)
 	return this.CacheMap.GetOrSetByHandler(key, func() (interface{}, error) {
 		s, err := this.Get(key)
 		if err != nil && err.Error() != redis.Nil.Error() {

@@ -128,7 +128,7 @@ func NewMssql(dsn string, options ...Option) (*Engine, error) {
 }
 
 func ByCfg(path ...string) (*Engine, error) {
-	return ByDMap(cfg.Default.GetDMap(conv.DefaultString("database", path...)))
+	return ByDMap(cfg.Default.GetDMap(conv.Default[string]("database", path...)))
 }
 
 func ByDMap(m *conv.Map) (*Engine, error) {

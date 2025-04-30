@@ -1,7 +1,6 @@
 package file_log
 
 import (
-	"github.com/injoyai/base/g"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
 	"os"
@@ -21,7 +20,8 @@ func TestNew(t *testing.T) {
 	})
 
 	go func() {
-		for range g.Interval(time.Second * 20) {
+		for {
+			<-time.After(time.Second * 20)
 			c, err := x.GetLogCurve(
 				time.Now().Add(-time.Minute*2),
 				time.Now(),
@@ -43,7 +43,8 @@ func TestNew(t *testing.T) {
 		}
 	}()
 
-	for i := range g.Interval(time.Second) {
+	for i := 0; ; i++ {
+		<-time.After(time.Second)
 		if _, err := x.WriteString(conv.String(i)); err != nil {
 			t.Error(err)
 		}

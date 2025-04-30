@@ -1,11 +1,11 @@
 package script
 
 import (
-	"github.com/injoyai/base/bytes"
 	"github.com/injoyai/base/maps"
-	"github.com/injoyai/base/maps/wait/v2"
+	"github.com/injoyai/base/maps/wait"
+	"github.com/injoyai/base/types"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/conv/cfg/v2"
+	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/conv/codec"
 	"github.com/injoyai/goutil/frame/in/v3"
 	"github.com/injoyai/goutil/frame/mux"
@@ -184,7 +184,7 @@ func (this *Conv) NewMap(i interface{}, codec ...codec.Interface) *conv.Map {
 	return conv.NewMap(i, codec...)
 }
 
-func (this *Conv) Bytes(i interface{}) bytes.Entity {
+func (this *Conv) Bytes(i interface{}) types.Bytes {
 	return conv.Bytes(i)
 }
 
@@ -286,7 +286,7 @@ func (this *OS) NewNotExist(filename string, i ...interface{}) {
 	panicErr(oss.NewNotExist(filename, i...))
 }
 
-func (this *OS) Read(filename string) bytes.Entity {
+func (this *OS) Read(filename string) types.Bytes {
 	bs, err := oss.Read(filename)
 	panicErr(err)
 	return bs
@@ -310,44 +310,44 @@ func (this *OS) Stop(filename string) {
 
 type Bytes struct{}
 
-func (this *Bytes) New(i interface{}) bytes.Entity {
+func (this *Bytes) New(i interface{}) types.Bytes {
 	return conv.Bytes(i)
 }
 
 func (this *Bytes) Sum(bs []byte) byte {
-	return bytes.Sum(bs)
+	return types.Bytes(bs).Sum()
 }
 
-func (this *Bytes) Reverse(bs []byte) bytes.Entity {
-	return bytes.Reverse(bs)
+func (this *Bytes) Reverse(bs []byte) types.Bytes {
+	return types.Bytes(bs).Reverse()
 }
 
-func (this *Bytes) Upper(bs []byte) bytes.Entity {
-	return bytes.Upper(bs)
+func (this *Bytes) Upper(bs []byte) types.Bytes {
+	return types.Bytes(bs).Upper()
 }
 
-func (this *Bytes) Lower(bs []byte) bytes.Entity {
-	return bytes.Lower(bs)
+func (this *Bytes) Lower(bs []byte) types.Bytes {
+	return types.Bytes(bs).Lower()
 }
 
 func (this *Bytes) Base64(bs []byte) string {
-	return bytes.Base64(bs)
+	return types.Bytes(bs).Base64()
 }
 
 func (this *Bytes) BIN(bs []byte) string {
-	return bytes.BIN(bs)
+	return types.Bytes(bs).BIN()
 }
 
 func (this *Bytes) Int(bs []byte) int {
-	return bytes.Int(bs)
+	return int(types.Bytes(bs).Int64())
 }
 
-func (this *Bytes) Add(bs []byte, b byte) bytes.Entity {
-	return bytes.AddByte(bs, b)
+func (this *Bytes) Add(bs []byte, b byte) types.Bytes {
+	return types.Bytes(bs).AddByte(b)
 }
 
-func (this *Bytes) Sub(bs []byte, b byte) bytes.Entity {
-	return bytes.SubByte(bs, b)
+func (this *Bytes) Sub(bs []byte, b byte) types.Bytes {
+	return types.Bytes(bs).SubByte(b)
 }
 
 type Mux struct{}
@@ -456,12 +456,12 @@ func (this *In) Reader200(r io.ReadCloser) {
 
 type Maps struct{}
 
-func (this *Maps) New(m ...maps.Map) *maps.Safe {
-	return maps.NewSafe(m...)
+func (this *Maps) New() *maps.Safe {
+	return maps.NewSafe()
 }
 
-func (this *Maps) NewSafe(m ...maps.Map) *maps.Safe {
-	return maps.NewSafe(m...)
+func (this *Maps) NewSafe() *maps.Safe {
+	return maps.NewSafe()
 }
 
 func (this *Maps) NewWait(f float64) *wait.Entity {

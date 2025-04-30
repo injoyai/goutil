@@ -4,8 +4,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/injoyai/base/bytes/crypt/md5"
 	"github.com/injoyai/base/chans"
+	"github.com/injoyai/base/crypt/md5"
 	"github.com/injoyai/base/maps/wait"
 	"github.com/injoyai/conv"
 	uuid "github.com/satori/go.uuid"
@@ -35,7 +35,7 @@ func Count(num int, interval ...time.Duration) <-chan int {
 
 // Interval 间隔触发
 func Interval(interval time.Duration, nums ...int) <-chan int {
-	num := conv.GetDefaultInt(-1, nums...)
+	num := conv.Default[int](-1, nums...)
 	return chans.Count(num, interval)
 }
 
@@ -170,7 +170,7 @@ func InputUntil(hint string, f func(s string) bool) (s string) {
 func InputVar(hint ...interface{}) *conv.Var {
 	input := Input(hint...)
 	if len(input) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(input)
 }
@@ -184,7 +184,7 @@ func FuncName(f interface{}) string {
 
 // Decimals 保留小数点,默认2位
 func Decimals(f float64, d ...int) float64 {
-	b := math.Pow10(conv.GetDefaultInt(2, d...))
+	b := math.Pow10(conv.Default[int](2, d...))
 	return float64(int64(f*b)) / b
 }
 

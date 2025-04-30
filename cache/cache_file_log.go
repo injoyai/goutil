@@ -17,9 +17,6 @@ NewFileLog
 提供日志文件存储,历史日志查询,历史日志删除,曲线图
 
 数据统计支持按秒(最小)
-
-
-
 */
 func newFileLog(cfg *FileLogConfig) *FileLog {
 	//初始化
@@ -220,7 +217,7 @@ func (this *FileLog) GetLog(start, end time.Time) ([][]byte, error) {
 func (this *FileLog) GetLogMerge(start, end time.Time, merge time.Duration, decode func([]byte) (GetSecond, error)) (map[int64][]GetSecond, error) {
 	//统计间隔
 	interval := int64(merge / time.Second)
-	interval = conv.SelectInt64(interval < 1, 1, interval)
+	interval = conv.Select[int64](interval < 1, 1, interval)
 	//获取日志列表
 	list, err := this.GetLog(start, end)
 	if err != nil {

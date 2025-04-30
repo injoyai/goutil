@@ -77,7 +77,7 @@ func (this *Request) SetCache(key string, value interface{}) {
 
 func (this *Request) GetCache(key string) *conv.Var {
 	if this.cache == nil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return this.cache.GetVar(key)
 }
@@ -163,11 +163,11 @@ func (this *Request) GetQueryGMap() map[string]interface{} {
 
 func (this *Request) GetQueryVar(key string) *conv.Var {
 	if this == nil || this.Request == nil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	ls, ok := this.QueryForm[key]
 	if !ok || len(ls) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(ls[0])
 }
@@ -185,7 +185,7 @@ func (this *Request) parseJsonForm() error {
 
 func (this *Request) GetBodyVar(key string) *conv.Var {
 	if this == nil || this.Request == nil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	if strings.Contains(this.Header.Get("Content-Type"), "application/json") {
 		if this.JsonFrom == nil {
@@ -201,11 +201,11 @@ func (this *Request) GetBodyVar(key string) *conv.Var {
 		this.Request.ParseMultipartForm(1 << 20)
 	}
 	if this.Request.Form == nil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	ls, ok := this.Request.Form[key]
 	if !ok || len(ls) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(ls[0])
 }
@@ -226,11 +226,11 @@ func (this *Request) GetHeaderGMap() map[string]interface{} {
 
 func (this *Request) GetHeaderVar(key string) *conv.Var {
 	if this == nil || this.Request == nil || this.Request.Header == nil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	ls, ok := this.Request.Header[key]
 	if !ok || len(ls) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(ls[0])
 }

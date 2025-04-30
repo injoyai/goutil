@@ -12,7 +12,7 @@ import (
 func NewAliyunSMS(cfg *AliyunConfig) (Interface, error) {
 	config := sdk.NewConfig()
 	credential := credentials.NewAccessKeyCredential(cfg.SecretID, cfg.SecretKey)
-	regionId := conv.SelectString(len(cfg.RegionID) == 0, "cn-hangzhou", cfg.RegionID)
+	regionId := conv.Select[string](len(cfg.RegionID) == 0, "cn-hangzhou", cfg.RegionID)
 	client, err := dysmsapi.NewClientWithOptions(regionId, config, credential)
 	return &aliyunSMS{
 		cfg:    cfg,
@@ -53,7 +53,7 @@ func (this *aliyunSMS) Publish(msg *Message) error {
  */
 
 func NewAliyunPhone(cfg *AliyunConfig) (Interface, error) {
-	regionId := conv.SelectString(len(cfg.RegionID) == 0, "cn-hangzhou", cfg.RegionID)
+	regionId := conv.Select[string](len(cfg.RegionID) == 0, "cn-hangzhou", cfg.RegionID)
 	client, err := dyvmsapi.NewClientWithAccessKey(regionId, cfg.SecretID, cfg.SecretKey)
 	return &aliyunPhone{
 		cfg:    cfg,

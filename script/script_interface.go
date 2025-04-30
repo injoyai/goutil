@@ -29,7 +29,7 @@ func (this *Args) Get(idx int) *conv.Var {
 	if this.Len() > idx-1 && idx > 0 {
 		return this.Args[idx-1]
 	}
-	return conv.Nil()
+	return conv.Nil
 }
 
 func (this *Args) GetInt(idx int, def ...int) int {

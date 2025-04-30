@@ -22,13 +22,13 @@ func GetVar(r *http.Request, key string) *conv.Var {
 	if v := GetHeaderVar(r, key); !v.IsNil() {
 		return v
 	}
-	return conv.Nil()
+	return conv.Nil
 }
 
 func GetQueryVar(r *http.Request, key string) *conv.Var {
 	ls, ok := r.URL.Query()[key]
 	if !ok || len(ls) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(ls[0])
 }
@@ -53,7 +53,7 @@ func GetBodyVar(r *http.Request, key string) *conv.Var {
 		}
 	}
 
-	return conv.Nil()
+	return conv.Nil
 }
 
 func GetBodyMap(r *http.Request, codec ...codec.Interface) *conv.Map {
@@ -65,7 +65,7 @@ func GetBodyMap(r *http.Request, codec ...codec.Interface) *conv.Map {
 func GetHeaderVar(r *http.Request, key string) *conv.Var {
 	ls, ok := r.Header[key]
 	if !ok || len(ls) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(ls[0])
 }
@@ -88,22 +88,22 @@ type Request struct {
 
 func (this *Request) GetQueryVar(key string) *conv.Var {
 	if this == nil || this.Request == nil || this.Request.URL == nil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	ls, ok := this.Request.URL.Query()[key]
 	if !ok || len(ls) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(ls[0])
 }
 
 func (this *Request) GetHeaderVar(key string) *conv.Var {
 	if this == nil || this.Request == nil || this.Request.Header == nil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	ls, ok := this.Request.Header[key]
 	if !ok || len(ls) == 0 {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return conv.New(ls[0])
 }
@@ -134,12 +134,12 @@ func (this *Request) GetBodyVar(key string) *conv.Var {
 			return conv.New(ls[0])
 		}
 	}
-	return conv.Nil()
+	return conv.Nil
 }
 
 func (this *Request) GetCacheVar(key string) *conv.Var {
 	if this.cache == nil {
-		return conv.Nil()
+		return conv.Nil
 	}
 	return this.cache.GetVar(key)
 }
