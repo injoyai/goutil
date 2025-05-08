@@ -86,18 +86,32 @@ func Try(fn func() error, catch ...func(err error)) (err error) {
 	return fn()
 }
 
-// Retry 重试,可选重试间隔函数,入参是0
-func Retry(fn func() error, num int, interval ...func(time.Duration) time.Duration) (err error) {
-	t := time.Duration(0)
+// Retry 重试,可选重试间隔,入参是0
+func Retry(fn func() error, num int, interval ...time.Duration) (err error) {
+	t := conv.Default[time.Duration](0, interval...)
 	for i := 0; num < 0 || i < num; i++ {
+		if i > 0 {
+			<-time.After(t)
+		}
 		if err = Try(fn); err == nil {
 			return
 		}
-		for _, v := range interval {
-			t = v(t)
-		}
-		if t > 0 {
+	}
+	return
+}
+
+// Retry2 重试,可选重试间隔函数,入参是0
+func Retry2(fn func() error, num int, interval ...func(i int) time.Duration) (err error) {
+	var t time.Duration
+	for i := 0; num < 0 || i < num; i++ {
+		if i > 0 {
+			for _, v := range interval {
+				t = v(i)
+			}
 			<-time.After(t)
+		}
+		if err = Try(fn); err == nil {
+			return
 		}
 	}
 	return
