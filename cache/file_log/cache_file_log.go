@@ -193,7 +193,7 @@ func (this *FileLog) readFile(filename string) ([]*Data, error) {
 func (this *FileLog) GetLogCurve(start, end time.Time, merge time.Duration, d Decoder) (*Curve, error) {
 	//统计间隔
 	interval := merge
-	interval = conv.SelectDuration(interval < time.Second, time.Second, interval)
+	interval = conv.Select[time.Duration](interval < time.Second, time.Second, interval)
 	//获取日志列表
 	list, err := this.GetLog(&Search{
 		StartTime: start.Add(-interval),

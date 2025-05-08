@@ -278,7 +278,7 @@ var (
 )
 
 func (this *Bar) DownloadHTTP(source, filename string, proxy ...string) (int64, error) {
-	if err := DefaultClient.SetProxy(conv.GetDefaultString("", proxy...)); err != nil {
+	if err := DefaultClient.SetProxy(conv.Default[string]("", proxy...)); err != nil {
 		return 0, err
 	}
 	defer this.Close()
@@ -307,7 +307,7 @@ func (this *Bar) speed(key string, size int64, expiration time.Duration, fn func
 	}
 
 	//计算速度
-	size = conv.SelectInt64(size >= 0, size, 0)
+	size = conv.Select[int64](size >= 0, size, 0)
 	spendSize := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
 	s := fn(spendSize)
 	this.cacheSpeed.Set(cacheKey, s, expiration)

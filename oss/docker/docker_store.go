@@ -107,7 +107,7 @@ func (c Client) StoreCreate(req *StoreCreateReq) error {
 		Password:   req.Password,
 		Domain:     req.Domain,
 		Created:    time.Now().Unix(),
-		Status:     conv.SelectString(connErr == nil, "success", "fail"),
+		Status:     conv.Select[string](connErr == nil, "success", "fail"),
 		StatusText: conv.New(connErr).String(""),
 	}
 	//添加到数据库
@@ -141,7 +141,7 @@ func (c Client) StoreUpdate(req *StoreUpdateReq) error {
 		data.Username = req.Username
 		data.Password = req.Password
 		data.Domain = req.Domain
-		data.Status = conv.SelectString(connErr == nil, "success", "fail")
+		data.Status = conv.Select[string](connErr == nil, "success", "fail")
 		data.StatusText = conv.New(connErr).String("")
 	}
 	//同步到数据库

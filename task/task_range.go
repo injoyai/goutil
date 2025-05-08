@@ -45,12 +45,12 @@ func (this *Range) Append(v Handler) *Range {
 }
 
 func (this *Range) SetCoroutine(limit uint) *Range {
-	this.coroutine = conv.SelectUint(limit == 0, 1, limit)
+	this.coroutine = conv.Select[uint](limit == 0, 1, limit)
 	return this
 }
 
 func (this *Range) SetRetry(retry uint) *Range {
-	this.retry = conv.SelectUint(retry == 0, 1, retry)
+	this.retry = conv.Select[uint](retry == 0, 1, retry)
 	return this
 }
 
