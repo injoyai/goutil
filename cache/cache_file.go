@@ -8,7 +8,7 @@ import (
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -18,7 +18,7 @@ func newFile(name, group string) *File {
 		group: group,
 		Safe:  maps.NewSafe(),
 	}
-	bs, _ := ioutil.ReadFile(data.Filename())
+	bs, _ := os.ReadFile(data.Filename())
 	m := make(map[string]interface{})
 	_ = json.Unmarshal(bs, &m)
 	for i, v := range m {

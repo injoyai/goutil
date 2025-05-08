@@ -96,6 +96,6 @@ func Err(data interface{}, succData ...interface{}) {
 // CheckErr 检测错误(遇到错误结束)
 func CheckErr(err error, failMsg ...string) {
 	if err != nil {
-		Err(conv.DefaultString(err.Error(), failMsg...))
+		Err(conv.Default[string](err.Error(), failMsg...))
 	}
 }

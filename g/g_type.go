@@ -9,11 +9,9 @@ type (
 	Var   = conv.Var
 	DMap  = conv.Map
 	Any   = interface{}
-	List  []interface{}
 	Bytes = types.Bytes
 	M     = Map
+	List  types.List[any]
+	Map   types.Map[string, any]
+	Maps  types.Maps[string, any]
 )
-
-//========================================Map========================================
-
-type Map types.Maps[string, any]
