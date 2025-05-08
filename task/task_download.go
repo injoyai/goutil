@@ -47,12 +47,12 @@ func (this *Download) Append(v GetReader) *Download {
 }
 
 func (this *Download) SetCoroutine(limit uint) *Download {
-	this.coroutine = conv.SelectUint(limit == 0, 1, limit)
+	this.coroutine = conv.Select[uint](limit == 0, 1, limit)
 	return this
 }
 
 func (this *Download) SetRetry(retry uint) *Download {
-	this.retry = conv.SelectUint(retry == 0, 1, retry)
+	this.retry = conv.Select[uint](retry == 0, 1, retry)
 	return this
 }
 

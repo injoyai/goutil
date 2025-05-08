@@ -10,7 +10,7 @@ import (
 
 func Handler(jsonPath ...string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := conv.GetDefaultString("/swagger/swagger.json", jsonPath...)
+		path := conv.Default[string]("/swagger/swagger.json", jsonPath...)
 		w.Write([]byte(fmt.Sprintf(ui, path)))
 		w.WriteHeader(200)
 	})

@@ -11,7 +11,7 @@ import (
 )
 
 func newFile(name string, groups ...string) *File {
-	group := conv.GetDefaultString("var", groups...)
+	group := conv.Default[string]("var", groups...)
 	data := &File{
 		name:  name,
 		group: group,

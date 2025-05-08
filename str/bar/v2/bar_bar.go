@@ -244,7 +244,7 @@ func (this *base) speed(key string, size int64, expiration time.Duration, f func
 	}
 
 	//计算速度
-	size = conv.SelectInt64(size >= 0, size, 0)
+	size = conv.Select[int64](size >= 0, size, 0)
 	spendSize := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
 	s := f(spendSize)
 	this.cache.Set(cacheKey, s, expiration)

@@ -91,7 +91,7 @@ func (this *Entity) ShowWindow(b ...bool) *Entity {
 // ShowImg 是否加载图片
 func (this *Entity) ShowImg(b ...bool) *Entity {
 	show := oss.IsWindows() && !(len(b) > 0 && !b[0])
-	this.Prefs["profile.managed_default_content_settings.images"] = conv.SelectInt(show, 1, 2)
+	this.Prefs["profile.managed_default_content_settings.images"] = conv.Select[int](show, 1, 2)
 	return this
 }
 

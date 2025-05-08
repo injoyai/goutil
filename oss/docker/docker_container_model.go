@@ -36,7 +36,7 @@ type ContainerCreateReq struct {
 func (this *ContainerCreateReq) GetPortSet() nat.PortSet {
 	portSet := nat.PortSet{}
 	for _, v := range this.ExposedPorts {
-		protocol := conv.SelectString(len(v.Protocol) > 0, v.Protocol, "tcp")
+		protocol := conv.Select[string](len(v.Protocol) > 0, v.Protocol, "tcp")
 		port := v.HostPort + "/" + protocol
 		portSet[nat.Port(port)] = struct{}{}
 	}
@@ -47,7 +47,7 @@ func (this *ContainerCreateReq) GetPortSet() nat.PortSet {
 func (this *ContainerCreateReq) GetPortMap() nat.PortMap {
 	portMap := nat.PortMap{}
 	for _, v := range this.ExposedPorts {
-		protocol := conv.SelectString(len(v.Protocol) > 0, v.Protocol, "tcp")
+		protocol := conv.Select[string](len(v.Protocol) > 0, v.Protocol, "tcp")
 		port := v.HostPort + "/" + protocol
 		portMap[nat.Port(port)] = []nat.PortBinding{
 			{HostPort: v.ContainerPort},
