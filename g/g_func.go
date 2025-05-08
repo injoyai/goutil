@@ -7,6 +7,7 @@ import (
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/crypt/md5"
 	"github.com/injoyai/base/maps/wait"
+	"github.com/injoyai/base/types"
 	"github.com/injoyai/conv"
 	uuid "github.com/satori/go.uuid"
 	"math"
@@ -206,3 +207,19 @@ func Decimals(f float64, d ...int) float64 {
 
 // UUID uuid
 func UUID() string { return uuid.NewV4().String() }
+
+//========================================Generic========================================
+
+// Sort 排序
+func Sort[T any](ls []T, fn func(i, j T) bool) {
+	types.List[T](ls).Sort(fn)
+}
+
+// Copy 复制指针
+func Copy[T any](ptr *T) *T {
+	if ptr == nil {
+		return nil
+	}
+	x := *ptr
+	return &x
+}
