@@ -8,7 +8,7 @@ import (
 type (
 	Var   = conv.Var
 	DMap  = conv.Map
-	Any   = interface{}
+	Any   = any
 	Bytes = types.Bytes
 	M     = Map
 	List  types.List[any]

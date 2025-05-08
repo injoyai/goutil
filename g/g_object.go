@@ -3,6 +3,7 @@ package g
 import (
 	"context"
 	"github.com/injoyai/base/safe"
+	"github.com/injoyai/base/types"
 	"github.com/injoyai/conv"
 	"math/rand"
 	"sync"
@@ -93,3 +94,10 @@ func Closer() *safe.Closer { return safe.NewCloser() }
 
 // Runner 安全的执行,避免重复执行,实现接口
 func Runner(fn func(ctx context.Context) error) *safe.Runner { return safe.NewRunner(fn) }
+
+//========================================Sort========================================
+
+// Sort 排序
+func Sort[T any](ls []T, fn func(i, j T) bool) {
+	types.List[T](ls).Sort(fn)
+}
