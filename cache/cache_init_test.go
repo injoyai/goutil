@@ -2,7 +2,6 @@ package cache
 
 import (
 	"github.com/injoyai/base/chans"
-	"github.com/injoyai/conv"
 	"testing"
 	"time"
 )
@@ -45,11 +44,11 @@ func TestNewMap(t *testing.T) {
 	for i := range chans.Count(1000000) {
 		//go func() {
 		if i%2 == 0 {
-			x.Set(conv.String(i), i, time.Second)
+			x.Set(i, i, time.Second)
 		} else {
-			x.Set(conv.String(i), i)
+			x.Set(i, i)
 		}
-		x.GetInt(conv.String(i - 1))
+		x.GetInt(i - 1)
 		//}()
 	}
 }

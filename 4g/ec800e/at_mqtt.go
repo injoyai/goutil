@@ -137,7 +137,7 @@ func (this *AT) MQTTPublish(clientIndex int8, topic string, qos uint8, retained 
 	{ //1. 告诉模块要发送的参数和数据长度,格式如下
 		//+QMTPUBEX: (0-5),<msgid>,(0-2),(0,1),"topic","length"
 		command := fmt.Sprintf(`+QMTPUBEX=%d,0,%d,%d,"%s",%d`,
-			clientIndex, qos, conv.SelectUint8(retained, 1, 0), topic, len(msg))
+			clientIndex, qos, conv.Select[uint8](retained, 1, 0), topic, len(msg))
 		_, err := this.send2(command)
 		if err != nil {
 			return err
