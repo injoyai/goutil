@@ -320,7 +320,7 @@ var (
 )
 
 func (this *base) DownloadHTTP(source, filename string, proxy ...string) (int64, error) {
-	if err := DefaultClient.SetProxy(conv.GetDefaultString("", proxy...)); err != nil {
+	if err := DefaultClient.SetProxy(conv.Default[string]("", proxy...)); err != nil {
 		return 0, err
 	}
 	defer this.Close()
