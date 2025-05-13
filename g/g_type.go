@@ -11,7 +11,7 @@ type (
 	Any   = any
 	Bytes = types.Bytes
 	M     = Map
-	List  types.List[any]
-	Map   types.Map[string, any]
-	Maps  types.Maps[string, any]
+	Map   = types.Map[string, any]
+	Maps  = types.Maps[string, any]
+	List  = types.List[any]
 )
