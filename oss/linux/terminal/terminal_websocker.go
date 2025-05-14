@@ -1,12 +1,13 @@
 package terminal
 
 import (
-	"context"
 	"encoding/base64"
 	ws "github.com/gorilla/websocket"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/io"
-	"github.com/injoyai/io/dial"
+	"github.com/injoyai/ios"
+	"github.com/injoyai/ios/client"
+	"github.com/injoyai/ios/client/dial"
+	"github.com/injoyai/ios/module/ssh"
 	json "github.com/json-iterator/go"
 )
 
@@ -17,26 +18,26 @@ type Websocket interface {
 	ReadMessage() ([]byte, error)
 }
 
-func NewWebsocket(s *ws.Conn, cfg *dial.SSHConfig, options ...io.OptionClient) (*websocket, error) {
-	c, err := dial.NewSSH(cfg, options...)
+func NewWebsocket(s *ws.Conn, cfg *ssh.Config, options ...client.Option) (*websocket, error) {
+	c, err := dial.SSH(cfg, options...)
 	if err != nil {
 		return nil, err
 	}
-	c.SetDealFunc(func(c *io.Client, msg io.Message) {
+	c.Event.OnDealMessage = func(c *client.Client, msg ios.Acker) {
 		if err := s.WriteMessage(ws.TextMessage, conv.Bytes(WebsocketMsg{
 			Type: WsTypeCmd,
-			Data: msg.Base64(),
+			Data: base64.StdEncoding.EncodeToString(msg.Payload()),
 		})); err != nil {
 			c.Close()
 		}
-	})
-	c.SetCloseFunc(func(ctx context.Context, c *io.Client, msg io.Message) {
+	}
+	c.Event.OnDisconnect = func(c *client.Client, err error) {
 		s.WriteMessage(ws.TextMessage, conv.Bytes(&WebsocketMsg{
 			Type: WsTypeErr,
-			Data: msg.String(),
+			Data: err.Error(),
 		}))
 		s.Close()
-	})
+	}
 	return &websocket{
 		Client: c,
 		ws:     s,
@@ -44,7 +45,7 @@ func NewWebsocket(s *ws.Conn, cfg *dial.SSHConfig, options ...io.OptionClient) (
 }
 
 type websocket struct {
-	*io.Client
+	*client.Client
 	ws *ws.Conn
 }
 
@@ -64,7 +65,7 @@ func (this *websocket) Run() error {
 		case WsTypeResize:
 			//重新设置窗口大小
 			if msg.High > 0 && msg.Wide > 0 {
-				if err := this.Client.ReadWriteCloser().(*dial.SSHClient).WindowChange(msg.High, msg.Wide); err == nil {
+				if err := this.Client.Reader.(*ssh.Client).WindowChange(msg.High, msg.Wide); err == nil {
 					if err := this.ws.WriteMessage(ws.TextMessage, data); err != nil {
 						return err
 					}

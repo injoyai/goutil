@@ -1,20 +1,23 @@
 package notice
 
-import "github.com/injoyai/io"
+import (
+	"github.com/injoyai/ios"
+	"github.com/injoyai/ios/client"
+)
 
-func NewIO(dial io.DialFunc, options ...io.OptionClient) (Interface, error) {
-	c, err := io.NewDial(dial, options...)
+func NewIO(dial ios.DialFunc, options ...client.Option) (Interface, error) {
+	c, err := client.Dial(dial, options...)
 	if err != nil {
 		return nil, err
 	}
-	return &IO{Client: c.Redial()}, nil
+	c.Redial()
+	return &IO{Client: c}, nil
 }
 
 type IO struct {
-	*io.Client
+	*client.Client
 }
 
 func (this *IO) Publish(msg *Message) error {
-	_, err := this.WriteAny(msg)
-	return err
+	return this.WriteAny(msg)
 }

@@ -3,15 +3,16 @@ package net_tools
 import (
 	"context"
 	"github.com/injoyai/base/safe"
-	"github.com/injoyai/io"
+	"github.com/injoyai/ios"
+	"github.com/injoyai/ios/client"
 )
 
-func NewTCPClientEnable(dial io.DialFunc, options ...io.OptionClient) *TCPClientEnable {
+func NewTCPClientEnable(dial ios.DialFunc, options ...client.Option) *TCPClientEnable {
 	return NewTCPClientEnableWithContext(context.Background(), dial, options...)
 }
 
 // NewTCPClientEnableWithContext 单例的TCP客户端启用禁用
-func NewTCPClientEnableWithContext(ctx context.Context, dial io.DialFunc, options ...io.OptionClient) *TCPClientEnable {
+func NewTCPClientEnableWithContext(ctx context.Context, dial ios.DialFunc, options ...client.Option) *TCPClientEnable {
 	return &TCPClientEnable{
 		DialFunc: dial,
 		Options:  options,
@@ -21,8 +22,8 @@ func NewTCPClientEnableWithContext(ctx context.Context, dial io.DialFunc, option
 }
 
 type TCPClientEnable struct {
-	io.DialFunc
-	Options []io.OptionClient
+	ios.DialFunc
+	Options []client.Option
 	ctx     context.Context
 	*safe.Runner
 }
@@ -30,7 +31,7 @@ type TCPClientEnable struct {
 func (this *TCPClientEnable) Enable() error {
 
 	this.Runner.SetFunc(func(ctx context.Context) error {
-		return io.RedialWithContext(this.ctx, this.DialFunc, func(c *io.Client) {
+		return client.RedialWithContext(this.ctx, this.DialFunc, func(c *client.Client) {
 			go func() {
 				select {
 				case <-ctx.Done():
@@ -38,7 +39,7 @@ func (this *TCPClientEnable) Enable() error {
 				case <-c.Done():
 				}
 			}()
-			c.SetOptions(this.Options...)
+			c.SetOption(this.Options...)
 		}).Run()
 	})
 	go this.Runner.Run()

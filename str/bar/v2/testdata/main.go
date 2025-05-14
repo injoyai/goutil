@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/str/bar/v2"
-	"github.com/injoyai/io"
+	"github.com/injoyai/ios"
 	"github.com/injoyai/logs"
 	"os"
 	"time"
@@ -24,7 +24,7 @@ func main() {
 			p.SetSuffix(")")
 		}))
 
-		b.SetWriter(io.WriteFunc(func(p []byte) (int, error) {
+		b.SetWriter(ios.WriteFunc(func(p []byte) (int, error) {
 			return fmt.Print(string(p))
 		}))
 		for {

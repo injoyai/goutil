@@ -5,7 +5,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/str/bar"
-	"github.com/injoyai/io"
+	"github.com/injoyai/ios"
 	"github.com/injoyai/logs"
 	"os"
 	"time"
@@ -24,7 +24,7 @@ func main() {
 	b := bar.New(0)
 	b.SetColor(color.BgYellow)
 	b.SetStyle('#')
-	b.SetWriter(io.WriteFunc(func(p []byte) (int, error) {
+	b.SetWriter(ios.WriteFunc(func(p []byte) (int, error) {
 		return fmt.Print(string(p))
 	}))
 	b.AddOption(func(f *bar.Format) {
