@@ -9,7 +9,7 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/oss"
-	"github.com/injoyai/io"
+	"io"
 	"os"
 	"time"
 )

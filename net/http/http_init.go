@@ -2,7 +2,7 @@ package http
 
 import (
 	"github.com/injoyai/conv"
-	"github.com/injoyai/io"
+	"io"
 	"net/http"
 	"time"
 )
@@ -62,14 +62,9 @@ func GetToWriter(url string, writer io.Writer) (int64, error) {
 	return DefaultClient.GetToWriter(url, writer)
 }
 
-// GetToWriterWith 获取数据,分片复制数据
-func GetToWriterWith(url string, w io.Writer, f func([]byte)) (int64, error) {
-	return DefaultClient.GetToWriterWith(url, w, f)
-}
-
 // GetToWriterWithPlan 获取数据,分片复制数据
-func GetToWriterWithPlan(url string, w io.Writer, fn func(p *Plan)) (int64, error) {
-	return DefaultClient.GetToWriterWithPlan(url, w, fn)
+func GetToWriterWithPlan(url string, w io.Writer, f func(p *Plan)) (int64, error) {
+	return DefaultClient.GetToWriterWithPlan(url, w, f)
 }
 
 // GetToFile 发起请求,并把body内容写入文件,适用于下载文件
@@ -78,10 +73,7 @@ func GetToFile(url string, filename string) (int64, error) {
 }
 
 // Download 下载文件
-func Download(url string, filename string, f ...func(p *Plan)) (int64, error) {
-	if len(f) > 0 && f[0] != nil {
-		return DefaultClient.GetToFileWithPlan(url, filename, f[0])
-	}
+func Download(url string, filename string) (int64, error) {
 	return DefaultClient.GetToFile(url, filename)
 }
 

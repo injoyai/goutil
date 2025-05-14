@@ -5,8 +5,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/injoyai/io"
 	"golang.org/x/net/proxy"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -114,23 +114,12 @@ func (this *Client) GetToWriter(url string, w io.Writer) (int64, error) {
 	return io.Copy(w, resp.Response.Body)
 }
 
-func (this *Client) GetToWriterWith(url string, w io.Writer, f func([]byte)) (int64, error) {
-	resp := this.DoRequest(http.MethodGet, url, nil)
-	if resp.Err() != nil {
-		return 0, resp.Err()
-	}
-	return resp.CopyWith(w, f)
-}
-
 func (this *Client) GetToWriterWithPlan(url string, w io.Writer, f func(p *Plan)) (int64, error) {
 	resp := this.DoRequest(http.MethodGet, url, nil)
 	if resp.Err() != nil {
 		return 0, resp.Err()
 	}
-	return resp.CopyWithPlan(w, func(p *io.Plan) {
-		p.Total = resp.ContentLength
-		f(p)
-	})
+	return resp.CopyWithPlan(w, f)
 }
 
 func (this *Client) GetToFile(url string, filename string) (int64, error) {
@@ -158,7 +147,7 @@ func (this *Client) GetToFileWithPlan(url string, filename string, f func(p *Pla
 		return 0, err
 	}
 	defer w.Close()
-	return resp.CopyWithPlan(w, func(p *io.Plan) {
+	return resp.CopyWithPlan(w, func(p *Plan) {
 		p.Total = resp.ContentLength
 		f(p)
 	})

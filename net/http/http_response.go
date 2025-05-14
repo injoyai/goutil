@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/io"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -99,22 +99,13 @@ func (this *Response) Cookies() (cookie []*http.Cookie) {
 	return
 }
 
-// CopyWith 复制数据,并监听
-func (this *Response) CopyWith(w io.Writer, fn func(bs []byte)) (int64, error) {
+// CopyWithPlan 复制数据,并监听
+func (this *Response) CopyWithPlan(w io.Writer, fn func(p *Plan)) (int64, error) {
 	defer this.Response.Body.Close()
-	return io.CopyWith(w, this.Response.Body, func(p []byte) ([]byte, error) {
-		fn(p)
-		return p, nil
-	})
-}
-
-// CopyWithPlan 复制数据并监听进度
-func (this *Response) CopyWithPlan(w io.Writer, fn func(p *io.Plan)) (int64, error) {
-	defer this.Response.Body.Close()
-	return io.CopyWithPlan(w, this.Response.Body, func(p *io.Plan) {
-		p.Total = this.GetContentLength()
-		fn(p)
-	})
+	return io.Copy(&ListenWrite{
+		Writer:  w,
+		OnWrite: fn,
+	}, this.Response.Body)
 }
 
 // WriteToFile 写入新文件,会覆盖原文件(如果存在)
