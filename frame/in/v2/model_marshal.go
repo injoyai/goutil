@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Marshal func(v interface{}) ([]byte, error)
+type Marshal func(v any) ([]byte, error)
 
 type IMarshal interface {
 	Bytes() ([]byte, error)
@@ -19,7 +19,7 @@ type IMarshal interface {
 }
 
 type TEXT struct {
-	Data interface{}
+	Data any
 }
 
 func (this *TEXT) Bytes() ([]byte, error) {
@@ -31,7 +31,7 @@ func (this *TEXT) ContentType() []string {
 }
 
 type JSON struct {
-	Data interface{}
+	Data any
 }
 
 func (this *JSON) Bytes() ([]byte, error) {
@@ -43,7 +43,7 @@ func (this *JSON) ContentType() []string {
 }
 
 type YAML struct {
-	Data interface{}
+	Data any
 }
 
 func (this *YAML) Bytes() ([]byte, error) {
@@ -55,7 +55,7 @@ func (this *YAML) ContentType() []string {
 }
 
 type TOML struct {
-	Data interface{}
+	Data any
 }
 
 func (this *TOML) Bytes() ([]byte, error) {
@@ -67,7 +67,7 @@ func (this *TOML) ContentType() []string {
 }
 
 type XML struct {
-	Data interface{}
+	Data any
 }
 
 func (this *XML) Bytes() ([]byte, error) {
@@ -91,7 +91,7 @@ func (this *PROTO) ContentType() []string {
 }
 
 type MSGPACK struct {
-	Data interface{}
+	Data any
 }
 
 func (this *MSGPACK) Bytes() ([]byte, error) {
@@ -106,7 +106,7 @@ func (this *MSGPACK) ContentType() []string {
 }
 
 type HTML struct {
-	Data interface{}
+	Data any
 }
 
 func (this *HTML) Bytes() ([]byte, error) {
@@ -118,7 +118,7 @@ func (this *HTML) ContentType() []string {
 }
 
 type FILE struct {
-	Data interface{}
+	Data any
 }
 
 func (this *FILE) Bytes() ([]byte, error) {

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type Handler func(ctx context.Context) (interface{}, error)
+type Handler func(ctx context.Context) (any, error)
 
 func NewRange() *Range {
 	return &Range{
@@ -104,7 +104,7 @@ func (this *Range) Run(ctx context.Context) *Resp {
 type ItemResp struct {
 	Index int
 	Err   error
-	Data  interface{}
+	Data  any
 }
 
 func (this *ItemResp) Error() string {
@@ -115,9 +115,9 @@ func (this *ItemResp) Error() string {
 }
 
 type Resp struct {
-	Start time.Time     //任务开始时间
-	Data  []interface{} //任务分片数据
-	Err   error         //错误信息
+	Start time.Time //任务开始时间
+	Data  []any     //任务分片数据
+	Err   error     //错误信息
 	spend *time.Duration
 }
 

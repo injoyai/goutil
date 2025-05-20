@@ -10,9 +10,9 @@ func TestClient_Cache(t *testing.T) {
 	c := New("127.0.0.1:6379", "")
 	c.Del(context.Background(), "key")
 	for i := 0; i < 10; i++ {
-		val, err := c.Cache("key", func() (interface{}, error) {
+		val, err := c.Cache("key", func() (any, error) {
 			t.Log("handler generate data")
-			return map[string]interface{}{
+			return map[string]any{
 				"time": time.Now().String(),
 			}, nil
 		}, time.Second)

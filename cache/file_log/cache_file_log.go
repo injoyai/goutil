@@ -68,7 +68,7 @@ type FileLog struct {
 }
 
 // WriteAny 写入任意数据,根据配置写入到不同的文件
-func (this *FileLog) WriteAny(p interface{}) (int, error) {
+func (this *FileLog) WriteAny(p any) (int, error) {
 	return this.Write([]byte(conv.String(p)))
 }
 
@@ -206,9 +206,9 @@ func (this *FileLog) GetLogCurve(start, end time.Time, merge time.Duration, d De
 
 	//填充没有数据的节点
 	curve := &Curve{}
-	mapData := map[int64]*[]interface{}{}
+	mapData := map[int64]*[]any{}
 	for t := start.UnixNano(); t <= end.UnixNano(); t += int64(interval) {
-		ls := &[]interface{}{}
+		ls := &[]any{}
 		curve.Time = append(curve.Time, t)
 		curve.list = append(curve.list, ls)
 		curve.Value = append(curve.Value, nil)
@@ -246,9 +246,9 @@ type Data struct {
 }
 
 type Curve struct {
-	Time  []int64          `json:"time"`
-	Value []interface{}    `json:"value"` //计算后的值
-	list  []*[]interface{} //未计算的原始值
+	Time  []int64  `json:"time"`
+	Value []any    `json:"value"` //计算后的值
+	list  []*[]any //未计算的原始值
 }
 
 func (this *Curve) String() string {
@@ -264,20 +264,20 @@ func (this *Curve) String() string {
 
 type Decoder interface {
 	// Decode 字节转对象,这个是接口速度的关键,不推荐使用json
-	Decode([]byte) (interface{}, error)
+	Decode([]byte) (any, error)
 	// Report 整理对象,合并统计,曲线的按时间统计,平均值或者最大值等等
-	Report(node int64, list []interface{}) (interface{}, error)
+	Report(node int64, list []any) (any, error)
 }
 
 type DecodeFunc struct {
-	DecodeFunc func([]byte) (interface{}, error)
-	ReportFunc func(node int64, list []interface{}) (interface{}, error)
+	DecodeFunc func([]byte) (any, error)
+	ReportFunc func(node int64, list []any) (any, error)
 }
 
-func (this *DecodeFunc) Decode(bs []byte) (interface{}, error) {
+func (this *DecodeFunc) Decode(bs []byte) (any, error) {
 	return this.DecodeFunc(bs)
 }
 
-func (this *DecodeFunc) Report(node int64, list []interface{}) (interface{}, error) {
+func (this *DecodeFunc) Report(node int64, list []any) (any, error) {
 	return this.ReportFunc(node, list)
 }

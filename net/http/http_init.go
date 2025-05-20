@@ -34,7 +34,7 @@ func Url(url string) *Request {
 }
 
 // Get 使用默认客户端发起GET请求
-func Get(url string, bind ...interface{}) *Response {
+func Get(url string, bind ...any) *Response {
 	return DefaultClient.Get(url, bind...)
 }
 
@@ -77,14 +77,14 @@ func Download(url string, filename string) (int64, error) {
 	return DefaultClient.GetToFile(url, filename)
 }
 
-func Post(url string, body interface{}, bind ...interface{}) *Response {
+func Post(url string, body any, bind ...any) *Response {
 	return DefaultClient.Post(url, body, bind...)
 }
 
-func Put(url string, body interface{}, bind ...interface{}) *Response {
+func Put(url string, body any, bind ...any) *Response {
 	return DefaultClient.Put(url, body, bind...)
 }
 
-func Delete(url string, body interface{}, bind ...interface{}) *Response {
+func Delete(url string, body any, bind ...any) *Response {
 	return DefaultClient.Delete(url, body, bind...)
 }

@@ -4,8 +4,8 @@ import (
 	"github.com/injoyai/conv"
 )
 
-func NewRespMap(code interface{}, data interface{}, count ...int64) map[string]interface{} {
-	m := map[string]interface{}{
+func NewRespMap(code any, data any, count ...int64) map[string]any {
+	m := map[string]any{
 		"code": code,
 		"data": data,
 	}

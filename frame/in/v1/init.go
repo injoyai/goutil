@@ -27,7 +27,7 @@ func init() {
 
 // InitGf 初始化gf框架
 // 除了单例模式的其余需要手动初始化
-func InitGf(name ...interface{}) *ghttp.Server {
+func InitGf(name ...any) *ghttp.Server {
 	s := gins.Server(name...)
 	if s.GetName() != "default" {
 		initGf(name...)

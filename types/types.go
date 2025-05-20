@@ -62,7 +62,7 @@ func (this Type) Name() string {
 	return "未知"
 }
 
-func (this Type) Value(v interface{}) interface{} {
+func (this Type) Value(v any) any {
 	switch this {
 	case String:
 		return conv.String(v)

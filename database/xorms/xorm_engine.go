@@ -21,7 +21,7 @@ type Engine struct {
 	*xorm.Engine
 }
 
-func (this *Engine) TableName(v interface{}) string {
+func (this *Engine) TableName(v any) string {
 	return this.Engine.TableName(v)
 }
 
@@ -88,7 +88,7 @@ func (this *Engine) Limit(limit int, start ...int) *Session {
 	return newSession(this.Engine.Where(""))
 }
 
-func (this *Engine) Where(query interface{}, args ...interface{}) *Session {
+func (this *Engine) Where(query any, args ...any) *Session {
 	return newSession(this.Engine.Where(query, args...))
 }
 

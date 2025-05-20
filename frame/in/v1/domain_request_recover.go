@@ -44,7 +44,7 @@ func initGo(h http.Handler) http.Handler {
 
 //=========================GoFrame====================
 
-func initGf(name ...interface{}) *ghttp.Server {
+func initGf(name ...any) *ghttp.Server {
 	s := gins.Server(name...)
 	s.BindStatusHandler(500, MiddleGfRecover())
 	s.Group("", func(group *ghttp.RouterGroup) {
@@ -80,7 +80,7 @@ func initGin(s *gin.Engine) *gin.Engine {
 }
 
 func MiddleGinRecover() gin.HandlerFunc {
-	return gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recover interface{}) {
+	return gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recover any) {
 		body := conv.String(recover)
 		if strings.Contains(body, DefaultOption.ExitMark) {
 			l := new(ExitModel)

@@ -5,12 +5,12 @@ import (
 	"github.com/injoyai/conv"
 )
 
-type Func func(*Args) (interface{}, error)
+type Func func(*Args) (any, error)
 type Option func(c Client)
 
 type Client interface {
-	Exec(text string, option ...func(i Client)) (interface{}, error)
-	Set(key string, value interface{}) error
+	Exec(text string, option ...func(i Client)) (any, error)
+	Set(key string, value any) error
 	SetFunc(key string, value Func) error
 	Close() error
 	Tag() *maps.Safe
@@ -29,7 +29,7 @@ func (this *Args) Get(idx int) *conv.Var {
 	if this.Len() > idx-1 && idx > 0 {
 		return this.Args[idx-1]
 	}
-	return conv.Nil
+	return conv.Nil()
 }
 
 func (this *Args) GetInt(idx int, def ...int) int {
@@ -56,24 +56,24 @@ func (this *Args) GetBool(idx int, def ...bool) bool {
 	return this.Get(idx).Bool(def...)
 }
 
-func (this *Args) GetMap(idx int, def ...map[string]interface{}) map[string]interface{} {
+func (this *Args) GetMap(idx int, def ...map[string]any) map[string]any {
 	return this.Get(idx).Map(def...)
 }
 
-func (this *Args) GetGMap(idx int, def ...map[string]interface{}) map[string]interface{} {
+func (this *Args) GetGMap(idx int, def ...map[string]any) map[string]any {
 	return this.Get(idx).GMap(def...)
 }
 
-func (this *Args) GetDMap(idx int, def ...interface{}) *conv.Map {
+func (this *Args) GetDMap(idx int, def ...any) *conv.Map {
 	return this.Get(idx).DMap(def...)
 }
 
-func (this *Args) GetArray(idx int, def ...[]interface{}) []interface{} {
+func (this *Args) GetArray(idx int, def ...[]any) []any {
 	return this.Get(idx).Interfaces(def...)
 }
 
-func (this *Args) Interfaces() []interface{} {
-	list := make([]interface{}, 0)
+func (this *Args) Interfaces() []any {
+	list := make([]any, 0)
 	for _, v := range this.Args {
 		list = append(list, v.Val())
 	}

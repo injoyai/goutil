@@ -155,15 +155,15 @@ func StopWithErr(fn ...func() error) error {
 //========================================Wait========================================
 
 // Wait 等待
-func Wait(key string) (interface{}, error) { return wait.Wait(key) }
+func Wait(key string) (any, error) { return wait.Wait(key) }
 
 // Done 结束等待
-func Done(key string, value interface{}) { wait.Done(key, value) }
+func Done(key string, value any) { wait.Done(key, value) }
 
 //========================================OS========================================
 
 // Input 监听用户输入
-func Input(hint ...interface{}) (s string) {
+func Input(hint ...any) (s string) {
 	if len(hint) > 0 {
 		fmt.Println(hint...)
 	}
@@ -182,16 +182,16 @@ func InputUntil(hint string, f func(s string) bool) (s string) {
 }
 
 // InputVar 监听用户输入,返回*conv.Var
-func InputVar(hint ...interface{}) *conv.Var {
+func InputVar(hint ...any) *conv.Var {
 	input := Input(hint...)
 	if len(input) == 0 {
-		return conv.Nil
+		return conv.Nil()
 	}
 	return conv.New(input)
 }
 
 // FuncName 获取函数名
-func FuncName(f interface{}) string {
+func FuncName(f any) string {
 	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 }
 

@@ -1,10 +1,10 @@
 package paging
 
-func FindAndCount(i Interface, size int, offset ...int) (interface{}, int64) {
+func FindAndCount(i Interface, size int, offset ...int) (any, int64) {
 	return Limit(i, size, offset...), int64(i.Len())
 }
 
-func Limit(i Interface, size int, offset ...int) interface{} {
+func Limit(i Interface, size int, offset ...int) any {
 	if size <= 0 {
 		return i.Cut(0, 0)
 	}
@@ -30,6 +30,6 @@ func Limit(i Interface, size int, offset ...int) interface{} {
 }
 
 type Interface interface {
-	Cut(int, int) interface{}
+	Cut(int, int) any
 	Len() int
 }

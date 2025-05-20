@@ -18,7 +18,7 @@ type Manage struct {
 }
 
 // IsRoot 是否根部门
-func (this *Manage) IsRoot(id interface{}) bool {
+func (this *Manage) IsRoot(id any) bool {
 	val, ok := this.Get(id)
 	if ok {
 		return conv.IsDefault(val.ParentID)
@@ -27,13 +27,13 @@ func (this *Manage) IsRoot(id interface{}) bool {
 }
 
 // Exist 是否存在
-func (this *Manage) Exist(id interface{}) bool {
+func (this *Manage) Exist(id any) bool {
 	_, ok := this.Get(id)
 	return ok
 }
 
 // Get 获取部门
-func (this *Manage) Get(id interface{}) (*Dept, bool) {
+func (this *Manage) Get(id any) (*Dept, bool) {
 	val, ok := this.Safe.Get(id)
 	if ok {
 		return val.(*Dept), true
@@ -47,7 +47,7 @@ func (this *Manage) Set(val ...*Dept) {
 	}
 }
 
-func (this *Manage) GetFather(id interface{}) (*Dept, bool) {
+func (this *Manage) GetFather(id any) (*Dept, bool) {
 	e, ok := this.Get(id)
 	if !ok {
 		return nil, false
@@ -55,7 +55,7 @@ func (this *Manage) GetFather(id interface{}) (*Dept, bool) {
 	return this.Get(e.ParentID)
 }
 
-func (this *Manage) GetFatherAll(id interface{}) []*Dept {
+func (this *Manage) GetFatherAll(id any) []*Dept {
 	result := []*Dept(nil)
 	for {
 		father, ok := this.GetFather(id)
@@ -68,19 +68,19 @@ func (this *Manage) GetFatherAll(id interface{}) []*Dept {
 	return result
 }
 
-func (this *Manage) GetChildrenID(id interface{}, level int) []interface{} {
-	result := []interface{}(nil)
+func (this *Manage) GetChildrenID(id any, level int) []any {
+	result := []any(nil)
 	for _, v := range this.GetChildren(id, level) {
 		result = append(result, v.ID)
 	}
 	return result
 }
 
-func (this *Manage) GetChildren(id interface{}, level int) (list []*Dept) {
+func (this *Manage) GetChildren(id any, level int) (list []*Dept) {
 	if level == 0 || !this.Exist(id) {
 		return
 	}
-	this.Range(func(key, value interface{}) bool {
+	this.Range(func(key, value any) bool {
 		if e := value.(*Dept); e.ParentID == id {
 			list = append(list, e)
 			list = append(list, this.GetChildren(e.ID, level-1)...)
@@ -90,18 +90,18 @@ func (this *Manage) GetChildren(id interface{}, level int) (list []*Dept) {
 	return
 }
 
-func (this *Manage) GetChildrenAll(id interface{}) []*Dept {
+func (this *Manage) GetChildrenAll(id any) []*Dept {
 	return this.GetChildren(id, -1)
 }
 
 // GetTree 获取整理成树状结构
-func (this *Manage) GetTree(id interface{}) (*Dept, bool) {
+func (this *Manage) GetTree(id any) (*Dept, bool) {
 	e, ok := this.Get(id)
 	if !ok {
 		return nil, false
 	}
 	child := this.GetChildrenAll(id)
-	m := map[interface{}][]*Dept{}
+	m := map[any][]*Dept{}
 	for _, v := range child {
 		m[v.ParentID] = append(m[v.ParentID], v)
 	}
@@ -115,11 +115,11 @@ func (this *Manage) GetTree(id interface{}) (*Dept, bool) {
 }
 
 type Dept struct {
-	ID       interface{}
-	ParentID interface{}
+	ID       any
+	ParentID any
 	Name     string
 	Children []*Dept
-	Data     interface{}
+	Data     any
 }
 
 type Depts []*Dept

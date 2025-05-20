@@ -82,7 +82,7 @@ func WithDeadline(deadline time.Time, ctx ...context.Context) (context.Context, 
 	return context.WithDeadline(Ctx(ctx...), deadline)
 }
 
-func WithValue(key, val interface{}, ctx ...context.Context) context.Context {
+func WithValue(key, val any, ctx ...context.Context) context.Context {
 	return context.WithValue(Ctx(ctx...), key, val)
 }
 

@@ -81,7 +81,7 @@ func (this *Flags) GetVar(key string) *conv.Var {
 	if ok && len(val.Value) > 0 {
 		return val.Var()
 	}
-	return conv.Nil
+	return conv.Nil()
 }
 
 type Flag struct {

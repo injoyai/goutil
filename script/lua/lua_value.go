@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func (this *Client) Value(i interface{}) lua.LValue {
+func (this *Client) Value(i any) lua.LValue {
 	switch value := (i).(type) {
 	case error:
 		return lua.LString(value.Error())
@@ -45,7 +45,7 @@ func (this *Client) Value(i interface{}) lua.LValue {
 			return this.Value(r.Elem().Interface())
 		case reflect.Map:
 			bs, _ := json.Marshal(r.Interface())
-			m := make(map[string]interface{}, r.Len())
+			m := make(map[string]any, r.Len())
 			_ = json.Unmarshal(bs, &m)
 			t := this.client.NewTable()
 			for i, v := range m {

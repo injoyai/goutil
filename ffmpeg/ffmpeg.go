@@ -72,7 +72,7 @@ func ToAudio(input string, at string, sec int, name string) error {
 type Option func(*Ffmpeg)
 
 func New(op ...Option) *Ffmpeg {
-	f := &Ffmpeg{args: make(map[string]interface{})}
+	f := &Ffmpeg{args: make(map[string]any)}
 	for _, v := range op {
 		v(f)
 	}
@@ -80,12 +80,12 @@ func New(op ...Option) *Ffmpeg {
 }
 
 type Ffmpeg struct {
-	shell  func(string) error     //shell
-	bin    string                 //ffmpeg命令,可空,默认ffmpeg
-	input  []string               //输入资源
-	output string                 //输出资源
-	args   map[string]interface{} //参数
-	debug  *bool                  //打印命令
+	shell  func(string) error //shell
+	bin    string             //ffmpeg命令,可空,默认ffmpeg
+	input  []string           //输入资源
+	output string             //输出资源
+	args   map[string]any     //参数
+	debug  *bool              //打印命令
 }
 
 // Debug 调试,打印命令
@@ -146,11 +146,11 @@ func (this *Ffmpeg) Shell(f func(string) error) *Ffmpeg {
 }
 
 // Arg 设置自定义参数
-func (this *Ffmpeg) Arg(key string, val ...interface{}) *Ffmpeg {
+func (this *Ffmpeg) Arg(key string, val ...any) *Ffmpeg {
 	if !strings.HasPrefix(key, "-") {
 		key = "-" + key
 	}
-	this.args[key] = func() interface{} {
+	this.args[key] = func() any {
 		if len(val) == 0 {
 			return nil
 		}
@@ -160,7 +160,7 @@ func (this *Ffmpeg) Arg(key string, val ...interface{}) *Ffmpeg {
 }
 
 // Args 设置自定义参数
-func (this *Ffmpeg) Args(args map[string]interface{}) *Ffmpeg {
+func (this *Ffmpeg) Args(args map[string]any) *Ffmpeg {
 	for k, v := range args {
 		this.Arg(k, v)
 	}

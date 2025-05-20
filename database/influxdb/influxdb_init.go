@@ -8,12 +8,12 @@ import (
 
 type Result []client.Result
 
-func (this Result) GMap1() []map[string]interface{} {
-	list := []map[string]interface{}{}
+func (this Result) GMap1() []map[string]any {
+	list := []map[string]any{}
 	if len(this) > 0 {
 		for _, k := range this[0].Series {
 			for _, x := range k.Values {
-				m := map[string]interface{}{}
+				m := map[string]any{}
 				for i, y := range k.Columns {
 					if len(x) > i {
 						m[y] = x[i]
@@ -26,13 +26,13 @@ func (this Result) GMap1() []map[string]interface{} {
 	return list
 }
 
-func (this Result) GMaps() [][]map[string]interface{} {
-	lists := [][]map[string]interface{}{}
+func (this Result) GMaps() [][]map[string]any {
+	lists := [][]map[string]any{}
 	for _, v := range this {
-		list := []map[string]interface{}{}
+		list := []map[string]any{}
 		for _, k := range v.Series {
 			for _, x := range k.Values {
-				m := map[string]interface{}{}
+				m := map[string]any{}
 				for i, y := range k.Columns {
 					if len(x) > i {
 						m[y] = x[i]
@@ -95,7 +95,7 @@ func (this *Client) Close() error {
 // @fields 字段
 // @t 时间
 // 时间一直会覆盖数据
-func (this *Client) Write(tableName string, tags map[string]string, fields map[string]interface{}, t ...time.Time) error {
+func (this *Client) Write(tableName string, tags map[string]string, fields map[string]any, t ...time.Time) error {
 	if this.err != nil {
 		this.Reconnect()
 		return this.err

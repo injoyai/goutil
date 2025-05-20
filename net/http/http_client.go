@@ -87,7 +87,7 @@ func (this *Client) SetTimeout(t time.Duration) *Client {
 	return this
 }
 
-func (this *Client) Get(url string, bind ...interface{}) *Response {
+func (this *Client) Get(url string, bind ...any) *Response {
 	resp := this.DoRequest(http.MethodGet, url, nil)
 	if len(bind) > 0 {
 		resp.Bind(bind[0])
@@ -153,7 +153,7 @@ func (this *Client) GetToFileWithPlan(url string, filename string, f func(p *Pla
 	})
 }
 
-func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Response {
+func (this *Client) Post(url string, body any, bind ...any) *Response {
 	resp := this.DoRequest(http.MethodPost, url, body)
 	if len(bind) > 0 {
 		resp.Bind(bind[0])
@@ -161,7 +161,7 @@ func (this *Client) Post(url string, body interface{}, bind ...interface{}) *Res
 	return resp
 }
 
-func (this *Client) Put(url string, body interface{}, bind ...interface{}) *Response {
+func (this *Client) Put(url string, body any, bind ...any) *Response {
 	resp := this.DoRequest(http.MethodPut, url, body)
 	if len(bind) > 0 {
 		resp.Bind(bind[0])
@@ -169,7 +169,7 @@ func (this *Client) Put(url string, body interface{}, bind ...interface{}) *Resp
 	return resp
 }
 
-func (this *Client) Delete(url string, body interface{}, bind ...interface{}) *Response {
+func (this *Client) Delete(url string, body any, bind ...any) *Response {
 	resp := this.DoRequest(http.MethodDelete, url, body)
 	if len(bind) > 0 {
 		resp.Bind(bind[0])
@@ -197,7 +197,7 @@ func (this *Client) Trace(url string) *Response {
 	return this.DoRequest(http.MethodTrace, url, nil)
 }
 
-func (this *Client) DoRequest(method, url string, body interface{}) *Response {
+func (this *Client) DoRequest(method, url string, body any) *Response {
 	return this.Do(NewRequest(method, url, body))
 }
 
@@ -247,7 +247,7 @@ func (this *Client) DialContext(ctx context.Context, network, addr string) (net.
 
  */
 
-func (this *Client) Request(url string, body ...interface{}) *Request {
+func (this *Client) Request(url string, body ...any) *Request {
 	if len(body) > 0 {
 		return NewRequest(http.MethodGet, url, body[0]).SetClient(this)
 	}

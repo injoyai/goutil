@@ -8,14 +8,14 @@ import (
 
 func New() *Trunk {
 	t := &Trunk{
-		ch: make(chan interface{}, 1000),
+		ch: make(chan any, 1000),
 	}
 	go t.run()
 	return t
 }
 
 type Trunk struct {
-	ch          chan interface{}
+	ch          chan any
 	middlewares []*Middleware
 	subscribes  []*Subscribe
 	channels    []*Channel
@@ -44,7 +44,7 @@ func (this *Trunk) run() {
 }
 
 // Publish 发布数据到队列,并运行中间件
-func (this *Trunk) Publish(msg interface{}) {
+func (this *Trunk) Publish(msg any) {
 	for _, v := range this.middlewares {
 		if !v.f(msg) {
 			return
@@ -54,7 +54,7 @@ func (this *Trunk) Publish(msg interface{}) {
 }
 
 // Middleware 从队列中拦截数据,可以进行修改/过滤操作
-func (this *Trunk) Middleware(f func(msg interface{}) bool) *Middleware {
+func (this *Trunk) Middleware(f func(msg any) bool) *Middleware {
 	return &Middleware{
 		t: this,
 		k: fmt.Sprintf("%p", f),
@@ -63,7 +63,7 @@ func (this *Trunk) Middleware(f func(msg interface{}) bool) *Middleware {
 }
 
 // Subscribe 订阅数据,可以同时被多个订阅
-func (this *Trunk) Subscribe(f func(msg interface{})) *Subscribe {
+func (this *Trunk) Subscribe(f func(msg any)) *Subscribe {
 	s := &Subscribe{
 		t: this,
 		k: fmt.Sprintf("%p", f),
@@ -75,7 +75,7 @@ func (this *Trunk) Subscribe(f func(msg interface{})) *Subscribe {
 
 // Channel 接入一个通道到队列,是订阅的另一种方式
 func (this *Trunk) Channel(cap uint) *Channel {
-	c := make(chan interface{}, cap)
+	c := make(chan any, cap)
 	return &Channel{
 		t: this,
 		k: fmt.Sprintf("%p", c),
@@ -86,7 +86,7 @@ func (this *Trunk) Channel(cap uint) *Channel {
 type Subscribe struct {
 	t *Trunk
 	k string
-	f func(msg interface{})
+	f func(msg any)
 }
 
 func (this *Subscribe) Close() error {
@@ -104,7 +104,7 @@ func (this *Subscribe) Close() error {
 type Middleware struct {
 	t *Trunk
 	k string
-	f func(msg interface{}) bool
+	f func(msg any) bool
 }
 
 func (this *Middleware) Close() error {
@@ -122,11 +122,11 @@ func (this *Middleware) Close() error {
 type Channel struct {
 	t      *Trunk
 	k      string
-	C      chan interface{}
+	C      chan any
 	closed uint32
 }
 
-func (this *Channel) publish(msg interface{}) {
+func (this *Channel) publish(msg any) {
 	if atomic.LoadUint32(&this.closed) == 1 {
 		//通道状态为1(关闭)，直接返回
 		return

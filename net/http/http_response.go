@@ -155,14 +155,14 @@ func (this *Response) GetBodyDMap() *conv.Map {
 	return conv.NewMap(this.GetBodyBytes())
 }
 
-// GetBodyMap 获取body内容,解析成map[string]interface{}返回
-func (this *Response) GetBodyMap() (m map[string]interface{}) {
+// GetBodyMap 获取body内容,解析成map[string]any返回
+func (this *Response) GetBodyMap() (m map[string]any) {
 	_ = json.Unmarshal(this.GetBodyBytes(), &m)
 	return
 }
 
-// GetBodyMaps 获取body内容,解析成[]map[string]interface{}返回
-func (this *Response) GetBodyMaps() (m []map[string]interface{}) {
+// GetBodyMaps 获取body内容,解析成[]map[string]any返回
+func (this *Response) GetBodyMaps() (m []map[string]any) {
 	_ = json.Unmarshal(this.GetBodyBytes(), &m)
 	return
 }
@@ -181,7 +181,7 @@ func (this *Response) Execute(f ...func(r *Response) error) (err error) {
 }
 
 // Bind 绑定body数据,目前支持字符串,字节和json,需要指针
-func (this *Response) Bind(ptr interface{}) error {
+func (this *Response) Bind(ptr any) error {
 	if ptr != nil {
 		switch val := ptr.(type) {
 		case *string:

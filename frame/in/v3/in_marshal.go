@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-type Marshal func(v interface{}) ([]byte, error)
+type Marshal func(v any) ([]byte, error)
 
 type IMarshal interface {
 	io.ReadCloser
@@ -17,7 +17,7 @@ type IMarshal interface {
 }
 
 type TEXT struct {
-	Data   interface{}
+	Data   any
 	reader io.Reader
 }
 
@@ -51,7 +51,7 @@ func (this *TEXT) Close() error {
 }
 
 type JSON struct {
-	Data   interface{}
+	Data   any
 	reader io.Reader
 }
 
@@ -89,7 +89,7 @@ func (this *JSON) Close() error {
 }
 
 type HTML struct {
-	Data   interface{}
+	Data   any
 	reader io.Reader
 }
 

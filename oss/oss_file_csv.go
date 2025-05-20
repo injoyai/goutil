@@ -11,7 +11,7 @@ type CSVFile struct {
 	*csv.Writer
 }
 
-func (this *CSVFile) Write(v ...interface{}) (err error) {
+func (this *CSVFile) Write(v ...any) (err error) {
 	switch len(v) {
 	case 0:
 	case 1:
@@ -22,7 +22,7 @@ func (this *CSVFile) Write(v ...interface{}) (err error) {
 	return
 }
 
-func (this *CSVFile) WriteFlush(v ...interface{}) error {
+func (this *CSVFile) WriteFlush(v ...any) error {
 	defer this.Flush()
 	return this.Write(v...)
 }

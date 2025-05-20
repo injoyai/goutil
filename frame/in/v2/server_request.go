@@ -17,19 +17,19 @@ var (
 )
 
 // Read 解析json数据
-func Read(r interface{}, v interface{}) {
+func Read(r any, v any) {
 	if err := json.Unmarshal(GetBodyBytes(r), v); err != nil {
 		Json415(err)
 	}
 }
 
 // ReadJson 解析json数据
-func ReadJson(r interface{}, ptr interface{}) {
+func ReadJson(r any, ptr any) {
 	Read(r, ptr)
 }
 
 // GetBody 获取body的流
-func GetBody(r interface{}) io.ReadCloser {
+func GetBody(r any) io.ReadCloser {
 	switch v := r.(type) {
 	case *http.Request:
 		return v.Body
@@ -46,7 +46,7 @@ func GetBody(r interface{}) io.ReadCloser {
 }
 
 // GetBodyBytes 获取body字节
-func GetBodyBytes(r interface{}) []byte {
+func GetBodyBytes(r any) []byte {
 	switch v := r.(type) {
 	case *http.Request:
 		bs, err := io.ReadAll(v.Body)
@@ -69,12 +69,12 @@ func GetBodyBytes(r interface{}) []byte {
 }
 
 // GetBodyString 获取body字符
-func GetBodyString(r interface{}) string {
+func GetBodyString(r any) string {
 	return string(GetBodyBytes(r))
 }
 
 // GetRequest 获取请求对象
-func GetRequest(r interface{}) *http.Request {
+func GetRequest(r any) *http.Request {
 	switch v := r.(type) {
 	case *http.Request:
 		return v
@@ -89,17 +89,17 @@ func GetRequest(r interface{}) *http.Request {
 }
 
 // GetHeader 请求头
-func GetHeader(r interface{}) http.Header {
+func GetHeader(r any) http.Header {
 	return GetRequest(r).Header
 }
 
 // Header 请求头
-func Header(r interface{}) http.Header {
+func Header(r any) http.Header {
 	return GetRequest(r).Header
 }
 
 // GetFile 获取上传的文件流
-func GetFile(r interface{}, name string) io.ReadCloser {
+func GetFile(r any, name string) io.ReadCloser {
 	switch v := r.(type) {
 	case *http.Request:
 		f, _, err := v.FormFile(name)
@@ -122,7 +122,7 @@ func GetFile(r interface{}, name string) io.ReadCloser {
 }
 
 // GetFileBytes 获取上传的文件字节
-func GetFileBytes(r interface{}, name string) []byte {
+func GetFileBytes(r any, name string) []byte {
 	f := GetFile(r, name)
 	defer f.Close()
 	bs, err := io.ReadAll(f)
@@ -131,7 +131,7 @@ func GetFileBytes(r interface{}, name string) []byte {
 }
 
 // SaveFile 保存上传的文件
-func SaveFile(r interface{}, name, filename string) string {
+func SaveFile(r any, name, filename string) string {
 	return UploadFile(r, name, filename, upload.DefaultLocal)
 }
 
@@ -139,7 +139,7 @@ func SaveFile(r interface{}, name, filename string) string {
 // name: 上传文件的字段名
 // filename: 保存的文件名
 // upload: 保存对象接口
-func UploadFile(r interface{}, name, filename string, upload upload.Interface) string {
+func UploadFile(r any, name, filename string, upload upload.Interface) string {
 	f := GetFile(r, name)
 	defer f.Close()
 	s, err := upload.Save(filename, f)
@@ -147,12 +147,12 @@ func UploadFile(r interface{}, name, filename string, upload upload.Interface) s
 	return s
 }
 
-func GetBodyMap(r interface{}) *conv.Map {
+func GetBodyMap(r any) *conv.Map {
 	return conv.NewMap(GetBodyBytes(r))
 }
 
 // Get 获取参数
-func Get(r interface{}, key string, def ...interface{}) *conv.Var {
+func Get(r any, key string, def ...any) *conv.Var {
 	switch v := r.(type) {
 	case *http.Request:
 		if val, ok := v.URL.Query()[key]; ok {
@@ -197,30 +197,30 @@ func Get(r interface{}, key string, def ...interface{}) *conv.Var {
 	return conv.New(nil)
 }
 
-func GetString(r interface{}, key string, def ...interface{}) string {
+func GetString(r any, key string, def ...any) string {
 	return Get(r, key, def...).String()
 }
 
-func GetBool(r interface{}, key string, def ...interface{}) bool {
+func GetBool(r any, key string, def ...any) bool {
 	return Get(r, key, def...).Bool()
 }
 
-func GetInt(r interface{}, key string, def ...interface{}) int {
+func GetInt(r any, key string, def ...any) int {
 	return Get(r, key, def...).Int()
 }
 
-func GetInt64(r interface{}, key string, def ...interface{}) int64 {
+func GetInt64(r any, key string, def ...any) int64 {
 	return Get(r, key, def...).Int64()
 }
 
-func GetFloat(r interface{}, key string, def ...interface{}) float64 {
+func GetFloat(r any, key string, def ...any) float64 {
 	return Get(r, key, def...).Float64()
 }
 
-func GetPageNum(r interface{}) int {
+func GetPageNum(r any) int {
 	return DefaultClient.GetPageNum(r)
 }
 
-func GetPageSize(r interface{}) int {
+func GetPageSize(r any) int {
 	return DefaultClient.GetPageSize(r)
 }

@@ -19,14 +19,14 @@ type Request struct {
 	// 可以可网站分开设置,所以另加这个字段用于保存参数
 	// 例 xxx.SetQuery("a", 1).SetQuery("b", 2).SetUrl("http://www.baidu.com")
 	// 结果为 http://www.baidu.com?a=1&b=2
-	query   map[string]interface{}
+	query   map[string]any
 	queryMu sync.RWMutex //锁
 
 	// body参数,请求体,方便读取,提供GetBody等函数
 	// 否则需要从流中读取,备份的body,当请求失败并需要重试时,可以从这里复制
 	// todo 如果是文件的话,内存会占用比较大,如果优化
 	body     []byte
-	bodyBind interface{} //响应的body解析
+	bodyBind any //响应的body解析
 
 	//debug模式,会打印请求响应的数据内容
 	debug bool
@@ -126,7 +126,7 @@ func (this *Request) GetUrl() string {
 }
 
 // SetQuery 设置query参数,已存在则覆盖
-func (this *Request) SetQuery(key string, val interface{}) *Request {
+func (this *Request) SetQuery(key string, val any) *Request {
 	this.queryMu.Lock()
 	this.query[key] = val
 	this.queryMu.Unlock()
@@ -134,7 +134,7 @@ func (this *Request) SetQuery(key string, val interface{}) *Request {
 }
 
 // SetQuerys 批量设置query参数,已存在则覆盖
-func (this *Request) SetQuerys(m map[string]interface{}) *Request {
+func (this *Request) SetQuerys(m map[string]any) *Request {
 	this.queryMu.Lock()
 	for i, v := range m {
 		this.query[i] = v
@@ -144,7 +144,7 @@ func (this *Request) SetQuerys(m map[string]interface{}) *Request {
 }
 
 // SetQueryMap 批量设置query参数,已存在则覆盖
-func (this *Request) SetQueryMap(m map[string]interface{}) *Request {
+func (this *Request) SetQueryMap(m map[string]any) *Request {
 	return this.SetQuerys(m)
 }
 
@@ -249,7 +249,7 @@ func (this *Request) FormFile(m map[string][]byte) *Request {
 }
 
 // FormField form-data Field
-func (this *Request) FormField(m map[string]interface{}) *Request {
+func (this *Request) FormField(m map[string]any) *Request {
 	body := new(bytes.Buffer)
 	w := multipart.NewWriter(body)
 	for i, v := range m {
@@ -261,7 +261,7 @@ func (this *Request) FormField(m map[string]interface{}) *Request {
 }
 
 // SetBody 设置请求body,默认json解析
-func (this *Request) SetBody(i interface{}) *Request {
+func (this *Request) SetBody(i any) *Request {
 	this.body = conv.Bytes(i)
 	this.Request.ContentLength = int64(len(this.body))
 	this.Request.Body = io.NopCloser(bytes.NewReader(this.body))
@@ -282,7 +282,7 @@ func (this *Request) GetBodyString() string {
 }
 
 // Bind 解析响应body,需要指针
-func (this *Request) Bind(i interface{}) *Request {
+func (this *Request) Bind(i any) *Request {
 	this.bodyBind = i
 	return this
 }
@@ -337,7 +337,7 @@ func (this *Request) Do() *Response {
 }
 
 // NewRequest 新建请求内容
-func NewRequest(method, url string, body interface{}) *Request {
+func NewRequest(method, url string, body any) *Request {
 	request, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return &Request{
@@ -348,7 +348,7 @@ func NewRequest(method, url string, body interface{}) *Request {
 	}
 	req := &Request{
 		Request: request,
-		query:   make(map[string]interface{}),
+		query:   make(map[string]any),
 		err:     err,
 	}
 	req.SetBody(body)

@@ -48,14 +48,14 @@ func (this *Pool) put(c *Client) {
 	this.queue <- c
 }
 
-func (this *Pool) Exec(text string, option ...func(i script.Client)) (interface{}, error) {
+func (this *Pool) Exec(text string, option ...func(i script.Client)) (any, error) {
 	c := this.get()
 	val, err := c.Exec(text, option...)
 	this.put(c)
 	return val, err
 }
 
-func (this *Pool) Set(key string, value interface{}) error {
+func (this *Pool) Set(key string, value any) error {
 	for _, v := range this.list {
 		if err := v.Set(key, value); err != nil {
 			return err

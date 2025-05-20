@@ -11,25 +11,25 @@ import (
 
 //=================================Return=================================//
 
-func Return(code int, data interface{}) { DefaultClient.Text(code, data) }
+func Return(code int, data any) { DefaultClient.Text(code, data) }
 
-func Return200(data interface{}) { DefaultClient.Text(http.StatusOK, data) }
+func Return200(data any) { DefaultClient.Text(http.StatusOK, data) }
 
-func Text(code int, data interface{}) { DefaultClient.Text(code, data) }
+func Text(code int, data any) { DefaultClient.Text(code, data) }
 
-func Text200(data interface{}) { DefaultClient.Text(http.StatusOK, data) }
+func Text200(data any) { DefaultClient.Text(http.StatusOK, data) }
 
-func Yaml(code int, data interface{}) { DefaultClient.Yaml(code, data) }
+func Yaml(code int, data any) { DefaultClient.Yaml(code, data) }
 
-func Yaml200(data interface{}) { DefaultClient.Yaml(http.StatusOK, data) }
+func Yaml200(data any) { DefaultClient.Yaml(http.StatusOK, data) }
 
-func Toml(code int, data interface{}) { DefaultClient.Toml(code, data) }
+func Toml(code int, data any) { DefaultClient.Toml(code, data) }
 
-func Toml200(data interface{}) { DefaultClient.Toml(http.StatusOK, data) }
+func Toml200(data any) { DefaultClient.Toml(http.StatusOK, data) }
 
-func Xml(code int, data interface{}) { DefaultClient.Xml(code, data) }
+func Xml(code int, data any) { DefaultClient.Xml(code, data) }
 
-func Xml200(data interface{}) { DefaultClient.Xml(http.StatusOK, data) }
+func Xml200(data any) { DefaultClient.Xml(http.StatusOK, data) }
 
 func Proto(code int, data proto.Message) { DefaultClient.Proto(code, data) }
 
@@ -39,9 +39,9 @@ func Msgpack(code int, data proto.Message) { DefaultClient.Msgpack(code, data) }
 
 func Msgpack200(data proto.Message) { DefaultClient.Msgpack(http.StatusOK, data) }
 
-func Html(code int, data interface{}) { DefaultClient.Html(code, data) }
+func Html(code int, data any) { DefaultClient.Html(code, data) }
 
-func Html200(data interface{}) { DefaultClient.Html(http.StatusOK, data) }
+func Html200(data any) { DefaultClient.Html(http.StatusOK, data) }
 
 // Redirect301 永久重定向,GET和HEAD自动请求,其他需要用户确认
 func Redirect301(addr string) { DefaultClient.Redirect(http.StatusMovedPermanently, addr) }
@@ -98,11 +98,11 @@ func Proxy(w http.ResponseWriter, r *http.Request, uri string) {
 //=================================Json=================================//
 
 // Json 返回json
-func Json(httpCode int, data interface{}) { DefaultClient.Json(httpCode, data) }
+func Json(httpCode int, data any) { DefaultClient.Json(httpCode, data) }
 
-func Json200(data interface{}) { Json(http.StatusOK, data) }
+func Json200(data any) { Json(http.StatusOK, data) }
 
-func Json400(data interface{}) { Json(http.StatusBadRequest, data) }
+func Json400(data any) { Json(http.StatusBadRequest, data) }
 
 func Json401() { Json(http.StatusUnauthorized, "验证失败") }
 
@@ -110,18 +110,18 @@ func Json403() { Json(http.StatusForbidden, "没有权限") }
 
 func Json404() { Json(http.StatusNotFound, "接口不存在") }
 
-func Json415(data interface{}) { Json(http.StatusUnsupportedMediaType, data) }
+func Json415(data any) { Json(http.StatusUnsupportedMediaType, data) }
 
-func Json500(data interface{}) { Json(http.StatusInternalServerError, data) }
+func Json500(data any) { Json(http.StatusInternalServerError, data) }
 
 //=================================Injoy=================================//
 
-func Succ(data interface{}, count ...int64) { DefaultClient.Succ(data, count...) }
+func Succ(data any, count ...int64) { DefaultClient.Succ(data, count...) }
 
-func Fail(data interface{}) { DefaultClient.Fail(data) }
+func Fail(data any) { DefaultClient.Fail(data) }
 
 // Err 退出,并校验错误
-func Err(data interface{}, succData ...interface{}) {
+func Err(data any, succData ...any) {
 	if data == nil {
 		Succ(conv.Default[any](nil, succData...))
 	} else {
@@ -130,7 +130,7 @@ func Err(data interface{}, succData ...interface{}) {
 }
 
 // Errf 退出格式化错误信息
-func Errf(format string, args ...interface{}) {
+func Errf(format string, args ...any) {
 	Err(fmt.Sprintf(format, args...))
 }
 

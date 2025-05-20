@@ -24,7 +24,7 @@ func NewExit(code int, bytes []byte) *ExitModel {
 }
 
 // NewExitJson 新建json退出实例
-func NewExitJson(code int, data interface{}) *ExitModel {
+func NewExitJson(code int, data any) *ExitModel {
 	val, err := json.Marshal(data)
 	if err != nil {
 		return NewExit(500, []byte(err.Error())).SetHeaderJson()

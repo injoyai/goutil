@@ -18,7 +18,7 @@ func (this *Client) Recover(h http.Handler) http.Handler {
 }
 
 //// InitGf 初始化GoFrame
-//func (this *Client) RecoverGf(name ...interface{}) *ghttp.Server {
+//func (this *Client) RecoverGf(name ...any) *ghttp.Server {
 //	s := gins.Server(name...)
 //	s.BindStatusHandler(http.StatusInternalServerError, func(r *ghttp.Request) {
 //		body := r.Response.Buffer()
@@ -35,7 +35,7 @@ func (this *Client) Recover(h http.Handler) http.Handler {
 
 //// InitGin 初始化Gin
 //func (this *Client) RecoverGin(s *gin.Engine) *gin.Engine {
-//	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recover interface{}) {
+//	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recover any) {
 //		this.MiddleRecover(recover, c.Writer)
 //	}))
 //	if len(this.PingPath) > 0 {

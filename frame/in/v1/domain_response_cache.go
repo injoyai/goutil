@@ -11,16 +11,16 @@ var (
 	cacheOnce sync.Once
 )
 
-func CacheByHandler(key interface{}, handler func() interface{}, expiration time.Duration) interface{} {
+func CacheByHandler(key any, handler func() any, expiration time.Duration) any {
 	cacheOnce.Do(func() {
 		cache = maps.NewSafe()
 	})
-	value, err := cache.GetOrSetByHandler(key, func() (interface{}, error) { return handler(), nil }, expiration)
+	value, err := cache.GetOrSetByHandler(key, func() (any, error) { return handler(), nil }, expiration)
 	CheckErr(err)
 	return value
 }
 
-func CacheDel(key ...interface{}) {
+func CacheDel(key ...any) {
 	cacheOnce.Do(func() {
 		cache = maps.NewSafe()
 	})

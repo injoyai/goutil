@@ -14,8 +14,8 @@ import (
 */
 
 type Interface interface {
-	Get(key string) (interface{}, error)
-	Set(key string, value interface{}, expiration ...time.Duration) error
+	Get(key string) (any, error)
+	Set(key string, value any, expiration ...time.Duration) error
 	Del(key string) error
 }
 
@@ -23,8 +23,8 @@ func NewRedisCacher(client *redis.Client) Interface {
 	return &_redis{Client: client}
 }
 
-func NewMapCacher(m ...maps.Map) Interface {
-	return &_map{Safe: maps.NewSafe(m...)}
+func NewMapCacher() Interface {
+	return &_map{Safe: maps.NewSafe()}
 }
 
 func NewFileCacher(name string, groups ...string) Interface {
@@ -41,12 +41,12 @@ type _redis struct {
 	*redis.Client
 }
 
-func (this *_redis) Get(key string) (interface{}, error) {
+func (this *_redis) Get(key string) (any, error) {
 	s, err := this.Client.Get(context.Background(), key).Result()
 	return s, err
 }
 
-func (this *_redis) Set(key string, value interface{}, expiration ...time.Duration) error {
+func (this *_redis) Set(key string, value any, expiration ...time.Duration) error {
 	if len(expiration) == 0 {
 		return this.Client.Set(context.Background(), key, value, -1).Err()
 	}
@@ -63,12 +63,12 @@ type _map struct {
 	*maps.Safe
 }
 
-func (this *_map) Get(key string) (interface{}, error) {
+func (this *_map) Get(key string) (any, error) {
 	val, _ := this.Safe.Get(key)
 	return val, nil
 }
 
-func (this *_map) Set(key string, value interface{}, expiration ...time.Duration) error {
+func (this *_map) Set(key string, value any, expiration ...time.Duration) error {
 	this.Safe.Set(key, value, expiration...)
 	return nil
 }
@@ -84,11 +84,11 @@ type _file struct {
 	*File
 }
 
-func (this *_file) Get(key string) (interface{}, error) {
+func (this *_file) Get(key string) (any, error) {
 	return this.File.GetInterface(key), nil
 }
 
-func (this *_file) Set(key string, value interface{}, expiration ...time.Duration) error {
+func (this *_file) Set(key string, value any, expiration ...time.Duration) error {
 	this.File.Set(key, value)
 	return nil
 }

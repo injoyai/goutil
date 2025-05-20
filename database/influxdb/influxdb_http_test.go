@@ -42,7 +42,7 @@ func TestHTTPWrite(t *testing.T) {
 		if err := c.Write("test", map[string]string{
 			"key":  "123456",
 			"key2": "key2",
-		}, map[string]interface{}{
+		}, map[string]any{
 			"f1":  i,
 			"f2":  i,
 			"f3":  i,
@@ -67,7 +67,7 @@ func TestHTTPWrite2(t *testing.T) {
 		return
 	}
 
-	//if err := c.Write("push_fail_log", nil, map[string]interface{}{
+	//if err := c.Write("push_fail_log", nil, map[string]any{
 	//	"pushKey":  "",
 	//	"pushMark": "PUSH_MQTT",
 	//	"msg":      "钱测试",
