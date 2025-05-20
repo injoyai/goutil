@@ -8,7 +8,7 @@ import (
 	"os/exec"
 )
 
-func Execf(format string, args ...interface{}) (string, error) {
+func Execf(format string, args ...any) (string, error) {
 	return Exec(fmt.Sprintf(format, args...))
 }
 
@@ -21,7 +21,7 @@ func Exec(args ...string) (string, error) {
 	return string(result), err
 }
 
-func Runf(format string, args ...interface{}) error {
+func Runf(format string, args ...any) error {
 	return Run(fmt.Sprintf(format, args...))
 }
 
@@ -34,7 +34,7 @@ func Run(args ...string) error {
 	return cmd.Run()
 }
 
-func IOf(w io.ReadWriter, format string, args ...interface{}) error {
+func IOf(w io.ReadWriter, format string, args ...any) error {
 	return IO(w, fmt.Sprintf(format, args...))
 }
 

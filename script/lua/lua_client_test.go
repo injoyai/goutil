@@ -40,6 +40,6 @@ return c+1
 	t.Log(result)
 }
 
-func Add(i *script.Args) interface{} {
+func Add(i *script.Args) any {
 	return i.GetInt(1) + i.GetInt(2)
 }

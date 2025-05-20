@@ -3,7 +3,7 @@ package file
 //
 //type Interface interface {
 //	List(op Option) (Info, error)
-//	SearchUploadWithPage(req SearchUploadWithPage) (int64, interface{}, error)
+//	SearchUploadWithPage(req SearchUploadWithPage) (int64, any, error)
 //	Tree(op Option) ([]Tree, error)
 //	Create(op Create) error
 //	Delete(op Delete) error

@@ -19,7 +19,7 @@ type Option func(*Decode)
 // NewDecode 新建dsl
 // @resource 文本内容
 // @opts 选项
-func NewDecode(resource interface{}, opts ...Option) (*Decode, error) {
+func NewDecode(resource any, opts ...Option) (*Decode, error) {
 	d := new(Decode)
 	if err := yaml.Unmarshal(conv.Bytes(resource), d); err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func WithDebug(b ...bool) Option {
 }
 
 // WithLog 自定义日志输出
-func WithLog(f func(format string, v ...interface{})) Option {
+func WithLog(f func(format string, v ...any)) Option {
 	return func(d *Decode) {
 		d.Logger = f
 	}
@@ -88,31 +88,31 @@ Decode 协议解析
 	DLT645(电量解析)  (3.7,4.0,3.7,4.4,4.1,4.1,3.7)s/万次
 */
 type Decode struct {
-	Name    string                                `yaml:"name" json:"name"`       //名称,dsl的名称,例 电表协议解析
-	Actions []*Action                             `yaml:"actions" json:"actions"` //动作,解析的动作
-	Debug   bool                                  `yaml:"debug" json:"debug"`     //调试模式,会打印日志信息
-	Logger  func(format string, v ...interface{}) `yaml:"-" json:"-"`             //日志,日志输出函数
-	Key     string                                `yaml:"key" json:"key"`         //脚本取值的key,默认value,例如cut(value,0,2),直接操作变量
-	Script  script.Client                         `yaml:"-" json:"-"`             //脚本实例
-	Global  g.Map                                 `yaml:"-" json:"-"`             //全局变量缓存
-	index   uint                                  ``                              //记录执行的步骤
+	Name    string                        `yaml:"name" json:"name"`       //名称,dsl的名称,例 电表协议解析
+	Actions []*Action                     `yaml:"actions" json:"actions"` //动作,解析的动作
+	Debug   bool                          `yaml:"debug" json:"debug"`     //调试模式,会打印日志信息
+	Logger  func(format string, v ...any) `yaml:"-" json:"-"`             //日志,日志输出函数
+	Key     string                        `yaml:"key" json:"key"`         //脚本取值的key,默认value,例如cut(value,0,2),直接操作变量
+	Script  script.Client                 `yaml:"-" json:"-"`             //脚本实例
+	Global  g.Map                         `yaml:"-" json:"-"`             //全局变量缓存
+	index   uint                          ``                              //记录执行的步骤
 }
 
 func (this *Decode) newScript(cache g.Map, opts ...func(c script.Client)) script.Client {
 	s := js.New(script.WithFunc)
-	s.Set("get", func(args *script.Args) interface{} {
+	s.Set("get", func(args *script.Args) any {
 		return cache[args.Get(1).String()]
 	})
-	s.Set("getString", func(args *script.Args) interface{} {
+	s.Set("getString", func(args *script.Args) any {
 		return conv.String(cache[args.Get(1).String()])
 	})
-	s.Set("getBool", func(args *script.Args) interface{} {
+	s.Set("getBool", func(args *script.Args) any {
 		return conv.Bool(cache[args.Get(1).String()])
 	})
-	s.Set("getFloat", func(args *script.Args) interface{} {
+	s.Set("getFloat", func(args *script.Args) any {
 		return conv.Float64(cache[args.Get(1).String()])
 	})
-	s.Set("getInt", func(args *script.Args) interface{} {
+	s.Set("getInt", func(args *script.Args) any {
 		return conv.Int64(cache[args.Get(1).String()])
 	})
 	s.Set("set", func(args *script.Args) {
@@ -129,7 +129,7 @@ func (this *Decode) newScript(cache g.Map, opts ...func(c script.Client)) script
 	return s
 }
 
-func (this *Decode) Do(input interface{}, opts ...func(c script.Client)) (g.Map, interface{}, error) {
+func (this *Decode) Do(input any, opts ...func(c script.Client)) (g.Map, any, error) {
 
 	//缓存输入输出结果数据
 	//设置父级的key为"value",如果动作的key未设置,则会赋值到父级数据上,是所预期的结果
@@ -157,8 +157,8 @@ type Action struct {
 	Name      string             `yaml:"name"`   //动作名称
 	Key       string             `yaml:"key"`    //全局变量,可选,优先级3
 	ParentKey string             `yaml:"-"`      //父级全局变量
-	Script    interface{}        `yaml:"script"` //执行脚本,js,优先级1
-	Value     interface{}        `yaml:"value"`  //常量,无法通过脚本返回值固增加这个字段,优先级2
+	Script    any                `yaml:"script"` //执行脚本,js,优先级1
+	Value     any                `yaml:"value"`  //常量,无法通过脚本返回值固增加这个字段,优先级2
 	Switch    map[string]*Action `yaml:"switch"` //枚举,默认继承父级的key,优先级5
 	Error     string             `yaml:"error"`  //自定义错误信息,优先级4
 }
@@ -191,12 +191,12 @@ func (this *Action) init(d *Decode, parentKey string) *Action {
 }
 
 // 被一些临时脚本引用,不做赋值处理
-func (this *Action) exec(input interface{}) (output interface{}, err error) {
+func (this *Action) exec(input any) (output any, err error) {
 	defer func() {
 		if this.decode.Debug {
 			fmt.Printf("   - %s: %s, %s: %v, %s: %v\n",
 				color.RedString("执行"), this.GetName(),
-				color.RedString("输入"), func() interface{} {
+				color.RedString("输入"), func() any {
 					if bs, ok := input.([]byte); ok {
 						return "0x" + strings.ToUpper(hex.EncodeToString(bs))
 					}
@@ -294,7 +294,7 @@ func (this *Action) child() []*Action {
 	case string:
 		actions = append(actions, this)
 
-	case []interface{}:
+	case []any:
 		for i, v := range val {
 			switch s := v.(type) {
 			case string:
@@ -303,7 +303,7 @@ func (this *Action) child() []*Action {
 					Name:   this.Name + "-" + strconv.Itoa(i+1),
 					Script: s,
 				})
-			case map[string]interface{}:
+			case map[string]any:
 				action := new(Action)
 				if yaml.Unmarshal(conv.Bytes(v), action) == nil {
 					actions = append(actions, action)
@@ -315,7 +315,7 @@ func (this *Action) child() []*Action {
 	return actions
 }
 
-func (this *Action) Do(input interface{}) (key string, output interface{}, err error) {
+func (this *Action) Do(input any) (key string, output any, err error) {
 
 	this.decode.index++
 	fmt.Printf("%s: %s\n - %s: %v\n",
@@ -338,7 +338,7 @@ func (this *Action) Do(input interface{}) (key string, output interface{}, err e
 	//缓存数据,缓存子集列表的上次执行结果,使子集逻辑通畅
 	cache := input
 	//默认nil,不受输入的影响,子集全部设置了key,则输出也是nil
-	var result interface{}
+	var result any
 	for _, v := range this.child() {
 		childKey := key
 		switch v.Script.(type) {
@@ -381,7 +381,7 @@ func (this *Action) Do(input interface{}) (key string, output interface{}, err e
 	return
 }
 
-func (this *Action) execError(input interface{}) error {
+func (this *Action) execError(input any) error {
 	if strings.HasPrefix(this.Error, "@js") {
 		a := &Action{
 			decode: this.decode,
@@ -398,7 +398,7 @@ func (this *Action) execError(input interface{}) error {
 	return errors.New(this.Error)
 }
 
-func (this *Action) execKey(input interface{}) (string, error) {
+func (this *Action) execKey(input any) (string, error) {
 	key := this.GetKey()
 	if strings.HasPrefix(key, "@js") {
 		a := &Action{

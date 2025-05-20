@@ -10,14 +10,14 @@ import (
 	"github.com/gogf/gf/net/ghttp"
 )
 
-func read(i interface{}, v interface{}) {
+func read(i any, v any) {
 	bs := getBody(i)
 	if err := json.Unmarshal(bs, v); err != nil {
 		Json415(err)
 	}
 }
 
-func getBody(r interface{}) []byte {
+func getBody(r any) []byte {
 	switch v := r.(type) {
 	case *http.Request:
 		bs, err := ioutil.ReadAll(v.Body)
@@ -37,7 +37,7 @@ func getBody(r interface{}) []byte {
 	return []byte{}
 }
 
-func getHeader(r interface{}) http.Header {
+func getHeader(r any) http.Header {
 	switch v := r.(type) {
 	case *http.Request:
 		return v.Header
@@ -51,7 +51,7 @@ func getHeader(r interface{}) http.Header {
 	return http.Header{}
 }
 
-func getFile(r interface{}, name string) (bs []byte) {
+func getFile(r any, name string) (bs []byte) {
 	switch v := r.(type) {
 	case *http.Request:
 		f, _, err := v.FormFile(name)
@@ -77,7 +77,7 @@ func getFile(r interface{}, name string) (bs []byte) {
 	return
 }
 
-func get(r interface{}, key string, def ...interface{}) *conv.Var {
+func get(r any, key string, def ...any) *conv.Var {
 	switch v := r.(type) {
 	case *http.Request:
 		m := v.URL.Query()
@@ -99,7 +99,7 @@ func get(r interface{}, key string, def ...interface{}) *conv.Var {
 	return conv.New(nil)
 }
 
-func getPageSize(r interface{}) (int, int) {
+func getPageSize(r any) (int, int) {
 	return get(r, DefaultOption.Page, 1).Int() - 1,
 		get(r, DefaultOption.Size, DefaultOption.SizeDef).Int()
 }

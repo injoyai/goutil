@@ -154,7 +154,7 @@ func (this *Tray) SetHint(hint string) *Tray {
 }
 
 // SetHintf 设置提示,格式化
-func (this *Tray) SetHintf(format string, args ...interface{}) *Tray {
+func (this *Tray) SetHintf(format string, args ...any) *Tray {
 	return this.SetHint(fmt.Sprintf(format, args...))
 }
 

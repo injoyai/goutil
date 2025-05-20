@@ -25,6 +25,6 @@ func (this *Ctx) Deadline() (deadline time.Time, ok bool) {
 	return time.Time{}, false
 }
 
-func (this *Ctx) Value(key interface{}) interface{} {
+func (this *Ctx) Value(key any) any {
 	return this.Safe.MustGet(key)
 }

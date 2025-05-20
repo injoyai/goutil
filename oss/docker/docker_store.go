@@ -178,7 +178,7 @@ func (c Client) storeConfigDeal(Type string, oldDomain, newDomain string) error 
 	if err != nil {
 		return err
 	}
-	cfgMap := map[string]interface{}{}
+	cfgMap := map[string]any{}
 	if err := json.Unmarshal(file, &cfgMap); err != nil {
 		return err
 	}

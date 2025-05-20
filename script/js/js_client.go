@@ -20,15 +20,15 @@ func New(option ...func(c script.Client)) *Client {
 		Otto: vm,
 	}
 	cli.Set("nil", otto.NullValue())
-	cli.SetFunc("print", func(args *script.Args) (interface{}, error) {
+	cli.SetFunc("print", func(args *script.Args) (any, error) {
 		fmt.Println(args.Interfaces()...)
 		return nil, nil
 	})
-	cli.SetFunc("println", func(args *script.Args) (interface{}, error) {
+	cli.SetFunc("println", func(args *script.Args) (any, error) {
 		fmt.Println(args.Interfaces()...)
 		return nil, nil
 	})
-	cli.SetFunc("printf", func(args *script.Args) (interface{}, error) {
+	cli.SetFunc("printf", func(args *script.Args) (any, error) {
 		a := args.Interfaces()
 		if len(a) > 0 {
 			fmt.Printf(conv.String(a[0]), a[1:]...)
@@ -56,7 +56,7 @@ func (this *Client) Tag() *maps.Safe {
 	return this.tag
 }
 
-func (this *Client) Exec(text string, option ...func(client script.Client)) (result interface{}, err error) {
+func (this *Client) Exec(text string, option ...func(client script.Client)) (result any, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("%v", e)
@@ -80,29 +80,29 @@ func (this *Client) GetVar(key string) *conv.Var {
 	return conv.New(value)
 }
 
-func (this *Client) Set(key string, value interface{}) error {
+func (this *Client) Set(key string, value any) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	switch fn := value.(type) {
 	case script.Func:
 		value = this.toFunc(fn)
-	case func(*script.Args) (interface{}, error):
+	case func(*script.Args) (any, error):
 		value = this.toFunc(fn)
-	case func(*script.Args) interface{}:
-		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+	case func(*script.Args) any:
+		value = this.toFunc(func(args *script.Args) (any, error) {
 			return fn(args), nil
 		})
 	case func(*script.Args) error:
-		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+		value = this.toFunc(func(args *script.Args) (any, error) {
 			return nil, fn(args)
 		})
 	case func(*script.Args):
-		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+		value = this.toFunc(func(args *script.Args) (any, error) {
 			fn(args)
 			return nil, nil
 		})
 	case func():
-		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+		value = this.toFunc(func(args *script.Args) (any, error) {
 			fn()
 			return nil, nil
 		})
@@ -128,7 +128,7 @@ func (this *Client) toFunc(fn script.Func) func(call otto.FunctionCall) otto.Val
 		args := []*conv.Var(nil)
 		for _, v := range call.ArgumentList {
 			if v.IsFunction() {
-				args = append(args, conv.New(func(i ...interface{}) (otto.Value, error) {
+				args = append(args, conv.New(func(i ...any) (otto.Value, error) {
 					return v.Call(Nil)
 				}))
 				continue

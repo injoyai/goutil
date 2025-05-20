@@ -9,10 +9,10 @@ import (
 
 func TestNew(t *testing.T) {
 	n := New()
-	n.SetFunc("panic", func(args *script.Args) (interface{}, error) {
+	n.SetFunc("panic", func(args *script.Args) (any, error) {
 		panic("panic")
 	})
-	n.SetFunc("err", func(args *script.Args) (interface{}, error) {
+	n.SetFunc("err", func(args *script.Args) (any, error) {
 		return nil, errors.New("错误")
 	})
 	t.Log(n.Exec(`
@@ -52,7 +52,7 @@ func (this *Obj) Print() {
 
 func TestHTTP(t *testing.T) {
 	x := New(script.WithObject, script.WithFunc)
-	x.SetFunc("test", func(args *script.Args) (interface{}, error) {
+	x.SetFunc("test", func(args *script.Args) (any, error) {
 		return nil, errors.New("错误")
 	})
 	result, err := x.Exec(`

@@ -58,7 +58,7 @@ func OpenFile(filename string) (*os.File, error) {
 }
 
 // New 新建文件,会覆盖
-func New(filename string, v ...interface{}) error {
+func New(filename string, v ...any) error {
 	if len(v) == 0 {
 		return os.MkdirAll(filename, defaultPerm)
 	}
@@ -93,7 +93,7 @@ func New(filename string, v ...interface{}) error {
 }
 
 // NewNotExist 如果不存在,则新建
-func NewNotExist(filename string, v ...interface{}) error {
+func NewNotExist(filename string, v ...any) error {
 	if !Exists(filename) {
 		return New(filename, v...)
 	}
@@ -101,7 +101,7 @@ func NewNotExist(filename string, v ...interface{}) error {
 }
 
 // OpenCSV 新建或者打开csv文件
-func OpenCSV(filename string, initStr ...interface{}) (*CSVFile, error) {
+func OpenCSV(filename string, initStr ...any) (*CSVFile, error) {
 	if !Exists(filename) {
 		f, err := os.Create(filename)
 		if err != nil {
@@ -131,7 +131,7 @@ func OpenCSV(filename string, initStr ...interface{}) (*CSVFile, error) {
 	}, err
 }
 
-func WithOpenCSV(filename string, fn func(f *CSVFile), initStr ...interface{}) error {
+func WithOpenCSV(filename string, fn func(f *CSVFile), initStr ...any) error {
 	f, err := OpenCSV(filename, initStr...)
 	if err != nil {
 		return err

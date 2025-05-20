@@ -89,7 +89,7 @@ type FileLog struct {
 }
 
 // WriteAny 写入任意数据,根据配置写入到不同的文件
-func (this *FileLog) WriteAny(p interface{}) (int, error) {
+func (this *FileLog) WriteAny(p any) (int, error) {
 	return this.Write([]byte(conv.String(p)))
 }
 
@@ -243,13 +243,13 @@ func (this *FileLog) GetLogMerge(start, end time.Time, merge time.Duration, deco
 }
 
 // GetLogCurve 获取日志并生成曲线图
-func (this *FileLog) GetLogCurve(start, end time.Time, merge time.Duration, i Decoder) ([]interface{}, error) {
+func (this *FileLog) GetLogCurve(start, end time.Time, merge time.Duration, i Decoder) ([]any, error) {
 	m, err := this.GetLogMerge(start, end, merge, i.Decode)
 	if err != nil {
 		return nil, err
 	}
-	list := []interface{}(nil)
-	mSort := make(map[interface{}]int64)
+	list := []any(nil)
+	mSort := make(map[any]int64)
 	for node, v := range m {
 		data, err := i.Report(node, v)
 		if err != nil {
@@ -258,7 +258,7 @@ func (this *FileLog) GetLogCurve(start, end time.Time, merge time.Duration, i De
 		mSort[data] = node
 		list = append(list, data)
 	}
-	sort.Sort(&_sort{list: list, compare: func(a, b interface{}) bool { return mSort[a] < mSort[b] }})
+	sort.Sort(&_sort{list: list, compare: func(a, b any) bool { return mSort[a] < mSort[b] }})
 	return list, nil
 }
 
@@ -271,7 +271,7 @@ type Decoder interface {
 	// Decode 字节转对象,这个是接口速度的关键,不推荐使用json
 	Decode([]byte) (GetSecond, error)
 	// Report 整理对象,合并统计,曲线的按时间统计,平均值或者最大值等等
-	Report(node int64, list []GetSecond) (interface{}, error)
+	Report(node int64, list []GetSecond) (any, error)
 }
 
 // rangeDir 遍历目录,返回符合的文件列表
@@ -319,8 +319,8 @@ func (this *FileLog) readFile(filepath string) ([][]byte, error) {
 
 // _sort 实现sort.Sort接口
 type _sort struct {
-	list    []interface{}
-	compare func(a, b interface{}) bool
+	list    []any
+	compare func(a, b any) bool
 }
 
 func (this *_sort) Len() int {

@@ -293,7 +293,7 @@ func (this *Bar) speed(key string, size int64, expiration time.Duration, fn func
 	timeKey := "time_" + key
 	cacheKey := "speed_" + key
 	//最后的数据时间
-	lastTime, _ := this.cacheSpeed.GetOrSetByHandler(timeKey, func() (interface{}, error) {
+	lastTime, _ := this.cacheSpeed.GetOrSetByHandler(timeKey, func() (any, error) {
 		return time.Time{}, nil
 	})
 

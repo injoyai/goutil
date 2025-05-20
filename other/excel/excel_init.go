@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-func ToExcel(sheets map[string][][]interface{}) (*bytes.Buffer, error) {
+func ToExcel(sheets map[string][][]any) (*bytes.Buffer, error) {
 	file := xlsx.NewFile()
 	for sheetName, data := range sheets {
 		sheet, err := file.AddSheet(sheetName)
@@ -29,7 +29,7 @@ func ToExcel(sheets map[string][][]interface{}) (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-func From(i interface{}) (result map[string][][]string, err error) {
+func From(i any) (result map[string][][]string, err error) {
 	return FromBytes(conv.Bytes(i))
 }
 
@@ -67,7 +67,7 @@ func FromBytes(bs []byte) (result map[string][][]string, err error) {
 
  */
 
-func FromCsv(i interface{}) (result [][]string, err error) {
+func FromCsv(i any) (result [][]string, err error) {
 	return FromCsvReader(bytes.NewReader(conv.Bytes(i)))
 }
 
@@ -82,7 +82,7 @@ func FromCsvBytes(bs []byte) (result [][]string, err error) {
 	return FromCsvReader(bytes.NewReader(bs))
 }
 
-func ToCsv(data [][]interface{}) (*bytes.Buffer, error) {
+func ToCsv(data [][]any) (*bytes.Buffer, error) {
 	buf := bytes.NewBuffer(nil)
 	buf.WriteString("\xEF\xBB\xBF")
 	w := csv.NewWriter(buf)

@@ -9,7 +9,7 @@ import (
 func TestGo(t *testing.T) {
 	DefaultGoManage.SetLimit(10)
 	for i := 0; i < 100; i++ {
-		Go(func(ctx context.Context, args ...interface{}) {
+		Go(func(ctx context.Context, args ...any) {
 			//for {
 			<-time.After(time.Second * 1)
 			t.Log(args[0])
@@ -24,7 +24,7 @@ func TestGo(t *testing.T) {
 
 func TestGoInfo(t *testing.T) {
 	DefaultGoManage.SetLimit(10)
-	f := func(ctx context.Context, args ...interface{}) {
+	f := func(ctx context.Context, args ...any) {
 		<-time.After(time.Second * 10)
 	}
 	item := Go(f)

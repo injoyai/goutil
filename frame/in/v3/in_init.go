@@ -14,21 +14,21 @@ import (
 var DefaultClient = New(WithDefault())
 
 // SetCacheByHandler 尝试从缓存中获取数据,如果不存在则通过函数获取,执行函数时,其他相同的key会等待此次结果
-func SetCacheByHandler(key interface{}, handler func() interface{}, expiration time.Duration) interface{} {
-	value, err := DefaultClient.GetOrSetByHandler(key, func() (interface{}, error) { return handler(), nil }, expiration)
+func SetCacheByHandler(key any, handler func() any, expiration time.Duration) any {
+	value, err := DefaultClient.GetOrSetByHandler(key, func() (any, error) { return handler(), nil }, expiration)
 	CheckErr(err)
 	return value
 }
 
 // DelCache 删除缓存数据
-func DelCache(key ...interface{}) {
+func DelCache(key ...any) {
 	for _, v := range key {
 		DefaultClient.Del(v)
 	}
 }
 
 // SetCache 设置缓存,覆盖缓存
-func SetCache(key interface{}, value interface{}, expiration time.Duration) {
+func SetCache(key any, value any, expiration time.Duration) {
 	DefaultClient.Set(key, value, expiration)
 }
 
@@ -48,12 +48,12 @@ func RecoverFunc(f func(w http.ResponseWriter, r *http.Request)) http.Handler {
 }
 
 // MiddleRecover 捕捉panic,或自定义panic,并输出到http.ResponseWriter
-func MiddleRecover(e interface{}, w http.ResponseWriter) {
+func MiddleRecover(e any, w http.ResponseWriter) {
 	DefaultClient.MiddleRecover(e, w)
 }
 
 // SetHandlerWithCode 设置常用响应的状态码
-func SetHandlerWithCode(succ, fail, unauthorized, forbidden interface{}) *Client {
+func SetHandlerWithCode(succ, fail, unauthorized, forbidden any) *Client {
 	return DefaultClient.SetHandlerWithCode(succ, fail, unauthorized, forbidden)
 }
 
@@ -67,17 +67,17 @@ func GetPageSize(r *http.Request) int {
 
 //=================================Return=================================//
 
-func Return(code int, data interface{}) { DefaultClient.Text(code, data) }
+func Return(code int, data any) { DefaultClient.Text(code, data) }
 
-func Return200(data interface{}) { Return(http.StatusOK, data) }
+func Return200(data any) { Return(http.StatusOK, data) }
 
-func Text(code int, data interface{}) { DefaultClient.Text(code, data) }
+func Text(code int, data any) { DefaultClient.Text(code, data) }
 
-func Text200(data interface{}) { Return(http.StatusOK, data) }
+func Text200(data any) { Return(http.StatusOK, data) }
 
-func Html(code int, data interface{}) { DefaultClient.Html(code, data) }
+func Html(code int, data any) { DefaultClient.Html(code, data) }
 
-func Html200(data interface{}) { DefaultClient.Html(http.StatusOK, data) }
+func Html200(data any) { DefaultClient.Html(http.StatusOK, data) }
 
 func Reader(code int, r io.ReadCloser) { DefaultClient.Reader(code, r) }
 
@@ -125,11 +125,11 @@ func Proxy(w http.ResponseWriter, r *http.Request, uri string) {
 //=================================Json=================================//
 
 // Json 返回json
-func Json(httpCode int, data interface{}) { DefaultClient.Json(httpCode, data) }
+func Json(httpCode int, data any) { DefaultClient.Json(httpCode, data) }
 
-func Json200(data interface{}) { Json(http.StatusOK, data) }
+func Json200(data any) { Json(http.StatusOK, data) }
 
-func Json400(data interface{}) { Json(http.StatusBadRequest, data) }
+func Json400(data any) { Json(http.StatusBadRequest, data) }
 
 func Json401() { Json(http.StatusUnauthorized, "验证失败") }
 
@@ -137,22 +137,22 @@ func Json403() { Json(http.StatusForbidden, "没有权限") }
 
 func Json404() { Json(http.StatusNotFound, "接口不存在") }
 
-func Json415(data interface{}) { Json(http.StatusUnsupportedMediaType, data) }
+func Json415(data any) { Json(http.StatusUnsupportedMediaType, data) }
 
-func Json500(data interface{}) { Json(http.StatusInternalServerError, data) }
+func Json500(data any) { Json(http.StatusInternalServerError, data) }
 
 //=================================Injoy=================================//
 
-func Succ(data interface{}, count ...int64) { DefaultClient.Succ(data, count...) }
+func Succ(data any, count ...int64) { DefaultClient.Succ(data, count...) }
 
-func Fail(data interface{}) { DefaultClient.Fail(data) }
+func Fail(data any) { DefaultClient.Fail(data) }
 
 func Forbidden() { DefaultClient.Forbidden() }
 
 func Unauthorized() { DefaultClient.Unauthorized() }
 
 // Err 退出,并校验错误
-func Err(data interface{}, succData ...interface{}) {
+func Err(data any, succData ...any) {
 	if data == nil {
 		Succ(conv.Default[any](nil, succData...))
 	} else {
@@ -161,7 +161,7 @@ func Err(data interface{}, succData ...interface{}) {
 }
 
 // Errf 退出格式化错误信息
-func Errf(format string, args ...interface{}) {
+func Errf(format string, args ...any) {
 	Err(fmt.Sprintf(format, args...))
 }
 
@@ -173,13 +173,13 @@ func CheckErr(err error, failMsg ...string) {
 }
 
 // Range 取值范围
-func Range(value interface{}, min, max int, message string) {
+func Range(value any, min, max int, message string) {
 	Min(value, min, message)
 	Max(value, max, message)
 }
 
 // Min 介于当前go mod版本
-func Min(value interface{}, min int, message string) {
+func Min(value any, min int, message string) {
 	fail := true
 	switch val := value.(type) {
 	case nil:
@@ -255,7 +255,7 @@ func Min(value interface{}, min int, message string) {
 }
 
 // Max 介于当前go mod版本
-func Max(value interface{}, max int, message string) {
+func Max(value any, max int, message string) {
 	fail := true
 	switch val := value.(type) {
 	case nil:

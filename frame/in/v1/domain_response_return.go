@@ -48,15 +48,15 @@ func ReturnFileBytes(name string, bytes []byte) {
 //========================== json =======================
 
 // Json 返回json,根基方法
-func Json(code int, ok bool, data interface{}, count ...int64) {
+func Json(code int, ok bool, data any, count ...int64) {
 	NewExitJson(code, DefaultFunc.Deal(ok, data, count...)).Exit()
 }
 
 // Json200 返回json,状态码200
-func Json200(data interface{}, count ...int64) { Json(200, true, data, count...) }
+func Json200(data any, count ...int64) { Json(200, true, data, count...) }
 
 // Json400 返回json,状态码400
-func Json400(data interface{}) { Json(400, false, data) }
+func Json400(data any) { Json(400, false, data) }
 
 // Json401 返回json,状态码401
 func Json401() { Json(401, false, "验证失败") }
@@ -65,27 +65,27 @@ func Json401() { Json(401, false, "验证失败") }
 func Json403() { Json(403, false, "没有权限") }
 
 // Json415 返回json,状态码415
-func Json415(data interface{}) { Json(415, false, data) }
+func Json415(data any) { Json(415, false, data) }
 
 // Json500 返回json,状态码500
-func Json500(data interface{}) { Json(500, false, data) }
+func Json500(data any) { Json(500, false, data) }
 
 // Succ 成功,可配置
-func Succ(data interface{}, count ...int64) { DefaultFunc.Succ(data, count...) }
+func Succ(data any, count ...int64) { DefaultFunc.Succ(data, count...) }
 
 // Fail 失败,可配置
-func Fail(data interface{}) { DefaultFunc.Fail(data) }
+func Fail(data any) { DefaultFunc.Fail(data) }
 
 // Fail200 失败,状态码200
-func Fail200(data interface{}) { Json(200, false, data) }
+func Fail200(data any) { Json(200, false, data) }
 
 // Errf 退出格式化错误信息
-func Errf(format string, args ...interface{}) {
+func Errf(format string, args ...any) {
 	Err(fmt.Sprintf(format, args...))
 }
 
 // Err 退出,并校验错误
-func Err(data interface{}, succData ...interface{}) {
+func Err(data any, succData ...any) {
 	if data == nil {
 		Succ(conv.Default[any](nil, succData...))
 	} else {

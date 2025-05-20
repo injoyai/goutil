@@ -1,28 +1,28 @@
 package in
 
 type Func struct {
-	Deal func(ok bool, v interface{}, cnt ...int64) interface{} //数据处理
-	Succ func(data interface{}, cnt ...int64)
-	Fail func(data interface{})
+	Deal func(ok bool, v any, cnt ...int64) any //数据处理
+	Succ func(data any, cnt ...int64)
+	Fail func(data any)
 }
 
 // SetSuccFunc 设置成功处理函数,不能为nil
-func (this *Func) SetSuccFunc(fn func(interface{}, ...int64)) { this.Succ = fn }
+func (this *Func) SetSuccFunc(fn func(any, ...int64)) { this.Succ = fn }
 
 // SetFailFunc 设置失败处理函数,不能为nil
-func (this *Func) SetFailFunc(fn func(interface{})) { this.Fail = fn }
+func (this *Func) SetFailFunc(fn func(any)) { this.Fail = fn }
 
 // SetDealFunc 设置结果处理函数,不能为nil
-func (this *Func) SetDealFunc(fn func(bool, interface{}, ...int64) interface{}) { this.Deal = fn }
+func (this *Func) SetDealFunc(fn func(bool, any, ...int64) any) { this.Deal = fn }
 
 type Option struct {
-	ExitMark string      //退出标识
-	ExitOk   string      //成功退出标示,暂时无效
-	CodeSucc interface{} //code,成功
-	CodeFail interface{} //code,失败
-	Page     string      //页数
-	Size     string      //数/页
-	SizeDef  int         //默认数量/页
+	ExitMark string //退出标识
+	ExitOk   string //成功退出标示,暂时无效
+	CodeSucc any    //code,成功
+	CodeFail any    //code,失败
+	Page     string //页数
+	Size     string //数/页
+	SizeDef  int    //默认数量/页
 }
 
 // SetExitMark 设置退出标识
@@ -38,7 +38,7 @@ func (this *Option) SetExitOk(s string) *Option {
 }
 
 // SetCode 设置成功失败标识 "code":succ|fail
-func (this *Option) SetCode(succ, fail interface{}) *Option {
+func (this *Option) SetCode(succ, fail any) *Option {
 	this.CodeSucc = succ
 	this.CodeFail = fail
 	return this
@@ -80,18 +80,18 @@ func defaultOption() *Option {
 }
 
 // succWithDefault 默认成功处理函数
-func succWithDefault(data interface{}, count ...int64) {
+func succWithDefault(data any, count ...int64) {
 	NewExitJson(200, dealWithDefault(true, data, count...)).Exit()
 }
 
 // failWithDefault 默认失败处理函数
-func failWithDefault(data interface{}) {
+func failWithDefault(data any) {
 	NewExitJson(200, dealWithDefault(false, data)).Exit()
 }
 
 // dealWithDefault 默认结果处理函数
-func dealWithDefault(ok bool, v interface{}, cnt ...int64) interface{} {
-	m := map[string]interface{}{
+func dealWithDefault(ok bool, v any, cnt ...int64) any {
+	m := map[string]any{
 		"code": DefaultOption.CodeFail,
 		"msg":  "",
 		"data": "",

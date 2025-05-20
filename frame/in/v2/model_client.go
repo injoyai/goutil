@@ -78,12 +78,12 @@ type Client struct {
 	FiledSize   string
 	DefaultSize uint
 	PingPath    string
-	SuccFail    func(c *Client, succ bool, data interface{}, count ...int64)
+	SuccFail    func(c *Client, succ bool, data any, count ...int64)
 }
 
 // SetSuccFailCode 设置响应成功失败
-func (this *Client) SetSuccFailCode(succ, fail interface{}) *Client {
-	return this.SetSuccFail(func(c *Client, ok bool, data interface{}, count ...int64) {
+func (this *Client) SetSuccFailCode(succ, fail any) *Client {
+	return this.SetSuccFail(func(c *Client, ok bool, data any, count ...int64) {
 		if ok {
 			c.Json(http.StatusOK, NewRespMap(succ, data, count...))
 		} else {
@@ -92,7 +92,7 @@ func (this *Client) SetSuccFailCode(succ, fail interface{}) *Client {
 	})
 }
 
-func (this *Client) SetSuccFail(f func(c *Client, succ bool, data interface{}, count ...int64)) *Client {
+func (this *Client) SetSuccFail(f func(c *Client, succ bool, data any, count ...int64)) *Client {
 	this.SuccFail = f
 	return this
 }
@@ -129,27 +129,27 @@ func (this *Client) File(name string, bytes []byte) {
 }
 
 // Json 返回json退出
-func (this *Client) Json(httpCode int, data interface{}) {
+func (this *Client) Json(httpCode int, data any) {
 	this.NewExit(httpCode, &JSON{Data: data}).Exit()
 }
 
-func (this *Client) Yaml(httpCode int, data interface{}) {
+func (this *Client) Yaml(httpCode int, data any) {
 	this.NewExit(httpCode, &YAML{Data: data}).Exit()
 }
 
-func (this *Client) Xml(httpCode int, data interface{}) {
+func (this *Client) Xml(httpCode int, data any) {
 	this.NewExit(httpCode, &XML{Data: data}).Exit()
 }
 
-func (this *Client) Toml(httpCode int, data interface{}) {
+func (this *Client) Toml(httpCode int, data any) {
 	this.NewExit(httpCode, &TOML{Data: data}).Exit()
 }
 
-func (this *Client) Html(httpCode int, data interface{}) {
+func (this *Client) Html(httpCode int, data any) {
 	this.NewExit(httpCode, &HTML{Data: data}).Exit()
 }
 
-func (this *Client) Text(httpCode int, data interface{}) {
+func (this *Client) Text(httpCode int, data any) {
 	this.NewExit(httpCode, &TEXT{Data: data}).Exit()
 }
 
@@ -157,7 +157,7 @@ func (this *Client) Proto(httpCode int, data proto.Message) {
 	this.NewExit(httpCode, &PROTO{Data: data}).Exit()
 }
 
-func (this *Client) Msgpack(httpCode int, data interface{}) {
+func (this *Client) Msgpack(httpCode int, data any) {
 	this.NewExit(httpCode, &MSGPACK{Data: data}).Exit()
 }
 
@@ -173,7 +173,7 @@ func (this *Client) NewExit(httpCode int, i IMarshal) *Exit {
 //=================================Other=================================//
 
 // Succ 成功退出,自定义
-func (this *Client) Succ(data interface{}, count ...int64) {
+func (this *Client) Succ(data any, count ...int64) {
 	if this.SuccFail != nil {
 		this.SuccFail(this, true, data, count...)
 		return
@@ -182,7 +182,7 @@ func (this *Client) Succ(data interface{}, count ...int64) {
 }
 
 // Fail 失败退出,自定义
-func (this *Client) Fail(data interface{}) {
+func (this *Client) Fail(data any) {
 	if this.SuccFail != nil {
 		this.SuccFail(this, false, data)
 		return
@@ -223,7 +223,7 @@ func (this *Client) Proxy(w http.ResponseWriter, r *http.Request, uri string) {
 
 //=================================Middle=================================//
 
-func (this *Client) MiddleRecover(err interface{}, w http.ResponseWriter) {
+func (this *Client) MiddleRecover(err any, w http.ResponseWriter) {
 	bs := []byte(conv.String(err))
 	if strings.HasPrefix(string(bs), this.ExitMark) {
 		e := new(Exit)
@@ -236,10 +236,10 @@ func (this *Client) MiddleRecover(err interface{}, w http.ResponseWriter) {
 	this.NewExit(http.StatusInternalServerError, &TEXT{Data: err}).WriteTo(w)
 }
 
-func (this *Client) GetPageNum(r interface{}) int {
+func (this *Client) GetPageNum(r any) int {
 	return Get(r, this.FiledPage, 1).Int() - 1
 }
 
-func (this *Client) GetPageSize(r interface{}) int {
+func (this *Client) GetPageSize(r any) int {
 	return Get(r, this.FiledSize, this.DefaultSize).Int()
 }

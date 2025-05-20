@@ -41,7 +41,7 @@ func (this *File) Clear() *File {
 // GetAndSetByExtend
 // 根据conv.Extend获取数据,不存在则取File中的数据,并设置到File中
 // 尝试从用户那里获取数据,存在则覆盖
-func (this *File) GetAndSetByExtend(key string, extend conv.Extend) interface{} {
+func (this *File) GetAndSetByExtend(key string, extend conv.Extend) any {
 	old := this.GetInterface(key)
 	val := extend.GetInterface(key, old)
 	this.Set(key, val)
@@ -49,13 +49,13 @@ func (this *File) GetAndSetByExtend(key string, extend conv.Extend) interface{} 
 }
 
 // Set 设置参数
-func (this *File) Set(key string, val interface{}) *File {
+func (this *File) Set(key string, val any) *File {
 	this.Map.Set(key, val)
 	return this
 }
 
 // SetMap 批量设置参数
-func (this *File) SetMap(m map[string]interface{}) *File {
+func (this *File) SetMap(m map[string]any) *File {
 	for k, v := range m {
 		this.Set(k, v)
 	}

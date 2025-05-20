@@ -101,20 +101,20 @@ func (this *Client) GetVar(key string) *conv.Var {
 		if result.Err() != Nil && this.OnGetVarErr != nil {
 			this.OnGetVarErr(result.Err())
 		}
-		return conv.Nil
+		return conv.Nil()
 	}
 	return conv.New(this.GetCmd(key).Val())
 }
 
-func (this *Client) Set(key string, value interface{}, expiration time.Duration) error {
+func (this *Client) Set(key string, value any, expiration time.Duration) error {
 	return this.Client.Set(this.ctx, key, value, expiration).Err()
 }
 
 // Cache 优先从内存中获取数据,不存在则尝试重redis中获取,小于等于0是不过期
-func (this *Client) Cache(key string, fn func() (interface{}, error), expiration time.Duration, cacheExpirations ...time.Duration) (interface{}, error) {
+func (this *Client) Cache(key string, fn func() (any, error), expiration time.Duration, cacheExpirations ...time.Duration) (any, error) {
 	cacheExpiration := conv.Select[time.Duration](expiration > 0 && this.CacheExpiration > expiration, expiration, this.CacheExpiration)
 	cacheExpiration = conv.Default[time.Duration](cacheExpiration, cacheExpirations...)
-	return this.CacheMap.GetOrSetByHandler(key, func() (interface{}, error) {
+	return this.CacheMap.GetOrSetByHandler(key, func() (any, error) {
 		s, err := this.Get(key)
 		if err != nil && err.Error() != redis.Nil.Error() {
 			return nil, err

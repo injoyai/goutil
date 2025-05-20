@@ -24,7 +24,7 @@ var (
 )
 
 func funcGo(args *Args) error {
-	f := args.Get(1).Val().(func(i ...interface{}) (otto.Value, error))
+	f := args.Get(1).Val().(func(i ...any) (otto.Value, error))
 	go f()
 	return nil
 }
@@ -57,7 +57,7 @@ func funcPrintf(args *Args) error {
 	return err
 }
 
-func funcSprintf(args *Args) interface{} {
+func funcSprintf(args *Args) any {
 	list := args.Args
 	if len(list) > 0 {
 		return fmt.Sprintf(list[0].String(), args.Interfaces()[1:]...)
@@ -71,7 +71,7 @@ func funcSleep(args *Args) {
 
 var r = rand.New(rand.NewSource(time.Now().Unix()))
 
-func funcRand(args *Args) interface{} {
+func funcRand(args *Args) any {
 	start := args.GetFloat64(1, 0)
 	end := args.GetFloat64(2, start+1)
 	decimals := args.GetInt(3, 2)
@@ -81,7 +81,7 @@ func funcRand(args *Args) interface{} {
 }
 
 // funcSyncDate 从网络同步时间
-func funcSyncDate(args *Args) (interface{}, error) {
+func funcSyncDate(args *Args) (any, error) {
 	// 阿里ntp.aliyun.com 腾讯time1.cloud.tencent.com
 	host := args.GetString(1, "ntp.ntsc.ac.cn")
 	result, err := shell.Exec("ntpdate " + host)
@@ -92,7 +92,7 @@ func funcSyncDate(args *Args) (interface{}, error) {
 }
 
 // funcSetDate 设置时间
-func funcSetDate(args *Args) (interface{}, error) {
+func funcSetDate(args *Args) (any, error) {
 	dateStr := args.GetString(1, "1970-01-01 08:00:00")
 	result, err := shell.Exec(fmt.Sprintf(`date --set="%s"`, dateStr))
 	if err != nil {
@@ -102,7 +102,7 @@ func funcSetDate(args *Args) (interface{}, error) {
 }
 
 // funcGetJson 解析json,读取其中数据
-func funcGetJson(args *Args) interface{} {
+func funcGetJson(args *Args) any {
 	return conv.NewMap(args.GetString(1)).GetString(args.GetString(2))
 }
 
@@ -113,32 +113,32 @@ func funcSpeak(args *Args) error {
 }
 
 // funcBase64Encode base64编码
-func funcBase64Encode(args *Args) interface{} {
+func funcBase64Encode(args *Args) any {
 	data := args.GetString(1)
 	return base64.StdEncoding.EncodeToString([]byte(data))
 }
 
 // funcBase64Decode base64解码
-func funcBase64Decode(args *Args) (interface{}, error) {
+func funcBase64Decode(args *Args) (any, error) {
 	data := args.GetString(1)
 	bs, err := base64.StdEncoding.DecodeString(data)
 	return string(bs), err
 }
 
 // funcHexToBytes 字符转字节 例 "0102" >>> []byte{0x01,0x02}
-func funcHexToBytes(args *Args) (interface{}, error) {
+func funcHexToBytes(args *Args) (any, error) {
 	s := args.GetString(1)
 	bs, err := hex.DecodeString(s)
 	return string(bs), err
 }
 
 // funcHexToString 字节转字符 例 []byte{0x01,0x02} >>> "0102"
-func funcHexToString(args *Args) interface{} {
+func funcHexToString(args *Args) any {
 	return hex.EncodeToString([]byte(args.GetString(1)))
 }
 
 // funcHoldTime 连续保持时间触发
-func funcHoldTime(args *Args) interface{} {
+func funcHoldTime(args *Args) any {
 	key := args.GetString(1)       //key(唯一标识)
 	hold := args.GetBool(2)        //保持
 	second := args.GetFloat64(3)   //持续时间(秒)
@@ -161,7 +161,7 @@ func funcHoldTime(args *Args) interface{} {
 }
 
 // funcHoldCount 连续保持次数触发
-func funcHoldCount(args *Args) interface{} {
+func funcHoldCount(args *Args) any {
 	key := args.GetString(1)       //key(唯一标识)
 	rule := args.GetBool(2)        //规则
 	count := args.GetInt(3)        //持续次数
@@ -181,18 +181,18 @@ func funcHoldCount(args *Args) interface{} {
 }
 
 // funcLen 取字符长度
-func funcLen(args *Args) interface{} {
+func funcLen(args *Args) any {
 	v := args.Get(1)
 	switch val := v.Val().(type) {
 	case string:
 		return len(val)
 	case []byte:
 		return len(val)
-	case []interface{}:
+	case []any:
 		return len(val)
-	case map[string]interface{}:
+	case map[string]any:
 		return len(val)
-	case map[interface{}]interface{}:
+	case map[any]any:
 		return len(val)
 	default:
 		return len(v.String())
@@ -200,80 +200,80 @@ func funcLen(args *Args) interface{} {
 }
 
 // funcToInt 任意类型转int
-func funcToInt(args *Args) interface{} {
+func funcToInt(args *Args) any {
 	return conv.Int64(args.GetString(1))
 }
 
 // funcToInt8 任意类型转int8
-func funcToInt8(args *Args) interface{} {
+func funcToInt8(args *Args) any {
 	return conv.Int8(args.GetString(1))
 }
 
 // funcToInt16 任意类型转int16
-func funcToInt16(args *Args) interface{} {
+func funcToInt16(args *Args) any {
 	return conv.Int16(args.GetString(1))
 }
 
 // funcToInt32 任意类型转int32
-func funcToInt32(args *Args) interface{} {
+func funcToInt32(args *Args) any {
 	return conv.Int32(args.GetString(1))
 }
 
 // funcToInt64 任意类型转int64
-func funcToInt64(args *Args) interface{} {
+func funcToInt64(args *Args) any {
 	return conv.Int64(args.GetString(1))
 }
 
-func funcToInt64Bytes(args *Args) interface{} {
+func funcToInt64Bytes(args *Args) any {
 	return conv.Int64(args.GetBytes(1))
 }
 
 // funcToUint8 任意类型转uint8
-func funcToUint8(args *Args) interface{} {
+func funcToUint8(args *Args) any {
 	return conv.Uint8(args.GetString(1))
 }
 
 // funcToUint16 任意类型转uint8
-func funcToUint16(args *Args) interface{} {
+func funcToUint16(args *Args) any {
 	return conv.Uint16(args.GetString(1))
 }
 
 // funcToUint32 任意类型转uint32
-func funcToUint32(args *Args) interface{} {
+func funcToUint32(args *Args) any {
 	return conv.Uint32(args.GetString(1))
 }
 
 // funcToUint64 任意类型转uint64
-func funcToUint64(args *Args) interface{} {
+func funcToUint64(args *Args) any {
 	return conv.Uint32(args.GetString(1))
 }
 
 // funcToFloat 任意类型转浮点
-func funcToFloat(args *Args) interface{} {
+func funcToFloat(args *Args) any {
 	return conv.Float64(args.GetString(1))
 }
 
 // funcToFloat32 任意类型转浮点32位
-func funcToFloat32(args *Args) interface{} {
+func funcToFloat32(args *Args) any {
 	return conv.Float32(args.GetString(1))
 }
 
 // funcToFloat64 任意类型转浮点64位
-func funcToFloat64(args *Args) interface{} {
+func funcToFloat64(args *Args) any {
 	return conv.Float64(args.GetString(1))
 }
 
 // funcToString 任意类型转字符串
-func funcToString(args *Args) interface{} {
+func funcToString(args *Args) any {
 	return args.GetString(1)
 }
 
 // funcToBool 任意类型转bool
-func funcToBool(args *Args) interface{} {
+func funcToBool(args *Args) any {
 	return conv.Bool(args.GetString(1))
 }
 
-func funcCut(args *Args) interface{} {
+func funcCut(args *Args) any {
 
 	str := args.GetString(1)
 	start := args.GetInt(2)
@@ -294,14 +294,14 @@ func funcCut(args *Args) interface{} {
 }
 
 // funcToBIN 数字转成2进制字符串
-func funcToBIN(args *Args) interface{} {
+func funcToBIN(args *Args) any {
 	v := args.Get(1)
 	switch val := v.Val().(type) {
 	case string:
 		return conv.BINStr([]byte(val))
 	}
 	byte := args.GetInt(2)
-	data := interface{}(args.GetInt64(1))
+	data := any(args.GetInt64(1))
 	switch byte {
 	case 1:
 		data = conv.Uint8(data)
@@ -317,7 +317,7 @@ func funcToBIN(args *Args) interface{} {
 	return conv.BINStr(data)
 }
 
-func funcToHex(args *Args) interface{} {
+func funcToHex(args *Args) any {
 	v := args.Get(1)
 	switch val := v.Val().(type) {
 	case string:
@@ -341,7 +341,7 @@ func funcToHex(args *Args) interface{} {
 }
 
 // funcGetByte 获取字节
-func funcGetByte(args *Args) interface{} {
+func funcGetByte(args *Args) any {
 	s := args.GetString(1)
 	idx := args.GetInt(2)
 	if len(s) > idx {
@@ -351,7 +351,7 @@ func funcGetByte(args *Args) interface{} {
 }
 
 // funcSum 校验和
-func funcSum(args *Args) interface{} {
+func funcSum(args *Args) any {
 	sum := 0
 	for _, v := range args.Args {
 		sum += v.Int()
@@ -360,7 +360,7 @@ func funcSum(args *Args) interface{} {
 }
 
 // funcAddInt 加减数
-func funcAddInt(args *Args) interface{} {
+func funcAddInt(args *Args) any {
 	s := args.GetString(1)
 	add := args.GetInt(2)
 	result := []byte(nil)
@@ -371,13 +371,13 @@ func funcAddInt(args *Args) interface{} {
 }
 
 // funcReverse 倒序
-func funcReverse(args *Args) interface{} {
+func funcReverse(args *Args) any {
 	s := args.GetString(1)
 	return str.Reverse(s)
 }
 
 // funcShell 执行脚本
-func funcShell(args *Args) (interface{}, error) {
+func funcShell(args *Args) (any, error) {
 	list := []string(nil)
 	for _, v := range args.Args {
 		list = append(list, v.String())
@@ -389,7 +389,7 @@ func funcShell(args *Args) (interface{}, error) {
 	return result.String(), nil
 }
 
-func funcCrc16(args *Args) interface{} {
+func funcCrc16(args *Args) any {
 	bs := args.Get(1).Bytes()
 	table := args.GetString(2)
 	param := crc.CRC16_MODBUS
@@ -444,7 +444,7 @@ func funcCrc16(args *Args) interface{} {
 	return crc.Encrypt16(bs, param).String()
 }
 
-func funcPing(args *Args) (interface{}, error) {
+func funcPing(args *Args) (any, error) {
 	result, err := ip.Ping(args.GetString(1), args.Get(2).Second(1))
 	return result.String(), err
 }

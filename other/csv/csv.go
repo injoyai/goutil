@@ -34,7 +34,7 @@ func ImportRange(filename string, fn func(line []string) bool) error {
 	}
 }
 
-func Export(data [][]interface{}) (*bytes.Buffer, error) {
+func Export(data [][]any) (*bytes.Buffer, error) {
 	buf := bytes.NewBuffer(nil)
 	if _, err := buf.WriteString("\xEF\xBB\xBF"); err != nil {
 		return nil, err

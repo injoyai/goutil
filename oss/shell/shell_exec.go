@@ -30,7 +30,7 @@ func init() {
 	Default = &Shell{defaultUse}
 }
 
-func Execf(format string, args ...interface{}) (*Result, error) {
+func Execf(format string, args ...any) (*Result, error) {
 	return Default.Execf(format, args...)
 }
 
@@ -90,7 +90,7 @@ type Shell struct {
 	Use
 }
 
-func (this *Shell) Execf(format string, args ...interface{}) (*Result, error) {
+func (this *Shell) Execf(format string, args ...any) (*Result, error) {
 	cmdline := fmt.Sprintf(format, args...)
 	return this.Exec(cmdline)
 }

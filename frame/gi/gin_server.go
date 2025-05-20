@@ -21,7 +21,7 @@ func New(port int) *Server {
 		Engine: gin.Default(),
 		Port:   port,
 	}
-	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recover interface{}) {
+	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recover any) {
 		in.MiddleRecover(recover, c.Writer)
 	}))
 	return s

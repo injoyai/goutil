@@ -54,7 +54,7 @@ func (r *Request) GetQuery() url.Values {
 	return r.Request.URL.Query()
 }
 
-func (r *Request) UnmarshalJson(v interface{}) error {
+func (r *Request) UnmarshalJson(v any) error {
 	return json.Unmarshal(r.GetBody(), v)
 }
 
@@ -103,14 +103,14 @@ func (r *Request) WriteStringExit(s string) {
 	r.WriteString(s).Exit()
 }
 
-func (r *Request) WriteJson(i interface{}) *Request {
+func (r *Request) WriteJson(i any) *Request {
 	bs, _ := json.Marshal(i)
 	r.SetHeader("Content-Type", "application/json;charset=utf-8")
 	r.WriteBytes(bs)
 	return r
 }
 
-func (r *Request) WriteJsonExit(i interface{}) {
+func (r *Request) WriteJsonExit(i any) {
 	r.WriteJson(i).Exit()
 }
 

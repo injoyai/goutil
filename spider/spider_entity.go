@@ -43,7 +43,7 @@ func New(browserPath, driverPath string, option ...Option) *Entity {
 		seleniumPort:  20165,
 		seleniumDebug: false,
 		retry:         1,
-		Prefs:         map[string]interface{}{},
+		Prefs:         map[string]any{},
 	}
 	e.ShowWindow(oss.IsWindows())
 	e.ShowImg(true)
@@ -64,7 +64,7 @@ type Entity struct {
 	seleniumDebug bool    //selenium调试模式
 	retry         uint    //重试次数
 
-	Prefs map[string]interface{}
+	Prefs map[string]any
 	Args  []string
 }
 

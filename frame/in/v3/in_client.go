@@ -88,15 +88,15 @@ type Client struct {
 	FiledPage           string
 	FiledSize           string
 	DefaultSize         int
-	BindMap             map[string]http.HandlerFunc            //自定义接口绑定
-	HandlerSucc         func(data interface{}, count ...int64) //成功
-	HandlerFail         func(data interface{})                 //失败
-	HandlerUnauthorized func()                                 //验证失败
-	HandlerForbidden    func()                                 //权限不足
+	BindMap             map[string]http.HandlerFunc    //自定义接口绑定
+	HandlerSucc         func(data any, count ...int64) //成功
+	HandlerFail         func(data any)                 //失败
+	HandlerUnauthorized func()                         //验证失败
+	HandlerForbidden    func()                         //权限不足
 }
 
 // SetHandlerWithCode 设置响应成功失败等
-func (this *Client) SetHandlerWithCode(succ, fail, unauthorized, forbidden interface{}) *Client {
+func (this *Client) SetHandlerWithCode(succ, fail, unauthorized, forbidden any) *Client {
 	this.HandlerSucc = this.NewSuccWithCode(succ)
 	this.HandlerFail = this.NewFailWithCode(fail)
 	this.HandlerUnauthorized = this.NewUnauthorizedWithCode(unauthorized)
@@ -122,15 +122,15 @@ func (this *Client) Redirect(httpCode int, url string) {
 }
 
 // Json 返回json退出
-func (this *Client) Json(httpCode int, data interface{}) {
+func (this *Client) Json(httpCode int, data any) {
 	this.NewExit(httpCode, &JSON{Data: data}).Exit()
 }
 
-func (this *Client) Html(httpCode int, data interface{}) {
+func (this *Client) Html(httpCode int, data any) {
 	this.NewExit(httpCode, &HTML{Data: data}).Exit()
 }
 
-func (this *Client) Text(httpCode int, data interface{}) {
+func (this *Client) Text(httpCode int, data any) {
 	this.NewExit(httpCode, &TEXT{Data: data}).Exit()
 }
 
@@ -158,7 +158,7 @@ func (this *Client) Exit() {
 //=================================Other=================================//
 
 // Succ 成功退出,自定义
-func (this *Client) Succ(data interface{}, count ...int64) {
+func (this *Client) Succ(data any, count ...int64) {
 	if this.HandlerSucc == nil {
 		this.HandlerSucc = this.NewSuccWithCode(http.StatusOK)
 	}
@@ -166,7 +166,7 @@ func (this *Client) Succ(data interface{}, count ...int64) {
 }
 
 // Fail 失败退出,自定义
-func (this *Client) Fail(msg interface{}) {
+func (this *Client) Fail(msg any) {
 	if this.HandlerFail == nil {
 		this.HandlerFail = this.NewFailWithCode(http.StatusInternalServerError)
 	}
@@ -226,7 +226,7 @@ func (this *Client) Recover(h http.Handler) http.Handler {
 }
 
 // MiddleRecover 例gf等web框架只需要这一半即可,但是Bind会失效
-func (this *Client) MiddleRecover(e interface{}, w http.ResponseWriter) {
+func (this *Client) MiddleRecover(e any, w http.ResponseWriter) {
 	switch w2 := e.(type) {
 	case *Exit:
 		w2.WriteTo(w)

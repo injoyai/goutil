@@ -27,10 +27,10 @@ func TestNew(t *testing.T) {
 				time.Now(),
 				time.Second*20,
 				&DecodeFunc{
-					DecodeFunc: func(bs []byte) (interface{}, error) {
+					DecodeFunc: func(bs []byte) (any, error) {
 						return string(bs), nil
 					},
-					ReportFunc: func(node int64, list []interface{}) (interface{}, error) {
+					ReportFunc: func(node int64, list []any) (any, error) {
 						return list, nil
 					},
 				},

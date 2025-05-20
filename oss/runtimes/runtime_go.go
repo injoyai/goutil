@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-type GoHandler func(ctx context.Context, args ...interface{})
+type GoHandler func(ctx context.Context, args ...any)
 
-func Go(f GoHandler, args ...interface{}) *GoItem {
+func Go(f GoHandler, args ...any) *GoItem {
 	return DefaultGoManage.Go(f, args...)
 }
 
@@ -51,12 +51,12 @@ func (this *GoManage) Close() error {
 }
 
 func (this *GoManage) Range(f func(key int64, v *GoItem) bool) {
-	this.m.Range(func(key, value interface{}) bool {
+	this.m.Range(func(key, value any) bool {
 		return f(key.(int64), value.(*GoItem))
 	})
 }
 
-func (this *GoManage) Go(f GoHandler, args ...interface{}) *GoItem {
+func (this *GoManage) Go(f GoHandler, args ...any) *GoItem {
 	if this.limit > 0 && this.Len() >= this.limit {
 		return nil
 	}
@@ -86,7 +86,7 @@ type GoItem struct {
 	StoppedTime time.Time     //结束完成时间
 	f           GoHandler     //函数
 	fn          *runtime.Func //函数信息
-	Input       []interface{} //函数的参数
+	Input       []any         //函数的参数
 	Panic       error         //panic信息,正常未nil
 	*safe.Runner
 }

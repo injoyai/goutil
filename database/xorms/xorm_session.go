@@ -32,12 +32,12 @@ func (this *Session) Limit(limit int, start ...int) *Session {
 	return this
 }
 
-func (this *Session) Where(query interface{}, args ...interface{}) *Session {
+func (this *Session) Where(query any, args ...any) *Session {
 	this.Session.Where(query, args...)
 	return this
 }
 
-func (this *Session) And(query interface{}, args ...interface{}) *Session {
+func (this *Session) And(query any, args ...any) *Session {
 	this.Session.And(query, args...)
 	return this
 }

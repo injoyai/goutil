@@ -114,35 +114,35 @@ type Logs struct {
 	LevelNone     logs.Level
 }
 
-func (this *Logs) Debug(args ...interface{}) (int, error) {
+func (this *Logs) Debug(args ...any) (int, error) {
 	return logs.Debug(args...)
 }
 
-func (this *Logs) Debugf(format string, args ...interface{}) (int, error) {
+func (this *Logs) Debugf(format string, args ...any) (int, error) {
 	return logs.Debugf(format, args...)
 }
 
-func (this *Logs) Info(args ...interface{}) (int, error) {
+func (this *Logs) Info(args ...any) (int, error) {
 	return logs.Info(args...)
 }
 
-func (this *Logs) Infof(format string, args ...interface{}) (int, error) {
+func (this *Logs) Infof(format string, args ...any) (int, error) {
 	return logs.Infof(format, args...)
 }
 
-func (this *Logs) Err(args ...interface{}) (int, error) {
+func (this *Logs) Err(args ...any) (int, error) {
 	return logs.Err(args...)
 }
 
-func (this *Logs) Errf(format string, args ...interface{}) (int, error) {
+func (this *Logs) Errf(format string, args ...any) (int, error) {
 	return logs.Errf(format, args...)
 }
 
-func (this *Logs) Error(args ...interface{}) (int, error) {
+func (this *Logs) Error(args ...any) (int, error) {
 	return logs.Error(args...)
 }
 
-func (this *Logs) Errorf(format string, args ...interface{}) (int, error) {
+func (this *Logs) Errorf(format string, args ...any) (int, error) {
 	return logs.Errorf(format, args...)
 }
 
@@ -176,51 +176,51 @@ type Conv struct {
 	Ini  codec.Interface
 }
 
-func (this *Conv) New(i interface{}) *conv.Var {
+func (this *Conv) New(i any) *conv.Var {
 	return conv.New(i)
 }
 
-func (this *Conv) NewMap(i interface{}, codec ...codec.Interface) *conv.Map {
+func (this *Conv) NewMap(i any, codec ...codec.Interface) *conv.Map {
 	return conv.NewMap(i, codec...)
 }
 
-func (this *Conv) Bytes(i interface{}) types.Bytes {
+func (this *Conv) Bytes(i any) types.Bytes {
 	return conv.Bytes(i)
 }
 
-func (this *Conv) String(i interface{}) string {
+func (this *Conv) String(i any) string {
 	return conv.String(i)
 }
 
-func (this *Conv) Int(i interface{}) int {
+func (this *Conv) Int(i any) int {
 	return conv.Int(i)
 }
 
-func (this *Conv) Float(i interface{}) float64 {
+func (this *Conv) Float(i any) float64 {
 	return conv.Float64(i)
 }
 
-func (this *Conv) Bool(i interface{}) bool {
+func (this *Conv) Bool(i any) bool {
 	return conv.Bool(i)
 }
 
-func (this *Conv) Interfaces(i interface{}) []interface{} {
+func (this *Conv) Interfaces(i any) []any {
 	return conv.Interfaces(i)
 }
 
-func (this *Conv) DMap(i interface{}) *conv.Map {
+func (this *Conv) DMap(i any) *conv.Map {
 	return conv.DMap(i)
 }
 
-func (this *Conv) GMap(i interface{}) map[string]interface{} {
+func (this *Conv) GMap(i any) map[string]any {
 	return conv.GMap(i)
 }
 
-func (this *Conv) SMap(i interface{}) map[string]string {
+func (this *Conv) SMap(i any) map[string]string {
 	return conv.SMap(i)
 }
 
-func (this *Conv) Duration(i interface{}) time.Duration {
+func (this *Conv) Duration(i any) time.Duration {
 	return conv.Duration(i)
 }
 
@@ -242,7 +242,7 @@ func (this *Cfg) New(i ...conv.IGetVar) *cfg.Entity {
 	return cfg.New(i...)
 }
 
-func (this *Cfg) WithAny(i interface{}) conv.IGetVar {
+func (this *Cfg) WithAny(i any) conv.IGetVar {
 	return cfg.WithAny(i)
 }
 
@@ -278,11 +278,11 @@ type OS struct {
 	CMD     *shell.Shell
 }
 
-func (this *OS) New(filename string, i ...interface{}) {
+func (this *OS) New(filename string, i ...any) {
 	panicErr(oss.New(filename, i...))
 }
 
-func (this *OS) NewNotExist(filename string, i ...interface{}) {
+func (this *OS) NewNotExist(filename string, i ...any) {
 	panicErr(oss.NewNotExist(filename, i...))
 }
 
@@ -310,7 +310,7 @@ func (this *OS) Stop(filename string) {
 
 type Bytes struct{}
 
-func (this *Bytes) New(i interface{}) types.Bytes {
+func (this *Bytes) New(i any) types.Bytes {
 	return conv.Bytes(i)
 }
 
@@ -356,11 +356,11 @@ func (this *Mux) New() *mux.Server {
 	return mux.New()
 }
 
-func (this *Mux) Json200(i interface{}) {
+func (this *Mux) Json200(i any) {
 	in.Json200(i)
 }
 
-func (this *Mux) Succ(i interface{}) {
+func (this *Mux) Succ(i any) {
 	in.Succ(i)
 }
 
@@ -382,15 +382,15 @@ func (this *In) Recover(h gohttp.Handler) gohttp.Handler {
 	return in.Recover(h)
 }
 
-func (this *In) SetHandlerWithCode(succ, fail, unauthorized, forbidden interface{}) *in.Client {
+func (this *In) SetHandlerWithCode(succ, fail, unauthorized, forbidden any) *in.Client {
 	return in.SetHandlerWithCode(succ, fail, unauthorized, forbidden)
 }
 
-func (this *In) Succ(i interface{}) {
+func (this *In) Succ(i any) {
 	in.Succ(i)
 }
 
-func (this *In) Fail(i interface{}) {
+func (this *In) Fail(i any) {
 	in.Fail(i)
 }
 
@@ -402,7 +402,7 @@ func (this *In) Unauthorized() {
 	in.Unauthorized()
 }
 
-func (this *In) Err(data interface{}, succData ...interface{}) {
+func (this *In) Err(data any, succData ...any) {
 	in.Err(data, succData...)
 }
 
@@ -422,27 +422,27 @@ func (this *In) FileBytes(name string, bs []byte) {
 	in.FileBytes(name, bs)
 }
 
-func (this *In) Text(code int, data interface{}) {
+func (this *In) Text(code int, data any) {
 	in.Text(code, data)
 }
 
-func (this *In) Text200(data interface{}) {
+func (this *In) Text200(data any) {
 	in.Text200(data)
 }
 
-func (this *In) Json(code int, data interface{}) {
+func (this *In) Json(code int, data any) {
 	in.Json(code, data)
 }
 
-func (this *In) Json200(data interface{}) {
+func (this *In) Json200(data any) {
 	in.Json200(data)
 }
 
-func (this *In) Html(code int, data interface{}) {
+func (this *In) Html(code int, data any) {
 	in.Html(code, data)
 }
 
-func (this *In) Html200(data interface{}) {
+func (this *In) Html200(data any) {
 	in.Html200(data)
 }
 

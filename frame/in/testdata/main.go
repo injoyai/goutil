@@ -9,7 +9,7 @@ import (
 
 func main() {
 	s := gin.Default()
-	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, err interface{}) {
+	s.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, err any) {
 		in.MiddleRecover(err, c.Writer)
 	}))
 

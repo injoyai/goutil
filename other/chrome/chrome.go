@@ -45,7 +45,7 @@ func (this *Chrome) Get(url string) *Chrome {
 	return this.Action(chromedp.Navigate(url))
 }
 
-func (this *Chrome) Click(sel interface{}, opts ...QueryOption) *Chrome {
+func (this *Chrome) Click(sel any, opts ...QueryOption) *Chrome {
 	return this.Action(chromedp.Click(sel, opts...))
 }
 
@@ -53,7 +53,7 @@ func (this *Chrome) Sleep(d time.Duration) *Chrome {
 	return this.Action(chromedp.Sleep(d))
 }
 
-func (this *Chrome) SaveScreenshot(sel interface{}, filename string) *Chrome {
+func (this *Chrome) SaveScreenshot(sel any, filename string) *Chrome {
 	return this.Action(chromedp.ActionFunc(func(ctx context.Context) error {
 		var buf []byte
 		if err := chromedp.Screenshot(sel, &buf, chromedp.NodeVisible).Do(ctx); err != nil {

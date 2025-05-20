@@ -34,7 +34,7 @@ func dlt645() {
 	)
 }
 
-func do(filename string, input interface{}) {
+func do(filename string, input any) {
 	fmt.Println("\n\n==============================" + filepath.Base(filename) + "==============================")
 	bs, err := os.ReadFile(filename)
 	logs.PanicErr(err)
@@ -43,7 +43,7 @@ func do(filename string, input interface{}) {
 
 	m, _, err := d.Do(input, func(c script.Client) {
 		//自定义函数
-		c.SetFunc("sub0x33ReverseHEXToFloat", func(args *script.Args) (interface{}, error) {
+		c.SetFunc("sub0x33ReverseHEXToFloat", func(args *script.Args) (any, error) {
 			msg := args.GetString(1)
 			decimals := args.GetInt(2)
 			bs, err := hex.DecodeString(msg)

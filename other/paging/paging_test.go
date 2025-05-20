@@ -23,6 +23,6 @@ func (this List) Len() int {
 	return len(this)
 }
 
-func (this List) Cut(i1 int, i2 int) interface{} {
+func (this List) Cut(i1 int, i2 int) any {
 	return this[i1:i2]
 }

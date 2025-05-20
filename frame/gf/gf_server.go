@@ -30,7 +30,7 @@ go tool pprof http://localhost:6060/pprof/heap
 
 // New 快速开始默认配置
 // @port,端口
-func New(name ...interface{}) *Server {
+func New(name ...any) *Server {
 	s := gins.Server(name...)
 	s.SetClientMaxBodySize(8 << 20) //设置body最大数据,8m
 	s.SetAccessLogEnabled(false)    //请求日志

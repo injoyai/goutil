@@ -86,18 +86,18 @@ local Param = { ['id'] = n,['name'] = 'jyj' }
 
 不加function运行更方便
 */
-func (this *Client) Exec(text string, option ...func(i script.Client)) (interface{}, error) {
+func (this *Client) Exec(text string, option ...func(i script.Client)) (any, error) {
 	for _, v := range option {
 		v(this)
 	}
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	if err := this.client.DoString(text); err != nil {
-		return conv.Nil, dealErr(err)
+		return conv.Nil(), dealErr(err)
 	}
 	result := this.client.Get(-1)
 	if result == nil || result == lua.LNil {
-		return conv.Nil, nil
+		return conv.Nil(), nil
 	}
 	this.client.Pop(1)
 	return conv.New(result.String()), nil
@@ -109,7 +109,7 @@ func (this *Client) GetVar(key string) *conv.Var {
 	defer this.mu.RUnlock()
 	value := this.client.GetGlobal(key)
 	if value == lua.LNil {
-		return conv.Nil
+		return conv.Nil()
 	}
 	return conv.New(value.String())
 }
@@ -120,24 +120,24 @@ func (this *Client) SetFunc(key string, value script.Func) error {
 }
 
 // Set 设置全局变量 禁止并发设置
-func (this *Client) Set(key string, value interface{}) error {
+func (this *Client) Set(key string, value any) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	switch fn := value.(type) {
 	case script.Func:
 		value = this.toFunc(fn)
-	case func(*script.Args) (interface{}, error):
+	case func(*script.Args) (any, error):
 		value = this.toFunc(fn)
-	case func(*script.Args) interface{}:
-		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+	case func(*script.Args) any:
+		value = this.toFunc(func(args *script.Args) (any, error) {
 			return fn(args), nil
 		})
 	case func(*script.Args) error:
-		value = this.toFunc(func(args *script.Args) (interface{}, error) {
+		value = this.toFunc(func(args *script.Args) (any, error) {
 			return nil, fn(args)
 		})
 	case func():
-		value = this.toFunc(func(*script.Args) (interface{}, error) {
+		value = this.toFunc(func(*script.Args) (any, error) {
 			fn()
 			return nil, nil
 		})
