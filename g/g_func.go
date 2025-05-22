@@ -9,6 +9,7 @@ import (
 	"github.com/injoyai/base/maps/wait"
 	"github.com/injoyai/base/types"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/logs"
 	uuid "github.com/satori/go.uuid"
 	"math"
 	"reflect"
@@ -74,6 +75,13 @@ func RecoverFunc(fn func(err error, stack string)) {
 			fn(fmt.Errorf("%v", er), string(debug.Stack()))
 		}
 	}
+}
+
+// RecoverPrint 捕捉错误并打印
+func RecoverPrint(err *string, stack ...bool) {
+	RecoverFunc(func(err error, stack string) {
+		logs.Err(err)
+	})
 }
 
 // Try 尝试运行,捕捉错误 其他语言的try catch
