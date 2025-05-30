@@ -21,7 +21,17 @@ func (q Quadrilateral) Perimeter() float64 {
 	return q[0] + q[1] + q[2] + q[3]
 }
 
-// AdjacentAngle  已知q[0],q[1]边角度,求对角线q[1],q[2]角度
+/*
+AdjacentAngle 已知q[0],q[1]边角度,求邻边q[2],q[3]角度
+
+		    q[1]
+		    ------
+		  	\     \
+	    q[0] \     \ q[2]
+		      \     \
+		       ------
+			     q[3]
+*/
 func (q Quadrilateral) AdjacentAngle(angle float64) (float64, error) {
 	ll := q[0]*q[0] + q[1]*q[1] - 2*q[0]*q[1]*math.Cos(angle*math.Pi/180)
 	if ll < 0 {
@@ -34,7 +44,17 @@ func (q Quadrilateral) AdjacentAngle(angle float64) (float64, error) {
 	return a, nil
 }
 
-// Diagonal 已知q[0],q[1]边角度,求对角线q[2],q[3]角度
+/*
+Diagonal 已知q[0],q[1]边角度,求对角线q[2],q[3]角度
+
+		    q[1]
+		    ------
+		  	\     \
+	    q[0] \     \ q[2]
+		      \     \
+		       ------
+			     q[3]
+*/
 func (q Quadrilateral) Diagonal(angle float64) (float64, error) {
 	ll := q[0]*q[0] + q[1]*q[1] - 2*q[0]*q[1]*math.Cos(angle*math.Pi/180)
 	if ll < 0 {
