@@ -142,6 +142,11 @@ type Joystick struct {
 // Direction 方向键
 type Direction uint8
 
+// Enum 返回方向键的枚举,0~8
+func (this Direction) Enum() uint8 {
+	return uint8(this / 4)
+}
+
 func (this Direction) String() string {
 	s := ""
 	if this.Right() {
