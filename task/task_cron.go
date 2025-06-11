@@ -8,44 +8,44 @@ import (
 )
 
 // New 新建计时器(任务调度),最小周期秒
-func New() *Cron {
-	return &Cron{
+func New[K comparable]() *Cron[K] {
+	return &Cron[K]{
 		c: cron.New(cron.WithSeconds()),
-		m: make(map[string]*Task),
+		m: make(map[K]*Task[K]),
 	}
 }
 
 // Cron 定时器(任务调度),任务起一个协程
-type Cron struct {
+type Cron[K comparable] struct {
 	c  *cron.Cron
-	m  map[string]*Task
+	m  map[K]*Task[K]
 	mu sync.RWMutex
 }
 
-func (this *Cron) Start() *Cron {
+func (this *Cron[K]) Start() *Cron[K] {
 	this.c.Start()
 	return this
 }
 
-func (this *Cron) Run() {
+func (this *Cron[K]) Run() {
 	this.c.Run()
 }
 
-func (this *Cron) Stop() *Cron {
+func (this *Cron[K]) Stop() *Cron[K] {
 	this.c.Stop()
 	return this
 }
 
 // GetTaskAll 读取全部任务
-func (this *Cron) GetTaskAll() []*Task {
-	m := make(map[cron.EntryID]*Task)
+func (this *Cron[K]) GetTaskAll() []*Task[K] {
+	m := make(map[cron.EntryID]*Task[K])
 	this.mu.RLock()
 	for _, v := range this.m {
 		m[v.ID] = v
 	}
 	this.mu.RUnlock()
 
-	taskList := []*Task(nil)
+	taskList := []*Task[K](nil)
 	for _, v := range this.c.Entries() {
 		task, ok := m[v.ID]
 		if !ok {
@@ -59,7 +59,7 @@ func (this *Cron) GetTaskAll() []*Task {
 }
 
 // GetTask 读取任务
-func (this *Cron) GetTask(key string) *Task {
+func (this *Cron[K]) GetTask(key K) *Task[K] {
 	this.mu.RLock()
 	task, ok := this.m[key]
 	this.mu.RUnlock()
@@ -77,7 +77,7 @@ func (this *Cron) GetTask(key string) *Task {
 }
 
 // SetTask 设置任务
-func (this *Cron) SetTask(key, spec string, handler func()) error {
+func (this *Cron[K]) SetTask(key K, spec string, handler func()) error {
 	this.mu.RLock()
 	task, ok := this.m[key]
 	this.mu.RUnlock()
@@ -99,7 +99,7 @@ func (this *Cron) SetTask(key, spec string, handler func()) error {
 }
 
 // DelTask 删除任务
-func (this *Cron) DelTask(key string) {
+func (this *Cron[K]) DelTask(key K) {
 	this.mu.RLock()
 	task, ok := this.m[key]
 	this.mu.RUnlock()
@@ -112,31 +112,31 @@ func (this *Cron) DelTask(key string) {
 }
 
 // Task 任务
-type Task struct {
-	Key        string //任务唯一标识
+type Task[K comparable] struct {
+	Key        K      //任务唯一标识
 	Spec       string //定时规则
 	cron.Entry        //任务
 }
 
-func newTask(key, spec string, e cron.Entry) *Task {
-	return &Task{
+func newTask[K comparable](key K, spec string, e cron.Entry) *Task[K] {
+	return &Task[K]{
 		Key:   key,
 		Spec:  spec,
 		Entry: e,
 	}
 }
 
-func (this *Task) SetEntry(e cron.Entry) *Task {
+func (this *Task[K]) SetEntry(e cron.Entry) *Task[K] {
 	this.Entry = e
 	return this
 }
 
-func (this *Task) String() string {
-	return fmt.Sprintf("名称(%s),生效(%v),规则(%s),上次执行时间(%v),下次执行时间(%v)",
+func (this *Task[K]) String() string {
+	return fmt.Sprintf("名称(%v),生效(%v),规则(%s),上次执行时间(%v),下次执行时间(%v)",
 		this.Key, this.Valid(), this.Spec, this.timeStr(this.Prev), this.timeStr(this.Next))
 }
 
-func (this *Task) timeStr(t time.Time) string {
+func (this *Task[K]) timeStr(t time.Time) string {
 	if t.IsZero() {
 		return "无"
 	}
