@@ -8,7 +8,11 @@ import (
 )
 
 // New 新建计时器(任务调度),最小周期秒
-func New[K comparable]() *Cron[K] {
+func New() *Cron[string] {
+	return NewGeneric[string]()
+}
+
+func NewGeneric[K comparable]() *Cron[K] {
 	return &Cron[K]{
 		c: cron.New(cron.WithSeconds()),
 		m: make(map[K]*Task[K]),
