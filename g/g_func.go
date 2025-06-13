@@ -253,7 +253,7 @@ func Copy[T any](ptr *T) *T {
 }
 
 // Min 最小值,1.21版本才自带
-func Min[T conv.Comparable](v1 T, v2 ...T) T {
+func Min[T types.Comparable](v1 T, v2 ...T) T {
 	for _, v := range v2 {
 		if v < v1 {
 			v1 = v
@@ -263,7 +263,7 @@ func Min[T conv.Comparable](v1 T, v2 ...T) T {
 }
 
 // Max 最大值,1.21版本才自带
-func Max[T conv.Comparable](v1 T, v2 ...T) T {
+func Max[T types.Comparable](v1 T, v2 ...T) T {
 	for _, v := range v2 {
 		if v > v1 {
 			v1 = v
