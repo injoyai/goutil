@@ -17,7 +17,7 @@ type Cycle struct {
 }
 
 // Subscribe 开启一个订阅数据的通道
-func (this *Cycle) Subscribe(cap ...uint) *chans.Safe[any] {
+func (this *Cycle) Subscribe(cap ...int) *chans.Safe[any] {
 	return this.subscribe.Subscribe(cap...)
 }
 
