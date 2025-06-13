@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/injoyai/base v1.2.7
-	github.com/injoyai/conv v1.2.3
+	github.com/injoyai/conv v1.2.5
 	github.com/injoyai/ios v0.0.7
 	github.com/injoyai/logs v1.0.9
 )
