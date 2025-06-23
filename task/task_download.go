@@ -21,8 +21,8 @@ func NewDownload() *Download {
 
 type Download struct {
 	queue     []GetReader                                                      //分片队列
-	coroutine uint                                                             //协程数
-	retry     uint                                                             //重试次数
+	coroutine int                                                              //协程数
+	retry     int                                                              //重试次数
 	doneItem  func(ctx context.Context, resp *DownloadItemResp) (int64, error) //分片下载完成事件
 	doneAll   func(resp *DownloadResp)                                         //全部分片下载完成事件
 }
@@ -46,13 +46,13 @@ func (this *Download) Append(v GetReader) *Download {
 	return this
 }
 
-func (this *Download) SetCoroutine(limit uint) *Download {
-	this.coroutine = conv.Select[uint](limit == 0, 1, limit)
+func (this *Download) SetCoroutine(limit int) *Download {
+	this.coroutine = conv.Select(limit == 0, 1, limit)
 	return this
 }
 
-func (this *Download) SetRetry(retry uint) *Download {
-	this.retry = conv.Select[uint](retry == 0, 1, retry)
+func (this *Download) SetRetry(retry int) *Download {
+	this.retry = conv.Select(retry == 0, 1, retry)
 	return this
 }
 
@@ -88,7 +88,7 @@ func (this *Download) Download(ctx context.Context) *DownloadResp {
 				defer wg.Done()
 
 				resp := &DownloadItemResp{Index: i}
-				for idx := uint(0); idx <= this.retry; idx++ {
+				for idx := 0; idx <= this.retry; idx++ {
 					resp.Reader, resp.Err = v.GetReader(ctx)
 					if resp.Err == nil {
 						break
