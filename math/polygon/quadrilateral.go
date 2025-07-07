@@ -2,6 +2,7 @@ package polygon
 
 import (
 	"github.com/injoyai/conv"
+	"github.com/injoyai/logs"
 	"math"
 )
 
@@ -52,12 +53,12 @@ LeftAngle 已知q[0],q[1]边角度a1,求邻边q[2],q[3]角度a2
 		       ------
 			     q[3]
 */
-func (q Quadrilateral) LeftAngle(angle float64, offset ...int) float64 {
+func (q Quadrilateral) LeftAngle(angle float64, offset ...int) (float64, float64) {
 
 	i := conv.Default(0, offset...)
 
 	if angle > q.MaxAngle(i) {
-		return 0
+		angle = q.MaxAngle(i)
 	}
 
 	a := q.get(i + 0)
@@ -68,13 +69,20 @@ func (q Quadrilateral) LeftAngle(angle float64, offset ...int) float64 {
 	ll := a*a + b*b - 2*a*b*math.Cos(angle*math.Pi/180)
 	l := math.Sqrt(ll)
 	if l == 0 {
-		return math.Acos(0) * 2 * 180 / math.Pi
+		r := math.Acos(0) * 2 * 180 / math.Pi
+		return r, r
 	}
 
 	a1 := math.Acos((ll + b*b - a*a) / (2 * l * b))
+	a1 = conv.Select(math.IsNaN(a1), 0, a1)
 	a2 := math.Acos((ll + c*c - d*d) / (2 * l * c))
-	result := (a1 + a2) * 180 / math.Pi
-	return result
+	a2 = conv.Select(math.IsNaN(a2), 0, a2)
+
+	//有2个解,突出四边形,凹陷四边形
+	r1 := math.Abs(a1+a2) * 180 / math.Pi
+	r2 := math.Abs(a1-a2) * 180 / math.Pi
+
+	return r1, r2
 }
 
 /*
@@ -88,10 +96,12 @@ RightAngle 已知q[0],q[1]边角度a1,求邻边q[3],q[0]角度a2
 		      a2-----
 			     q[3]
 */
-func (q Quadrilateral) RightAngle(angle float64, offset ...int) float64 {
+func (q Quadrilateral) RightAngle(angle float64, offset ...int) (float64, float64) {
 	n := conv.Default(0, offset...)
+
 	if angle > q.MaxAngle(n) {
-		return 0
+		logs.Debug("超出最大角度", angle, q.MaxAngle(n))
+		angle = q.MaxAngle(n)
 	}
 
 	a := q.get(n + 0)
@@ -102,13 +112,20 @@ func (q Quadrilateral) RightAngle(angle float64, offset ...int) float64 {
 	ll := a*a + b*b - 2*a*b*math.Cos(angle*math.Pi/180)
 	l := math.Sqrt(ll)
 	if l == 0 {
-		return math.Acos(0) * 2 * 180 / math.Pi
+		r := math.Acos(0) * 2 * 180 / math.Pi
+		return r, r
 	}
 
 	a1 := math.Acos((ll + a*a - b*b) / (2 * l * a))
+	a1 = conv.Select(math.IsNaN(a1), 0, a1)
 	a2 := math.Acos((ll + d*d - c*c) / (2 * l * d))
-	result := (a1 + a2) * 180 / math.Pi
-	return result
+	a2 = conv.Select(math.IsNaN(a2), 0, a2)
+
+	//有2个解,突出四边形,凹陷四边形
+	r1 := math.Abs(a1+a2) * 180 / math.Pi
+	r2 := math.Abs(a1-a2) * 180 / math.Pi
+
+	return r1, r2
 }
 
 // Diagonal 已知1,2边角度,求对角线(3,4)角度
