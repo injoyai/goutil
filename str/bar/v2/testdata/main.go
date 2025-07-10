@@ -11,13 +11,15 @@ import (
 )
 
 func main() {
+
 	bar.Demo()
 
 	{
 		logs.Debug("文件示例:")
 		url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
 		filename := "./downloader.exe"
-		b := bar.New(bar.WithDefaultFormat(func(p bar.Plan) {
+		b := bar.New(bar.WithFormatUnit(func(p bar.Plan) {
+			p.SetTag("文件下载")
 			p.SetColor(bar.BgYellow)
 			p.SetStyle('#')
 			p.SetPrefix("(")

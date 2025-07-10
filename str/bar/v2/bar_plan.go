@@ -6,14 +6,19 @@ import (
 )
 
 type plan struct {
-	prefix string       //前缀
-	suffix string       //后缀 例 []
+	tag    string       //tag 例 [导出] [>>>   ]
+	prefix string       //前缀 例 [
+	suffix string       //后缀 例 ]
 	style  byte         //进度条风格 例 >
 	color  *color.Color //整体颜色
 	width  int          //宽度
 
 	current int64 //当前
 	total   int64 //总数
+}
+
+func (this *plan) SetTag(tag string) {
+	this.tag = tag
 }
 
 func (this *plan) SetPrefix(prefix string) {
@@ -42,7 +47,12 @@ func (this *plan) String() string {
 	for i := 0; i < int(float64(this.width)*rate); i++ {
 		nowWidth += string(this.style)
 	}
-	barStr := fmt.Sprintf(fmt.Sprintf("%s%%-%ds%s", this.prefix, this.width, this.suffix), nowWidth)
+	var barStr string
+	if this.tag != "" {
+		barStr = fmt.Sprintf(fmt.Sprintf("[%s] %s%%-%ds%s", this.tag, this.prefix, this.width, this.suffix), nowWidth)
+	} else {
+		barStr = fmt.Sprintf(fmt.Sprintf("%s%%-%ds%s", this.prefix, this.width, this.suffix), nowWidth)
+	}
 	if this.color != nil {
 		barStr = this.color.Sprint(barStr)
 	}

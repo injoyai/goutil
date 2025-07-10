@@ -25,7 +25,17 @@ func WithFormat(format func(b Bar) string) Option {
 	}
 }
 
-func WithDefaultFormat(op ...PlanOption) Option {
+func WithFormatDefault(op ...PlanOption) Option {
+	return WithFormat(func(b Bar) string {
+		return fmt.Sprintf("\r%s  %s  %s",
+			b.Plan(op...),
+			b.RateSize(),
+			b.Speed(),
+		)
+	})
+}
+
+func WithFormatUnit(op ...PlanOption) Option {
 	return WithFormat(func(b Bar) string {
 		return fmt.Sprintf("\r%s  %s  %s",
 			b.Plan(op...),
@@ -42,6 +52,14 @@ func WithWriter(writer io.Writer) Option {
 }
 
 type Option func(b Base)
+
+var DefaultFormat = func(b Bar) string {
+	return fmt.Sprintf("\r%s  %s  %s",
+		b.Plan(),
+		b.RateSize(),
+		b.Speed(),
+	)
+}
 
 func New(op ...Option) Bar {
 	b := &base{
@@ -166,14 +184,6 @@ func (this *base) IntervalFlush(interval time.Duration) {
 			this.Flush()
 		}
 	}
-}
-
-var DefaultFormat = func(b Bar) string {
-	return fmt.Sprintf("\r%s  %s  %s",
-		b.Plan(),
-		b.RateSizeUnit(),
-		b.SpeedUnit(),
-	)
 }
 
 func (this *base) String() string {
