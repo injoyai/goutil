@@ -47,14 +47,13 @@ func (this *plan) String() string {
 	for i := 0; i < int(float64(this.width)*rate); i++ {
 		nowWidth += string(this.style)
 	}
-	var barStr string
-	if this.tag != "" {
-		barStr = fmt.Sprintf(fmt.Sprintf("[%s] %s%%-%ds%s", this.tag, this.prefix, this.width, this.suffix), nowWidth)
-	} else {
-		barStr = fmt.Sprintf(fmt.Sprintf("%s%%-%ds%s", this.prefix, this.width, this.suffix), nowWidth)
-	}
+
+	barStr := fmt.Sprintf(fmt.Sprintf("%s%%-%ds%s", this.prefix, this.width, this.suffix), nowWidth)
 	if this.color != nil {
 		barStr = this.color.Sprint(barStr)
+	}
+	if len(this.tag) > 0 {
+		barStr = fmt.Sprintf("[%s] %s", this.tag, barStr)
 	}
 	return barStr
 }
