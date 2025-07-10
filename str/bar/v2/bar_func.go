@@ -8,7 +8,7 @@ import (
 func Demo() error {
 	x := New(
 		WithTotal(60),
-		WithDefaultFormat(func(p Plan) {
+		WithFormatDefault(func(p Plan) {
 			p.SetStyle('>')
 			p.SetColor(BgCyan)
 		}),

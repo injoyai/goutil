@@ -55,6 +55,7 @@ type Elements interface {
 }
 
 type Plan interface {
+	SetTag(s string)    //设置标签
 	SetPrefix(s string) //设置前缀
 	SetSuffix(s string) //设置后缀
 	SetStyle(s byte)    //设置样式
