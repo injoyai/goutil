@@ -11,8 +11,8 @@ import (
 
 // Encode 压缩文件
 // @filePath,文件路径
-// @zipPath,储存路劲
-func Encode(filePath, zipPath string) error {
+// @zipName,压缩名称
+func Encode(filePath, zipName string) error {
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -20,9 +20,9 @@ func Encode(filePath, zipPath string) error {
 	}
 	defer file.Close()
 
-	os.MkdirAll(filepath.Dir(zipPath), os.ModePerm)
+	os.MkdirAll(filepath.Dir(zipName), os.ModePerm)
 
-	zipFile, err := os.Create(zipPath)
+	zipFile, err := os.Create(zipName)
 	if err != nil {
 		return err
 	}
