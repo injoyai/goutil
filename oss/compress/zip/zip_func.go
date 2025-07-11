@@ -20,6 +20,8 @@ func Encode(filePath, zipPath string) error {
 	}
 	defer file.Close()
 
+	os.MkdirAll(filepath.Dir(zipPath), os.ModePerm)
+
 	zipFile, err := os.Create(zipPath)
 	if err != nil {
 		return err
