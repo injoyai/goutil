@@ -85,8 +85,8 @@ func compareZip(file *os.File, zipWriter *zip.Writer, prefix string, join bool) 
 }
 
 // Decode 解压zip
-func Decode(zipPath, filePath string) error {
-	r, err := zip.OpenReader(zipPath)
+func Decode(zipName, filePath string) error {
+	r, err := zip.OpenReader(zipName)
 	if err != nil {
 		return err
 	}
