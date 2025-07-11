@@ -97,18 +97,3 @@ func (this Type) Check() error {
 	}
 	return nil
 }
-
-//========================================Debugger========================================
-
-type Debugger bool
-
-func (this *Debugger) Debug(b ...bool) {
-	*this = Debugger(len(b) == 0 || b[0])
-}
-
-//========================================error========================================
-
-// Err 错误,好处是能定义在const
-type Err string
-
-func (this Err) Error() string { return string(this) }
