@@ -98,10 +98,14 @@ func RecoverFunc(fn func(err error, stack string)) {
 }
 
 // RecoverPrint 捕捉错误并打印
-func RecoverPrint(err *string, stack ...bool) {
-	RecoverFunc(func(err error, stack string) {
-		logs.Err(err)
-	})
+func RecoverPrint(stack ...bool) {
+	if e := recover(); e != nil {
+		if len(stack) > 0 && stack[0] {
+			logs.Errf("%v\n%v\n", e, string(debug.Stack()))
+			return
+		}
+		logs.Err(e)
+	}
 }
 
 // Try 尝试运行,捕捉错误 其他语言的try catch
