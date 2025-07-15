@@ -2,7 +2,6 @@ package polygon
 
 import (
 	"github.com/injoyai/conv"
-	"github.com/injoyai/logs"
 	"math"
 )
 
@@ -100,7 +99,6 @@ func (q Quadrilateral) RightAngle(angle float64, offset ...int) (float64, float6
 	n := conv.Default(0, offset...)
 
 	if angle > q.MaxAngle(n) {
-		logs.Debug("超出最大角度", angle, q.MaxAngle(n))
 		angle = q.MaxAngle(n)
 	}
 
