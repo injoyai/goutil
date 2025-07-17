@@ -30,18 +30,17 @@ func Decode(bs []byte) (*Status, error) {
 	fn := func(b1, b2 byte, half uint16) float64 {
 		_half := float64(half)
 		f := float64(conv.Uint16([]byte{b2, b1}))
-		base := conv.Select(f > _half, 1., -1.)
-		return base * (f - _half) / _half
+		return (f - _half) / _half
 	}
 
 	s := &Status{
 		Joystick1: Joystick{
 			X: fn(bs[0], bs[1], 0x8000),
-			Y: fn(bs[2], bs[3], 0x7FFF),
+			Y: -fn(bs[2], bs[3], 0x7FFF),
 		},
 		Joystick2: Joystick{
 			X: fn(bs[4], bs[5], 0x8000),
-			Y: fn(bs[6], bs[7], 0x7FFF),
+			Y: -fn(bs[6], bs[7], 0x7FFF),
 		},
 		Direction:  Direction(bs[11]),
 		A:          bs[10]&0x01 == 0x01,
