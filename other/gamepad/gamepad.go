@@ -139,13 +139,19 @@ type Joystick struct {
 	Y float64 //下(-)上(+),[0,1]
 }
 
+const (
+	Up        Direction = 4
+	UpRight   Direction = 8
+	Right     Direction = 12
+	DownRight Direction = 16
+	Down      Direction = 20
+	DownLeft  Direction = 24
+	Left      Direction = 28
+	UpLeft    Direction = 32
+)
+
 // Direction 方向键
 type Direction uint8
-
-// Enum 返回方向键的枚举,0~8
-func (this Direction) Enum() uint8 {
-	return uint8(this / 4)
-}
 
 func (this Direction) String() string {
 	s := ""
