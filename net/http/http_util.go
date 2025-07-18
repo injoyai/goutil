@@ -21,20 +21,20 @@ func (this *ListenWrite) Write(p []byte) (n int, err error) {
 	}
 	this.p.Index++
 	this.p.Current += int64(len(p))
-	this.p.Bytes = &p
+	this.p.Bytes = p
 	if this.OnWrite != nil {
 		this.OnWrite(this.p)
 	}
 	if this.p.Err != nil {
 		return 0, this.p.Err
 	}
-	return this.Writer.Write(*this.p.Bytes)
+	return this.Writer.Write(this.p.Bytes)
 }
 
 type Plan struct {
 	Index   int64
 	Total   int64
 	Current int64
-	Bytes   *[]byte
+	Bytes   []byte
 	Err     error
 }
