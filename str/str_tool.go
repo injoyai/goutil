@@ -11,8 +11,14 @@ func Pointer(s string) *string {
 }
 
 // Bytes 字符串转字节,不同类型共用同一地址
-func Bytes(s *string) []byte {
-	return *(*[]byte)(unsafe.Pointer(s))
+// 直接传入字符串复制的是字符串的结构大约16字节,底层字节是没有复制的
+//
+//	func Bytes(s *string) []byte {
+//		return *(*[]byte)(unsafe.Pointer(s))//之前版本
+//	}
+func Bytes(s string) []byte {
+	ptr := unsafe.StringData(s) // Go 1.20+
+	return unsafe.Slice(ptr, len(s))
 }
 
 // Reverse 把字符串顺序逆转过来
