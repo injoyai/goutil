@@ -20,7 +20,7 @@ func TestBytes(t *testing.T) {
 	s := "xxx"
 	t.Logf("%p", &s)
 	t.Logf("%p", &s)
-	bs := Bytes(&s)
+	bs := Bytes(s)
 	t.Logf("%p", bs)
 	t.Log(bs)
 	t.Log(string(bs))

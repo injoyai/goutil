@@ -135,7 +135,7 @@ func (this *Client) Cache(key string, fn func() (any, error), expiration time.Du
 			return data, nil
 		}
 		m := g.Map{}
-		err = json.Unmarshal(str.Bytes(&s), &m)
+		err = json.Unmarshal(str.Bytes(s), &m)
 		return m["data"], err
 	}, cacheExpiration)
 }
