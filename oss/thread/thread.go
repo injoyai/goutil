@@ -11,7 +11,7 @@ func StartRealtime(cpuID int, priority int, task func()) {
 		//锁定当前协程到当前(固定)系统线程,防止调度迁移
 		runtime.LockOSThread()
 		//绑定当前线程到指定CPU上执行
-		err := SetupRealtime(cpuID, priority)
+		err := BindCPU(cpuID, priority)
 		if err != nil {
 			logs.Fatalf("Failed to setup realtime thread on CPU %d: %v", cpuID, err)
 		}
