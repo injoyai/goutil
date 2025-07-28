@@ -15,8 +15,8 @@ type schedParam struct {
 	_             [4]byte // padding (确保与 C struct 对齐)
 }
 
-// SetupRealtime 创建并绑定当前线程为实时任务
-func SetupRealtime(cpuID int, priority int) error {
+// BindCPU 创建并绑定当前线程为实时任务
+func BindCPU(cpuID int, priority int) error {
 	// 1. 绑定当前线程到指定 CPU
 	runtime.LockOSThread()
 
