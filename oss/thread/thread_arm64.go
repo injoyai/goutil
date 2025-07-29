@@ -17,7 +17,7 @@ type schedParam struct {
 
 // BindCPU 创建并绑定当前线程为实时任务
 func BindCPU(cpuID int, priority int) error {
-	// 1. 绑定当前线程到指定 CPU
+	//锁定当前协程到当前(固定)系统线程,防止调度迁移
 	runtime.LockOSThread()
 
 	var cpuset unix.CPUSet
