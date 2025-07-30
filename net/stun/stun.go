@@ -38,3 +38,12 @@ func GetNetAddr(serverAddr ...string) (addr stun.XORMappedAddress, err error) {
 
 	return
 }
+
+// GetNetIP 获取网络IP
+func GetNetIP(serverAddr ...string) (string, error) {
+	addr, err := GetNetAddr(serverAddr...)
+	if err != nil {
+		return "", err
+	}
+	return addr.IP.String(), nil
+}
