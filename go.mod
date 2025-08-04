@@ -17,6 +17,7 @@ require (
 	github.com/docker/compose/v2 v2.0.0
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.4.0
+	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484
 	github.com/fatih/color v1.14.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/glebarez/go-sqlite v1.21.1
