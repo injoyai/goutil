@@ -16,16 +16,16 @@ import (
 
 type Option func(*Proxy)
 
-func WithCA(certFile, keyFile string) Option {
+func WithCAFile(certFile, keyFile string) Option {
 	return func(p *Proxy) {
-		err := p.SetCA(certFile, keyFile)
+		err := p.SetCAFile(certFile, keyFile)
 		logs.PrintErr(err)
 	}
 }
 
-func WithCABytes(certFile, keyFile []byte) Option {
+func WithCA(certFile, keyFile []byte) Option {
 	return func(p *Proxy) {
-		err := p.SetCABytes(certFile, keyFile)
+		err := p.SetCA(certFile, keyFile)
 		logs.PrintErr(err)
 	}
 }
@@ -73,7 +73,7 @@ func WithPort(port int) Option {
 func Default(op ...Option) *Proxy {
 	return New(
 		WithPort(DefaultPort),
-		WithCABytes([]byte(DefaultCrt), []byte(DefaultKey)), //100年的证书
+		WithCA([]byte(DefaultCrt), []byte(DefaultKey)),
 		WithMitm(),
 		WithOptions(op...),
 	)
@@ -133,8 +133,8 @@ func (this *Proxy) SetOptions(op ...Option) {
 	}
 }
 
-// SetCABytes 设置ca证书
-func (this *Proxy) SetCABytes(crt, key []byte) error {
+// SetCA 设置ca证书
+func (this *Proxy) SetCA(crt, key []byte) error {
 	cert, err := tls.X509KeyPair(crt, key)
 	if err != nil {
 		return err
@@ -143,8 +143,8 @@ func (this *Proxy) SetCABytes(crt, key []byte) error {
 	return nil
 }
 
-// SetCA 设置ca证书
-func (this *Proxy) SetCA(certFile, keyFile string) error {
+// SetCAFile 设置ca证书
+func (this *Proxy) SetCAFile(certFile, keyFile string) error {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
 		return err

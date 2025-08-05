@@ -3,6 +3,7 @@ package proxy
 const (
 	DefaultPort = 8888
 
+	// DefaultCrt 100年的证书
 	DefaultCrt = `-----BEGIN CERTIFICATE-----
 MIID1TCCAr2gAwIBAgIUcW1ydjlfBESEl2wtyVNTzsLR1AYwDQYJKoZIhvcNAQEL
 BQAwdDELMAkGA1UEBhMCQ04xEDAOBgNVBAgMB0JlaWppbmcxEDAOBgNVBAcMB0Jl
@@ -28,6 +29,7 @@ ahDm+vI0dXvjKzOd6+z1pf54DlrPWdvqlkjlaSbgSsBN6ucLKf7l8lZT5luDFc9+
 -----END CERTIFICATE-----
 `
 
+	// DefaultKey 100年的证书
 	DefaultKey = `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC6rb+AKOgc0Gvx
 /tr9qyQo2aSjQEJ/FxPJaCleWAumuRjAQQ4sOmCiiIB6UTnt17TuTviIie3LU1m5
