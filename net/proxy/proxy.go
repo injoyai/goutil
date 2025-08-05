@@ -30,16 +30,9 @@ func WithCA(certFile, keyFile []byte) Option {
 	}
 }
 
-func WithProxy(u string) Option {
+func WithProxy(u string, domains ...string) Option {
 	return func(p *Proxy) {
-		err := p.SetProxy(u)
-		logs.PrintErr(err)
-	}
-}
-
-func WithProxyPac(u string, domains []string) Option {
-	return func(p *Proxy) {
-		err := p.SetProxyPac(u, domains)
+		err := p.SetProxy(u, domains...)
 		logs.PrintErr(err)
 	}
 }
@@ -153,38 +146,9 @@ func (this *Proxy) SetCAFile(certFile, keyFile string) error {
 	return nil
 }
 
-// SetProxy 设置代理
-func (this *Proxy) SetProxy(u string) error {
-	if len(u) == 0 {
-		this.ProxyHttpServer.Tr = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			Proxy:           http.ProxyFromEnvironment,
-		}
-		return nil
-	}
-
-	proxyUrl, err := url.Parse(u)
-	if err != nil {
-		return err
-	}
-	t := &http.Transport{}
-	switch proxyUrl.Scheme {
-	case "socks5", "socks5h":
-		dialer, err := proxy.FromURL(proxyUrl, this)
-		if err != nil {
-			return err
-		}
-		t.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-			return dialer.Dial(network, addr)
-		}
-	default: //"http", "https"
-		t.Proxy = http.ProxyURL(proxyUrl)
-	}
-	this.ProxyHttpServer.Tr = t
-	return nil
-}
-
-func (this *Proxy) SetProxyPac(u string, domains []string) error {
+// SetProxy 设置代理,可指定域名使用代理,否则全部使用代理
+// Pac https://github.com/petronny/gfwlist2pac/blob/master/gfwlist.pac
+func (this *Proxy) SetProxy(u string, domains ...string) error {
 	if len(u) == 0 {
 		this.ProxyHttpServer.Tr = &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -199,6 +163,9 @@ func (this *Proxy) SetProxyPac(u string, domains []string) error {
 	}
 
 	f := func(host string) bool {
+		if len(m) == 0 {
+			return true
+		}
 		ls := strings.Split(host, ".")
 		if len(ls) >= 2 {
 			_, ok := m[ls[len(ls)-2]+"."+ls[len(ls)-1]]
