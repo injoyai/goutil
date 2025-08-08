@@ -127,16 +127,11 @@ func (this *listen) newPeer(key string) (*webrtc.PeerConnection, error) {
 		}
 	})
 	conn.OnDataChannel(func(channel *webrtc.DataChannel) {
-		p := &Client{
-			key:   key,
-			ch:    chans.NewSafe[[]byte](100),
-			dc:    channel,
-			offer: webrtc.SessionDescription{},
-		}
+		p := newClient(key, channel)
 		channel.OnOpen(func() { this.accept.Must(p) })
 		channel.OnMessage(func(msg webrtc.DataChannelMessage) {
 			select {
-			case p.ch.Chan <- msg.Data:
+			case p.ch <- msg.Data:
 			default:
 			}
 		})

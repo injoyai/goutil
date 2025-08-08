@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/injoyai/base/chans"
+	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/ios"
 	"github.com/injoyai/ios/client"
@@ -42,7 +43,7 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 		return nil, err
 	}
 
-	//// ✅ 用这个通道注册等待 ICE 收集完成
+	// ✅ 用这个通道注册等待 ICE 收集完成
 	<-webrtc.GatheringCompletePromise(conn)
 
 	//像中继服务器发送请求连接数据
@@ -97,12 +98,24 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 
 	}
 
-	p := &Client{
-		key:   target,
-		ch:    chans.NewSafe[[]byte](100),
-		dc:    dc,
-		offer: offer,
-	}
+	p := newClient(target, dc)
+
+	//设置关闭函数
+	p.Closer.SetCloseFunc(func(err error) error {
+		close(p.ch)
+		return p.dc.Close()
+	})
+
+	//监听连接状态
+	conn.OnConnectionStateChange(func(state webrtc.PeerConnectionState) {
+		switch state {
+		case webrtc.PeerConnectionStateConnected:
+		case webrtc.PeerConnectionStateFailed,
+			webrtc.PeerConnectionStateDisconnected,
+			webrtc.PeerConnectionStateClosed:
+			p.CloseWithErr(io.EOF)
+		}
+	})
 
 	//监听候选地址,向中继服务器发送,由中继转发给目标
 	conn.OnICECandidate(func(candidate *webrtc.ICECandidate) {
@@ -114,7 +127,7 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 
 	p.dc.OnMessage(func(msg webrtc.DataChannelMessage) {
 		select {
-		case p.ch.Chan <- msg.Data:
+		case p.ch <- msg.Data:
 		default:
 		}
 	})
@@ -124,35 +137,43 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 
 var _ ios.MReadWriteCloser = &Client{}
 
+func newClient(key string, channel *webrtc.DataChannel) *Client {
+	return &Client{
+		key:    key,
+		ch:     make(chan []byte, 100),
+		dc:     channel,
+		offer:  webrtc.SessionDescription{},
+		Closer: safe.NewCloser(),
+	}
+}
+
 type Client struct {
 	key   string
-	ch    *chans.Safe[[]byte]
+	ch    chan []byte
 	dc    *webrtc.DataChannel
 	offer webrtc.SessionDescription
+	*safe.Closer
 }
 
 func (this *Client) ReadMessage() ([]byte, error) {
-	if this.ch.Closed() {
-		return nil, io.EOF
+	if this.Closed() {
+		return nil, this.Err()
 	}
-	bs, ok := <-this.ch.Chan
+	bs, ok := <-this.ch
 	if !ok {
+		if this.Err() != nil {
+			return nil, this.Err()
+		}
 		return nil, io.EOF
 	}
 	return bs, nil
 }
 
 func (this *Client) Write(p []byte) (int, error) {
+	if this.Closed() {
+		return 0, this.Err()
+	}
 	err := this.dc.Send(p)
+	this.CloseWithErr(err)
 	return len(p), err
-}
-
-func (this *Client) WriteString(s string) (int, error) {
-	err := this.dc.SendText(s)
-	return len(s), err
-}
-
-func (this *Client) Close() error {
-	this.ch.Close()
-	return this.dc.Close()
 }
