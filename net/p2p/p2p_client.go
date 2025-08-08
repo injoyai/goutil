@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/injoyai/base/chans"
+	"github.com/injoyai/conv"
 	"github.com/injoyai/ios"
 	"github.com/injoyai/ios/client"
 	"github.com/pion/webrtc/v3"
@@ -24,21 +25,33 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//创建数据通道,v1版本先默认创建一个数据通道,先执行这个才能收集ICE信息
+	dc, err := conn.CreateDataChannel("data", nil)
+	if err != nil {
+		return nil, err
+	}
+
 	offer, err := conn.CreateOffer(nil)
 	if err != nil {
 		return nil, err
 	}
+
 	err = conn.SetLocalDescription(offer)
 	if err != nil {
 		return nil, err
 	}
 
+	//// ✅ 用这个通道注册等待 ICE 收集完成
+	<-webrtc.GatheringCompletePromise(conn)
+
 	//像中继服务器发送请求连接数据
-	_, err = relay.Write(Message{Type: SDP, To: target, Data: offer.SDP}.Bytes())
+	_, err = relay.Write(Message{Type: SDP, To: target, Data: conv.String(conn.LocalDescription())}.Bytes())
 	if err != nil {
 		return nil, err
 	}
 	wait := chans.NewSafe[struct{}]()
+	dc.OnOpen(func() { wait.Add(struct{}{}) })
 	relay.OnDealMessage = func(c *client.Client, msg ios.Acker) {
 
 		var err error
@@ -61,6 +74,7 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 			if err != nil {
 				return
 			}
+			//设置远程配置描述
 			if desc.Type == webrtc.SDPTypeAnswer {
 				err = conn.SetRemoteDescription(desc)
 				return
@@ -86,7 +100,7 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 	p := &Client{
 		key:   target,
 		ch:    chans.NewSafe[[]byte](100),
-		dc:    nil,
+		dc:    dc,
 		offer: offer,
 	}
 
@@ -98,11 +112,6 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 		relay.Write(Message{Type: ICE, To: target, Data: candidate.ToJSON().Candidate}.Bytes())
 	})
 
-	//创建数据通道,v1版本先默认创建一个数据通道
-	p.dc, err = conn.CreateDataChannel("data", nil)
-	if err != nil {
-		return nil, err
-	}
 	p.dc.OnMessage(func(msg webrtc.DataChannelMessage) {
 		select {
 		case p.ch.Chan <- msg.Data:
