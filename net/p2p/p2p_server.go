@@ -40,7 +40,6 @@ func Listen(relay *client.Client) (ios.Listener, error) {
 			}
 
 			conn, err := l.clients.GetOrSetByHandler(m.From, func() (*webrtc.PeerConnection, error) {
-				logs.Trace("创建连接", m.From)
 				return l.newPeer(m.From)
 			})
 			if err != nil {
