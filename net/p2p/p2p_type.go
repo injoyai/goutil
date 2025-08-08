@@ -10,8 +10,8 @@ const (
 
 type Message struct {
 	Type string `json:"type"`
-	From string `json:"from"` //来源,由中继服务器填入
-	To   string `json:"to"`
+	From string `json:"from,omitempty"` //来源,由中继服务器填入
+	To   string `json:"to,omitempty"`
 	Data string `json:"data"`
 }
 
