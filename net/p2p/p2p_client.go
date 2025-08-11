@@ -22,7 +22,9 @@ func NewDial(relay *client.Client, target string) ios.DialFunc {
 }
 
 func Dial(relay *client.Client, target string) (*Client, error) {
-	conn, err := webrtc.NewPeerConnection(webrtc.Configuration{})
+	conn, err := webrtc.NewPeerConnection(webrtc.Configuration{
+		ICEServers: []webrtc.ICEServer{{URLs: []string{"stun:stun.l.google.com:19302"}}},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -51,6 +53,8 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//处理中继服务器返回的数据
 	wait := chans.NewSafe[struct{}]()
 	dc.OnOpen(func() { wait.Add(struct{}{}) })
 	relay.OnDealMessage = func(c *client.Client, msg ios.Acker) {
@@ -91,7 +95,7 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 	case <-wait.Done():
 		return nil, wait.Err()
 
-	case <-time.After(time.Second * 10):
+	case <-time.After(time.Second * 60):
 		return nil, errors.New("建立连接超时")
 
 	case <-wait.Chan:
@@ -113,6 +117,7 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 		case webrtc.PeerConnectionStateFailed,
 			webrtc.PeerConnectionStateDisconnected,
 			webrtc.PeerConnectionStateClosed:
+			//大概10来秒才能监测到连接断开
 			p.CloseWithErr(io.EOF)
 		}
 	})
@@ -125,7 +130,7 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 		relay.Write(Message{Type: ICE, To: target, Data: candidate.ToJSON().Candidate}.Bytes())
 	})
 
-	p.dc.OnMessage(func(msg webrtc.DataChannelMessage) {
+	dc.OnMessage(func(msg webrtc.DataChannelMessage) {
 		select {
 		case p.ch <- msg.Data:
 		default:
