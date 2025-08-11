@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
@@ -17,15 +16,16 @@ import (
 
 var mu = sync.Mutex{}
 
-func NewListen(relay *client.Client) ios.ListenFunc {
+func NewListen(key string, relay *client.Client) ios.ListenFunc {
 	return func() (ios.Listener, error) {
-		return Listen(relay)
+		return Listen(key, relay)
 	}
 }
 
-func Listen(relay *client.Client) (ios.Listener, error) {
+func Listen(key string, relay *client.Client) (ios.Listener, error) {
 
 	l := &listen{
+		key:     key,
 		clients: maps.NewGeneric[string, *webrtc.PeerConnection](),
 		accept:  chans.NewSafe[*Client](10),
 		relay:   relay,
@@ -104,13 +104,16 @@ func Listen(relay *client.Client) (ios.Listener, error) {
 var _ ios.Listener = &listen{}
 
 type listen struct {
+	key     string
 	clients *maps.Generic[string, *webrtc.PeerConnection]
 	accept  *chans.Safe[*Client]
 	relay   *client.Client
 }
 
 func (this *listen) newPeer(key string) (*webrtc.PeerConnection, error) {
-	conn, err := webrtc.NewPeerConnection(webrtc.Configuration{})
+	conn, err := webrtc.NewPeerConnection(webrtc.Configuration{
+		ICEServers: []webrtc.ICEServer{{URLs: []string{"stun:stun.l.google.com:19302"}}},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +123,6 @@ func (this *listen) newPeer(key string) (*webrtc.PeerConnection, error) {
 		case webrtc.PeerConnectionStateFailed,
 			webrtc.PeerConnectionStateDisconnected,
 			webrtc.PeerConnectionStateClosed:
-			logs.Trace("删除连接:", key)
 			this.clients.Del(key)
 			conn.Close()
 		}
@@ -153,5 +155,5 @@ func (this *listen) Accept() (ios.ReadWriteCloser, string, error) {
 }
 
 func (this *listen) Addr() string {
-	return fmt.Sprintf("%p", this)
+	return this.key
 }
