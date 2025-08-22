@@ -5,7 +5,6 @@ import "io"
 const (
 	TypeMinio = "minio"
 	TypeLocal = "local"
-	TypeQiniu = "qiniu"
 )
 
 type Interface interface {

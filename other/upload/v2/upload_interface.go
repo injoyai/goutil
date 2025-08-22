@@ -37,7 +37,6 @@ type Equal uint8
 var (
 	TypeLocal    = "local"
 	TypeMinio    = "minio"
-	TypeQiniu    = "qiniu"
 	TypeBaidu    = "baidu"
 	TypeCloud189 = "cloud189"
 	TypeFtp      = "ftp"
@@ -53,13 +52,6 @@ func New(Type string, cfg conv.Extend) (Uploader, error) {
 			AccessKey:  cfg.GetString("accessKey"),
 			SecretKey:  cfg.GetString("secretKey"),
 			BucketName: cfg.GetString("bucketName"),
-		})
-	case TypeQiniu:
-		return NewQiniu(&QiniuConfig{
-			Key:    cfg.GetString("key"),
-			Secret: cfg.GetString("secret"),
-			Domain: cfg.GetString("domain"),
-			Space:  cfg.GetString("space"),
 		})
 	case TypeFtp:
 		return DialFTP(
