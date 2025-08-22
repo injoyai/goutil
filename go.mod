@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/aliyun/alibaba-cloud-sdk-go v1.62.349
+	github.com/aliyun/alibaba-cloud-sdk-go v1.63.107
 	github.com/compose-spec/compose-go v1.20.0
 	github.com/ctessum/polyclip-go v1.1.0
 	github.com/denisenkom/go-mssqldb v0.10.0
@@ -101,7 +101,7 @@ require (
 	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jmespath/go-jmespath v0.3.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
