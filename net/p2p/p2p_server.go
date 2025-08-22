@@ -11,10 +11,7 @@ import (
 	"github.com/injoyai/ios/client"
 	"github.com/injoyai/logs"
 	"github.com/pion/webrtc/v3"
-	"sync"
 )
-
-var mu = sync.Mutex{}
 
 func NewListen(key string, relay *client.Client) ios.ListenFunc {
 	return func() (ios.Listener, error) {
@@ -49,7 +46,6 @@ func Listen(key string, relay *client.Client) (ios.Listener, error) {
 			switch m.Type {
 			case ICE:
 				//一些ICE信息,用于建立P2P
-
 				return conn.AddICECandidate(webrtc.ICECandidateInit{Candidate: m.Data})
 
 			case SDP:
@@ -79,9 +75,6 @@ func Listen(key string, relay *client.Client) (ios.Listener, error) {
 							if candidate == nil {
 								return
 							}
-							//后续让relay自己实现并发安全
-							mu.Lock()
-							defer mu.Unlock()
 							relay.Write(Message{Type: ICE, To: m.From, Data: candidate.ToJSON().Candidate}.Bytes())
 						})
 
