@@ -19,8 +19,8 @@ func NewRange() *Range {
 
 type Range struct {
 	queue     []Handler                                 //分片队列
-	coroutine uint                                      //协程数
-	retry     uint                                      //重试次数
+	coroutine int                                       //协程数
+	retry     int                                       //重试次数
 	doneItem  func(ctx context.Context, resp *ItemResp) //子项执行完成
 	doneAll   func(resp *Resp)                          //全部完成
 }
@@ -44,13 +44,13 @@ func (this *Range) Append(v Handler) *Range {
 	return this
 }
 
-func (this *Range) SetCoroutine(limit uint) *Range {
-	this.coroutine = conv.Select[uint](limit == 0, 1, limit)
+func (this *Range) SetCoroutine(limit int) *Range {
+	this.coroutine = conv.Select(limit == 0, 1, limit)
 	return this
 }
 
-func (this *Range) SetRetry(retry uint) *Range {
-	this.retry = conv.Select[uint](retry == 0, 1, retry)
+func (this *Range) SetRetry(retry int) *Range {
+	this.retry = conv.Select(retry == 0, 1, retry)
 	return this
 }
 
@@ -79,7 +79,7 @@ func (this *Range) Run(ctx context.Context) *Resp {
 			go func(ctx context.Context, t *Range, i int, f Handler) {
 				defer wg.Done()
 				resp := &ItemResp{Index: i}
-				for x := uint(0); x <= t.retry; x++ {
+				for x := 0; x <= t.retry; x++ {
 					resp.Data, resp.Err = f(ctx)
 					if resp.Err == nil {
 						break
