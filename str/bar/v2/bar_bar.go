@@ -2,74 +2,89 @@ package bar
 
 import (
 	"bufio"
-	"fmt"
-	"github.com/injoyai/base/maps"
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
-	"github.com/injoyai/goutil/oss"
 	"io"
 	"os"
+	"strings"
 	"time"
 )
 
+func WithCurrent(current int64) Option {
+	return func(b Bar) {
+		b.SetCurrent(current)
+	}
+}
+
 func WithTotal(total int64) Option {
-	return func(b Base) {
+	return func(b Bar) {
 		b.SetTotal(total)
 	}
 }
 
-func WithFormat(format func(b Bar) string) Option {
-	return func(b Base) {
-		b.SetFormat(format)
+func WithFormat(fs ...Format) Option {
+	switch len(fs) {
+	case 0:
+		return func(b Bar) {}
+	case 1:
+		return func(b Bar) { b.SetFormat(fs[0]) }
+	default:
+		ls := make([]string, len(fs))
+		return func(b Bar) {
+			b.SetFormat(func(b Bar) string {
+				for i, v := range fs {
+					ls[i] = v(b)
+				}
+				return strings.Join(ls, "  ")
+			})
+		}
+
 	}
 }
 
 func WithFormatDefault(op ...PlanOption) Option {
-	return WithFormat(func(b Bar) string {
-		return fmt.Sprintf("\r%s  %s  %s",
-			b.Plan(op...),
-			b.RateSize(),
-			b.Speed(),
-		)
-	})
+	return WithFormat(
+		WithPlan(op...),
+		WithRateSize(),
+		WithSpeed(),
+	)
 }
 
-func WithFormatUnit(op ...PlanOption) Option {
-	return WithFormat(func(b Bar) string {
-		return fmt.Sprintf("\r%s  %s  %s",
-			b.Plan(op...),
-			b.RateSizeUnit(),
-			b.SpeedUnit(),
-		)
-	})
+func WithFormatDefaultUnit(op ...PlanOption) Option {
+	return WithFormat(
+		WithPlan(op...),
+		WithRateSizeUnit(),
+		WithSpeedUnit(),
+	)
 }
 
-func WithWriter(writer io.Writer) Option {
-	return func(b Base) {
-		b.SetWriter(writer)
+func WithPrefix(prefix string) Option {
+	return func(b Bar) {
+		b.SetPrefix(prefix)
 	}
 }
 
-type Option func(b Base)
+func WithSuffix(suffix string) Option {
+	return func(b Bar) {
+		b.SetSuffix(suffix)
+	}
+}
 
-var DefaultFormat = func(b Bar) string {
-	return fmt.Sprintf("\r%s  %s  %s",
-		b.Plan(),
-		b.RateSize(),
-		b.Speed(),
-	)
+func WithWriter(writer io.Writer) Option {
+	return func(b Bar) {
+		b.SetWriter(writer)
+	}
 }
 
 func New(op ...Option) Bar {
 	b := &base{
 		current: 0,
 		total:   0,
-		format:  DefaultFormat,
-		writer:  os.Stdout,
-		Closer:  safe.NewCloser(),
+		//format:  ,
+		writer: os.Stdout,
+		Closer: safe.NewCloser(),
 
-		cache:     maps.NewSafe(),
 		startTime: time.Now(),
 	}
 	b.SetCloseFunc(func(err error) error {
@@ -78,6 +93,7 @@ func New(op ...Option) Bar {
 		}
 		return nil
 	})
+	WithFormatDefault()(b)
 	for _, v := range op {
 		v(b)
 	}
@@ -87,16 +103,16 @@ func New(op ...Option) Bar {
 type base struct {
 	current      int64              //当前数量
 	total        int64              //总数量
+	prefix       string             //前缀
+	suffix       string             //后缀
 	format       func(b Bar) string //格式化
 	writer       io.Writer          //输出
-	*safe.Closer                    //
+	*safe.Closer                    //closer
+	onFinal      func(b Bar)        //完成事件
 
-	cache     *maps.Safe //
-	startTime time.Time  //开始时间
-	last      int64      //最后一次增加的值
-	lastTime  time.Time  //最后一次时间
-
-	onFinal func(b Bar)
+	startTime time.Time //开始时间
+	last      int64     //最后一次增加的值
+	lastTime  time.Time //最后一次时间
 }
 
 func (this *base) Add(n int64) {
@@ -104,6 +120,10 @@ func (this *base) Add(n int64) {
 }
 
 func (this *base) Set(current int64) {
+	this.SetCurrent(current)
+}
+
+func (this *base) SetCurrent(current int64) {
 	if current > this.total {
 		current = this.total
 	}
@@ -117,7 +137,17 @@ func (this *base) SetTotal(total int64) {
 }
 
 func (this *base) SetFormat(format func(b Bar) string) {
-	this.format = format
+	if format != nil {
+		this.format = format
+	}
+}
+
+func (this *base) SetPrefix(prefix string) {
+	this.prefix = prefix
+}
+
+func (this *base) SetSuffix(suffix string) {
+	this.suffix = suffix
 }
 
 func (this *base) SetWriter(w io.Writer) {
@@ -163,6 +193,7 @@ func (this *base) Flush() (closed bool) {
 	}
 	s := this.String()
 	if s == "" || s[0] != '\r' {
+		//s = "\r\\033[K" + s
 		s = "\r" + s
 	}
 	this.writer.Write([]byte(s))
@@ -187,10 +218,7 @@ func (this *base) IntervalFlush(interval time.Duration) {
 }
 
 func (this *base) String() string {
-	if this.format == nil {
-		this.format = DefaultFormat
-	}
-	return this.format(this)
+	return this.prefix + this.format(this) + this.suffix
 }
 
 /*
@@ -198,125 +226,6 @@ func (this *base) String() string {
 
 
  */
-
-func (this *base) Plan(op ...PlanOption) Element {
-	b := &plan{
-		prefix:  "[",
-		suffix:  "]",
-		style:   '>',
-		color:   nil,
-		width:   50,
-		current: this.current,
-		total:   this.total,
-	}
-	for _, v := range op {
-		v(b)
-	}
-	return b
-}
-
-func (this *base) Rate() Element {
-	return ElementFunc(func() string {
-		return fmt.Sprintf("%0.1f%%", float64(this.current)*100/float64(this.total))
-	})
-}
-
-func (this *base) RateSize() Element {
-	return ElementFunc(func() string {
-		return fmt.Sprintf("%d/%d", this.current, this.total)
-	})
-}
-
-func (this *base) RateSizeUnit() Element {
-	return ElementFunc(func() string {
-		currentNum, currentUnit := oss.SizeUnit(this.current)
-		totalNum, totalUnit := oss.SizeUnit(this.total)
-		return fmt.Sprintf("%0.1f%s/%0.1f%s", currentNum, currentUnit, totalNum, totalUnit)
-	})
-}
-
-func (this *base) speed(key string, size int64, expiration time.Duration, f func(float64) string) string {
-
-	timeKey := "time_" + key
-	cacheKey := "speed_" + key
-	//最后的数据时间
-	lastTime, _ := this.cache.GetOrSetByHandler(timeKey, func() (any, error) {
-		return time.Time{}, nil
-	})
-
-	//记录这次时间,用于下次计算时间差
-	now := time.Now()
-	this.cache.Set(timeKey, now)
-
-	//尝试从缓存获取速度,存在则直接返回,由expiration控制
-	if val, ok := this.cache.Get(cacheKey); ok {
-		return val.(string)
-	}
-
-	//计算速度
-	size = conv.Select[int64](size >= 0, size, 0)
-	spendSize := float64(size) / now.Sub(lastTime.(time.Time)).Seconds()
-	s := f(spendSize)
-	this.cache.Set(cacheKey, s, expiration)
-	return s
-}
-
-func (this *base) Speed() Element {
-	return ElementFunc(func() string {
-		return this.speed("Speed", this.last, time.Millisecond*500, func(size float64) string {
-			return fmt.Sprintf("%0.1f/s", size)
-		})
-	})
-}
-
-func (this *base) SpeedUnit() Element {
-	return ElementFunc(func() string {
-		return this.speed("SpeedUnit", this.last, time.Millisecond*500, func(size float64) string {
-			f, unit := oss.SizeUnit(int64(size))
-			return fmt.Sprintf("%0.1f%s/s", f, unit)
-		})
-	})
-}
-
-func (this *base) SpeedAvg() Element {
-	return ElementFunc(func() string {
-		speedSize := float64(this.current) / time.Since(this.startTime).Seconds()
-		return fmt.Sprintf("%0.1f/s", speedSize)
-	})
-}
-
-func (this *base) SpeedUnitAvg() Element {
-	return ElementFunc(func() string {
-		speedSize := float64(this.current) / time.Since(this.startTime).Seconds()
-		f, unit := oss.SizeUnit(int64(speedSize))
-		return fmt.Sprintf("%0.1f%s/s", f, unit)
-	})
-}
-
-func (this *base) Used() Element {
-	return ElementFunc(func() string {
-		return time.Now().Sub(this.startTime).String()
-	})
-}
-
-func (this *base) UsedSecond() Element {
-	return ElementFunc(func() string {
-		return fmt.Sprintf("%0.1fs", time.Now().Sub(this.startTime).Seconds())
-	})
-}
-
-func (this *base) Remain() Element {
-	return ElementFunc(func() string {
-		rate := float64(this.current) / float64(this.total)
-		spend := time.Now().Sub(this.startTime)
-		remain := "0s"
-		if rate > 0 {
-			sub := time.Duration(float64(spend)/rate - float64(spend))
-			remain = (sub - sub%time.Second).String()
-		}
-		return remain
-	})
-}
 
 /*
 

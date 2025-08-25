@@ -18,13 +18,14 @@ func main() {
 		logs.Debug("文件示例:")
 		url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
 		filename := "./downloader.exe"
-		b := bar.New(bar.WithFormatUnit(func(p bar.Plan) {
-			p.SetTag("文件下载")
-			p.SetColor(bar.BgYellow)
-			p.SetStyle('#')
-			p.SetPrefix("(")
-			p.SetSuffix(")")
-		}))
+		b := bar.New(
+			bar.WithPrefix("下载进度:"),
+			bar.WithFormatDefaultUnit(func(p bar.Plan) {
+				p.SetColor(bar.BgYellow)
+				p.SetStyle('#')
+				p.SetPrefix("(")
+				p.SetSuffix(")")
+			}))
 
 		b.SetWriter(ios.WriteFunc(func(p []byte) (int, error) {
 			return fmt.Print(string(p))
