@@ -17,6 +17,7 @@ type Bar interface {
 	SetPrefix(prefix string)             //设置前缀
 	SetSuffix(suffix string)             //设置后缀
 	SetWriter(w io.Writer)               //设置writer
+	OnSet(f func())                      //设置事件
 	OnFinal(f func(b Bar))               //完成事件
 
 	Last() int64                          //最后数量
