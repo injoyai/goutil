@@ -3,6 +3,7 @@ package bar
 import (
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/injoyai/conv"
 	"strings"
 )
 
@@ -38,11 +39,9 @@ func (this *plan) SetColor(a color.Attribute) {
 }
 
 func (this *plan) String() string {
-	var rate float64
-	if this.total > 0 {
-		rate = float64(this.current) / float64(this.total)
-	}
+	rate := float64(this.current) / float64(this.total)
 	count := int(float64(this.width) * rate)
+	count = conv.Select(count < 0, 0, count)
 	nowWidth := strings.Repeat(string(this.style), count)
 	barStr := fmt.Sprintf(fmt.Sprintf("%s%%-%ds%s", this.prefix, this.width, this.suffix), nowWidth)
 	if this.color != nil {
