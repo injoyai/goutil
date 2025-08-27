@@ -230,8 +230,7 @@ func (this *base) Flush() (closed bool) {
 	}
 	s := this.String()
 	if s == "" || s[0] != '\r' {
-		//s = "\r\\033[K" + s
-		s = "\r" + s
+		s = "\r\033[K" + s
 	}
 	this.writer.Write([]byte(s))
 	if this.current >= this.total {
@@ -276,7 +275,7 @@ var (
 )
 
 func (this *base) DownloadHTTP(source, filename string, proxy ...string) (int64, error) {
-	if err := DefaultClient.SetProxy(conv.Default[string]("", proxy...)); err != nil {
+	if err := DefaultClient.SetProxy(conv.Default("", proxy...)); err != nil {
 		return 0, err
 	}
 	defer this.Close()
@@ -293,21 +292,38 @@ func (this *base) Copy(w io.Writer, r io.Reader) (int64, error) {
 
 func (this *base) CopyN(w io.Writer, r io.Reader, bufSize int64) (int64, error) {
 	buff := bufio.NewReader(r)
-	total := int64(0)
-	buf := make([]byte, bufSize)
-	for {
-		n, err := buff.Read(buf)
-		if err != nil && err != io.EOF {
-			return total, err
-		}
-		total += int64(n)
-		this.Add(int64(n))
-		this.Flush()
-		if _, err := w.Write(buf[:n]); err != nil {
-			return total, err
-		}
-		if err == io.EOF {
-			return total, nil
-		}
+	reader := &Read{
+		Reader: buff,
+		Bar:    this,
 	}
+	return io.CopyN(w, reader, bufSize)
+	//total := int64(0)
+	//buf := make([]byte, bufSize)
+	//for {
+	//	n, err := buff.Read(buf)
+	//	if err != nil && err != io.EOF {
+	//		return total, err
+	//	}
+	//	total += int64(n)
+	//	this.Add(int64(n))
+	//	this.Flush()
+	//	if _, err := w.Write(buf[:n]); err != nil {
+	//		return total, err
+	//	}
+	//	if err == io.EOF {
+	//		return total, nil
+	//	}
+	//}
+}
+
+type Read struct {
+	io.Reader
+	Bar
+}
+
+func (this *Read) Read(p []byte) (n int, err error) {
+	n, err = this.Reader.Read(p)
+	this.Bar.Add(int64(n))
+	this.Bar.Flush()
+	return
 }

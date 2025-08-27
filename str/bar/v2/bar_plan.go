@@ -38,7 +38,10 @@ func (this *plan) SetColor(a color.Attribute) {
 }
 
 func (this *plan) String() string {
-	rate := float64(this.current) / float64(this.total)
+	var rate float64
+	if this.total > 0 {
+		rate = float64(this.current) / float64(this.total)
+	}
 	count := int(float64(this.width) * rate)
 	nowWidth := strings.Repeat(string(this.style), count)
 	barStr := fmt.Sprintf(fmt.Sprintf("%s%%-%ds%s", this.prefix, this.width, this.suffix), nowWidth)
