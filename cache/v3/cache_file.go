@@ -1,40 +1,35 @@
 package cache
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
 	"os"
 	"path/filepath"
 )
 
-var DefaultDir = "./data/cache/"
-
 // NewFile 新建文件缓存
 // 万次读写速度4.18秒
 // 万次协程读写速度2.21秒
-func NewFile(name string, groups ...string) *File {
-	group := conv.Default("var", groups...)
+func NewFile(filename string) (*File, error) {
 	data := &File{
-		name:  name,
-		group: group,
+		filename: filename,
 	}
-	bs, _ := os.ReadFile(data.Filename())
+	bs, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
 	data.Map = conv.NewMap(bs)
-	return data
+	return data, nil
 }
 
 type File struct {
-	name  string
-	group string
+	filename string
 	*conv.Map
 }
 
 // Name 名字
 func (this *File) Name() string {
-	return this.name
+	return filepath.Base(this.filename)
 }
 
 // Clear 清空数据
@@ -75,22 +70,5 @@ func (this *File) Del(key string) *File {
 
 // Save 保存配置文件,存在则覆盖
 func (this *File) Save() error {
-	filename := this.Filename()
-	return oss.New(filename, this.Map.String())
-}
-
-// Cover 覆盖
-func (this *File) Cover() error {
-	return this.Save()
-}
-
-func (this *File) Filename() string {
-	fileDir, filename := DefaultDir, this.name
-	if dir, file := filepath.Split(this.name); len(dir) > 0 {
-		fileDir, filename = dir, file
-	}
-	h := md5.New()
-	h.Write([]byte(filename))
-	filename = fmt.Sprintf("%s@%s", this.group, hex.EncodeToString(h.Sum(nil)))
-	return filepath.Join(fileDir, filename)
+	return oss.New(this.filename, this.Map.String())
 }

@@ -41,11 +41,12 @@ func (this *Cycle[T]) Padding(data T) *Cycle[T] {
 
 // Save 数据持久化,保存至文件
 func (this *Cycle[T]) Save(name string) error {
-	return newFile(name, "cycle").
+	return NewFile(name, "cycle").
 		Set("data", this.list).
 		Set("offset", this.offset).
 		Set("length", this.length).
-		Set("cycle", this.cycle).Save()
+		Set("cycle", this.cycle).
+		Save()
 }
 
 // List 获取列表数据(时间正序)
