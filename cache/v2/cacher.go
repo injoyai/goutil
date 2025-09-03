@@ -28,7 +28,7 @@ func NewMapCacher() Interface {
 }
 
 func NewFileCacher(name string, groups ...string) Interface {
-	return &_file{File: newFile(name, groups...)}
+	return &_file{File: NewFile(name, groups...)}
 }
 
 /*
