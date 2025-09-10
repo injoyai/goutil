@@ -52,7 +52,7 @@ func Decode(url string) ([]string, error) {
 }
 
 func MergeByFFmpeg(dir, output string) error {
-	lsFilename := filepath.Join(dir, "_ts_list.txt")
+	lsFilename := filepath.Join(dir, "ts_list.txt")
 	lsFilename = strings.ReplaceAll(lsFilename, "\\", "/")
 	file, err := os.Create(lsFilename)
 	if err != nil {
@@ -69,6 +69,6 @@ func MergeByFFmpeg(dir, output string) error {
 	if err != nil {
 		return err
 	}
-	cmd := fmt.Sprintf("ffmpeg -f concat -i %s -c copy %s", lsFilename, output)
+	cmd := fmt.Sprintf("ffmpeg -y -f concat -i %s -c copy %s", lsFilename, output)
 	return shell.Run(cmd)
 }
