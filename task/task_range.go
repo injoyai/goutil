@@ -2,34 +2,39 @@ package task
 
 import (
 	"context"
-	"errors"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/conv"
 	"time"
 )
 
-type Handler func(ctx context.Context) (any, error)
+type Handler[T any] func(ctx context.Context) (T, error)
 
-func NewRange() *Range {
-	return &Range{
+func NewRange[T any]() *Range[T] {
+	return &Range[T]{
 		coroutine: 1,
 		retry:     3,
 	}
 }
 
-type Range struct {
-	queue     []Handler                                 //分片队列
-	coroutine int                                       //协程数
-	retry     int                                       //重试次数
-	doneItem  func(ctx context.Context, resp *ItemResp) //子项执行完成
-	doneAll   func(resp *Resp)                          //全部完成
+type Range[T any] struct {
+	queue          []Handler[T]            //分片队列
+	coroutine      int                     //协程数
+	retry          int                     //重试次数
+	onFinishedItem func(resp *ItemResp[T]) //子项执行完成
+	onFinished     func(resp *Resp)        //全部完成
 }
 
-func (this *Range) Len() int {
-	return len(this.queue)
+func (this *Range[T]) Len() int {
+	num := 0
+	for _, f := range this.queue {
+		if f != nil {
+			num++
+		}
+	}
+	return num
 }
 
-func (this *Range) Set(i int, v Handler) *Range {
+func (this *Range[T]) Set(i int, v Handler[T]) *Range[T] {
 	if v != nil {
 		for len(this.queue) <= i {
 			this.queue = append(this.queue, nil)
@@ -39,32 +44,32 @@ func (this *Range) Set(i int, v Handler) *Range {
 	return this
 }
 
-func (this *Range) Append(v Handler) *Range {
-	this.queue = append(this.queue, v)
+func (this *Range[T]) Append(v ...Handler[T]) *Range[T] {
+	this.queue = append(this.queue, v...)
 	return this
 }
 
-func (this *Range) SetCoroutine(limit int) *Range {
+func (this *Range[T]) SetCoroutine(limit int) *Range[T] {
 	this.coroutine = conv.Select(limit == 0, 1, limit)
 	return this
 }
 
-func (this *Range) SetRetry(retry int) *Range {
+func (this *Range[T]) SetRetry(retry int) *Range[T] {
 	this.retry = conv.Select(retry == 0, 1, retry)
 	return this
 }
 
-func (this *Range) SetDoneItem(f func(ctx context.Context, resp *ItemResp)) *Range {
-	this.doneItem = f
+func (this *Range[T]) OnFinishedItem(f func(resp *ItemResp[T])) *Range[T] {
+	this.onFinishedItem = f
 	return this
 }
 
-func (this *Range) SetDoneAll(doneAll func(resp *Resp)) *Range {
-	this.doneAll = doneAll
+func (this *Range[T]) OnFinished(f func(resp *Resp)) *Range[T] {
+	this.onFinished = f
 	return this
 }
 
-func (this *Range) Run(ctx context.Context) *Resp {
+func (this *Range[T]) Run(ctx context.Context) error {
 	start := time.Now()
 	wg := chans.NewWaitLimit(this.coroutine)
 	for i, f := range this.queue {
@@ -73,41 +78,38 @@ func (this *Range) Run(ctx context.Context) *Resp {
 		}
 		select {
 		case <-ctx.Done():
-			return &Resp{Err: errors.New("上下文关闭")}
+			return ctx.Err()
 		default:
 			wg.Add()
-			go func(ctx context.Context, t *Range, i int, f Handler) {
+			go func(ctx context.Context, t *Range[T], i int, f Handler[T]) {
 				defer wg.Done()
-				resp := &ItemResp{Index: i}
+				resp := &ItemResp[T]{Index: i}
 				for x := 0; x <= t.retry; x++ {
 					resp.Data, resp.Err = f(ctx)
 					if resp.Err == nil {
 						break
 					}
 				}
-				if t.doneItem != nil {
-					t.doneItem(ctx, resp)
+				if t.onFinishedItem != nil {
+					t.onFinishedItem(resp)
 				}
 			}(ctx, this, i, f)
 		}
 	}
 	wg.Wait()
-	resp := &Resp{
-		Start: start,
+	if this.onFinished != nil {
+		this.onFinished(&Resp{Start: start})
 	}
-	if this.doneAll != nil {
-		this.doneAll(resp)
-	}
-	return resp
+	return nil
 }
 
-type ItemResp struct {
+type ItemResp[T any] struct {
 	Index int
 	Err   error
-	Data  any
+	Data  T
 }
 
-func (this *ItemResp) Error() string {
+func (this *ItemResp[T]) Error() string {
 	if this.Err != nil {
 		return this.Err.Error()
 	}
@@ -115,24 +117,15 @@ func (this *ItemResp) Error() string {
 }
 
 type Resp struct {
-	Start time.Time //任务开始时间
-	Data  []any     //任务分片数据
-	Err   error     //错误信息
-	spend *time.Duration
+	Start time.Time      //任务开始时间
+	spend *time.Duration //耗时
 }
 
-func (this *Resp) GetSpend() time.Duration {
+func (this *Resp) Spend() time.Duration {
 	if this.spend != nil {
 		return *this.spend
 	}
 	spend := time.Since(this.Start)
 	this.spend = &spend
 	return spend
-}
-
-func (this *Resp) Error() string {
-	if this.Err != nil {
-		return this.Err.Error()
-	}
-	return ""
 }
