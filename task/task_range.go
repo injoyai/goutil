@@ -9,11 +9,41 @@ import (
 
 type Handler[T any] func(ctx context.Context) (T, error)
 
-func NewRange[T any]() *Range[T] {
-	return &Range[T]{
+type Option[T any] func(*Range[T])
+
+func WithCoroutine(coroutine int) Option[any] {
+	return func(r *Range[any]) {
+		r.SetCoroutine(coroutine)
+	}
+}
+
+func WithRetry(retry int) Option[any] {
+	return func(r *Range[any]) {
+		r.SetRetry(retry)
+	}
+}
+
+func WithFinishedItem(onFinishedItem func(resp *ItemResp[any])) Option[any] {
+	return func(r *Range[any]) {
+		r.OnFinishedItem(onFinishedItem)
+	}
+}
+
+func WithFinished(onFinished func(resp *Resp)) Option[any] {
+	return func(r *Range[any]) {
+		r.OnFinished(onFinished)
+	}
+}
+
+func NewRange[T any](op ...Option[T]) *Range[T] {
+	r := &Range[T]{
 		coroutine: 1,
 		retry:     3,
 	}
+	for _, o := range op {
+		o(r)
+	}
+	return r
 }
 
 type Range[T any] struct {
@@ -69,7 +99,12 @@ func (this *Range[T]) OnFinished(f func(resp *Resp)) *Range[T] {
 	return this
 }
 
-func (this *Range[T]) Run(ctx context.Context) error {
+func (this *Range[T]) Run(ctx ...context.Context) error {
+	_ctx := context.Background()
+	if len(ctx) > 0 && ctx[0] != nil {
+		_ctx = ctx[0]
+	}
+
 	start := time.Now()
 	wg := chans.NewWaitLimit(this.coroutine)
 	for i, f := range this.queue {
@@ -77,8 +112,8 @@ func (this *Range[T]) Run(ctx context.Context) error {
 			continue
 		}
 		select {
-		case <-ctx.Done():
-			return ctx.Err()
+		case <-_ctx.Done():
+			return _ctx.Err()
 		default:
 			wg.Add()
 			go func(ctx context.Context, t *Range[T], i int, f Handler[T]) {
