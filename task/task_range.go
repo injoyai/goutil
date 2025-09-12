@@ -9,41 +9,11 @@ import (
 
 type Handler[T any] func(ctx context.Context) (T, error)
 
-type Option[T any] func(*Range[T])
-
-func WithCoroutine(coroutine int) Option[any] {
-	return func(r *Range[any]) {
-		r.SetCoroutine(coroutine)
-	}
-}
-
-func WithRetry(retry int) Option[any] {
-	return func(r *Range[any]) {
-		r.SetRetry(retry)
-	}
-}
-
-func WithFinishedItem(onFinishedItem func(resp *ItemResp[any])) Option[any] {
-	return func(r *Range[any]) {
-		r.OnFinishedItem(onFinishedItem)
-	}
-}
-
-func WithFinished(onFinished func(resp *Resp)) Option[any] {
-	return func(r *Range[any]) {
-		r.OnFinished(onFinished)
-	}
-}
-
-func NewRange[T any](op ...Option[T]) *Range[T] {
-	r := &Range[T]{
+func NewRange[T any]() *Range[T] {
+	return &Range[T]{
 		coroutine: 1,
 		retry:     3,
 	}
-	for _, o := range op {
-		o(r)
-	}
-	return r
 }
 
 type Range[T any] struct {
@@ -128,7 +98,7 @@ func (this *Range[T]) Run(ctx ...context.Context) error {
 				if t.onFinishedItem != nil {
 					t.onFinishedItem(resp)
 				}
-			}(ctx, this, i, f)
+			}(_ctx, this, i, f)
 		}
 	}
 	wg.Wait()
