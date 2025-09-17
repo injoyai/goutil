@@ -28,6 +28,7 @@ type Bar interface {
 	Flush() bool                          //刷入writer
 	IntervalFlush(interval time.Duration) //间隔刷新
 	Done() <-chan struct{}                //
+	Log(a ...any)                         //输出日志,不会影响到bar
 
 	DownloadHTTP(source, filename string, proxy ...string) (int64, error) //通过http下载
 	Copy(w io.Writer, r io.Reader) (int64, error)                         //复制
