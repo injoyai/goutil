@@ -12,6 +12,16 @@ import (
 
 func main() {
 
+	{
+		bar.DownloadHLS(
+			"http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8",
+			"./output/test/",
+			bar.WithHLSCoroutine(10),
+			bar.WithHLSShowDetails(),
+		)
+	}
+	return
+
 	bar.Demo()
 
 	{
@@ -31,7 +41,7 @@ func main() {
 			return fmt.Print(string(p))
 		}))
 		for {
-			_, err := b.DownloadHTTP(url, filename, "http://127.0.0.1:1081")
+			_, err := b.Download(url, filename, "http://127.0.0.1:1081")
 			if !logs.PrintErr(err) {
 				os.Remove(filename)
 				break
@@ -53,4 +63,5 @@ func main() {
 	}
 
 	g.Input("请按回车键退出...")
+
 }

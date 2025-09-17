@@ -141,3 +141,17 @@ func WithRemain() Format {
 		return remain
 	}
 }
+
+// WithCurrentSize 大小,例 58B,需传指针,不然不会变
+func WithCurrentSize(size *int64) Format {
+	return func(b Bar) string {
+		return oss.SizeString(*size)
+	}
+}
+
+// WithCurrentRateSizeUnit 大小,例 58B/100B,需传指针,不然不会变
+func WithCurrentRateSizeUnit(size, total *int64) Format {
+	return func(b Bar) string {
+		return fmt.Sprintf("%s/%s", oss.SizeString(*size), oss.SizeString(*total))
+	}
+}
