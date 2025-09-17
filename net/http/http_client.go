@@ -128,12 +128,17 @@ func (this *Client) GetToFile(url string, filename string) (int64, error) {
 		return 0, resp.Err()
 	}
 	defer resp.Response.Body.Close()
-	w, err := os.Create(filename)
+	w, err := os.Create(filename + ".downloading")
 	if err != nil {
 		return 0, err
 	}
-	defer w.Close()
-	return io.Copy(w, resp.Response.Body)
+	n, err := io.Copy(w, resp.Response.Body)
+	if err != nil {
+		w.Close()
+		return n, err
+	}
+	w.Close()
+	return n, os.Rename(filename+".downloading", filename)
 }
 
 func (this *Client) GetToFileWithPlan(url string, filename string, f func(p *Plan)) (int64, error) {
@@ -142,15 +147,17 @@ func (this *Client) GetToFileWithPlan(url string, filename string, f func(p *Pla
 		return 0, resp.Err()
 	}
 	defer resp.Response.Body.Close()
-	w, err := os.Create(filename)
+	w, err := os.Create(filename + ".downloading")
 	if err != nil {
 		return 0, err
 	}
-	defer w.Close()
-	return resp.CopyWithPlan(w, func(p *Plan) {
-		p.Total = resp.ContentLength
-		f(p)
-	})
+	n, err := resp.CopyWithPlan(w, func(p *Plan) { f(p.SetTotal(resp.ContentLength)) })
+	if err != nil {
+		w.Close()
+		return n, err
+	}
+	w.Close()
+	return n, os.Rename(filename+".downloading", filename)
 }
 
 func (this *Client) Post(url string, body any, bind ...any) *Response {
