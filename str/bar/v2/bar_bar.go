@@ -2,6 +2,7 @@ package bar
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/net/http"
@@ -221,6 +222,12 @@ func (this *base) LastTime() time.Time {
 	return this.lastTime
 }
 
+func (this *base) Log(a ...any) {
+	s := "\r\033[K" + fmt.Sprintln(a...)
+	this.writer.Write([]byte(s))
+	this.Flush()
+}
+
 func (this *base) Flush() (closed bool) {
 	if this.Closed() {
 		return true
@@ -297,23 +304,6 @@ func (this *base) CopyN(w io.Writer, r io.Reader, bufSize int64) (int64, error) 
 		Bar:    this,
 	}
 	return io.CopyN(w, reader, bufSize)
-	//total := int64(0)
-	//buf := make([]byte, bufSize)
-	//for {
-	//	n, err := buff.Read(buf)
-	//	if err != nil && err != io.EOF {
-	//		return total, err
-	//	}
-	//	total += int64(n)
-	//	this.Add(int64(n))
-	//	this.Flush()
-	//	if _, err := w.Write(buf[:n]); err != nil {
-	//		return total, err
-	//	}
-	//	if err == io.EOF {
-	//		return total, nil
-	//	}
-	//}
 }
 
 type Read struct {
