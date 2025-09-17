@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -97,7 +98,11 @@ func DownloadHLS(source, dir string, op ...HLSOption) error {
 				return
 			}
 
-			filename := filepath.Join(dir, filepath.Base(_u.Path)) + ".ts"
+			filename := filepath.Join(dir, filepath.Base(_u.Path))
+			if !strings.HasSuffix(filename, ".ts") {
+				filename += ".ts"
+			}
+
 			stat, exist, err := oss.Stat(filename)
 			if err != nil {
 				b.Log("[错误]", err)
@@ -107,13 +112,7 @@ func DownloadHLS(source, dir string, op ...HLSOption) error {
 				return
 			}
 
-			n, err := h.GetToFile(u, filename+".downloading")
-			if err != nil {
-				b.Log("[错误]", err)
-				return
-			}
-
-			err = os.Rename(filename+".downloading", filename)
+			n, err := h.GetToFile(u, filename)
 			if err != nil {
 				b.Log("[错误]", err)
 				return

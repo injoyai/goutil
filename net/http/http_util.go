@@ -38,3 +38,8 @@ type Plan struct {
 	Bytes   []byte
 	Err     error
 }
+
+func (this *Plan) SetTotal(total int64) *Plan {
+	this.Total = total
+	return this
+}
