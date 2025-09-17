@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -28,41 +29,31 @@ func WithTotal(total int64) Option {
 
 // WithFormat 设置样式
 func WithFormat(fs ...Format) Option {
-	switch len(fs) {
-	case 0:
-		return func(b Bar) {}
-	case 1:
-		return func(b Bar) { b.SetFormat(fs[0]) }
-	default:
-		ls := make([]string, len(fs))
-		return func(b Bar) {
-			b.SetFormat(func(b Bar) string {
-				for i, v := range fs {
-					ls[i] = v(b)
-				}
-				return strings.Join(ls, "  ")
-			})
-		}
-
+	return func(b Bar) {
+		b.SetFormat(fs...)
 	}
 }
 
 // WithFormatDefault 设置默认样式,不带单位
 func WithFormatDefault(op ...PlanOption) Option {
-	return WithFormat(
-		WithPlan(op...),
-		WithRateSize(),
-		WithSpeed(),
-	)
+	return func(b Bar) {
+		b.SetFormat(
+			WithPlan(op...),
+			WithRateSize(),
+			WithSpeed(),
+		)
+	}
 }
 
 // WithFormatDefaultUnit 设置默认样式,带单位
 func WithFormatDefaultUnit(op ...PlanOption) Option {
-	return WithFormat(
-		WithPlan(op...),
-		WithRateSizeUnit(),
-		WithSpeedUnit(),
-	)
+	return func(b Bar) {
+		b.SetFormat(
+			WithPlan(op...),
+			WithRateSizeUnit(),
+			WithSpeedUnit(),
+		)
+	}
 }
 
 // WithPrefix 设置前缀
@@ -144,10 +135,23 @@ type base struct {
 	startTime time.Time //开始时间
 	last      int64     //最后一次增加的值
 	lastTime  time.Time //最后一次时间
+
+	mu sync.Mutex
 }
 
 func (this *base) Add(n int64) {
-	this.Set(this.Current() + n)
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
+	this.current = this.current + n
+	if this.current > this.total {
+		this.current = this.total
+	}
+	this.last = n
+	this.lastTime = time.Now()
+	if this.onSet != nil {
+		this.onSet()
+	}
 }
 
 func (this *base) Set(current int64) {
@@ -155,6 +159,9 @@ func (this *base) Set(current int64) {
 }
 
 func (this *base) SetCurrent(current int64) {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
 	if current > this.total {
 		current = this.total
 	}
@@ -170,9 +177,23 @@ func (this *base) SetTotal(total int64) {
 	this.total = total
 }
 
-func (this *base) SetFormat(format func(b Bar) string) {
-	if format != nil {
-		this.format = format
+func (this *base) SetFormat(fs ...Format) {
+	switch len(fs) {
+	case 0:
+		this.format = func(b Bar) string { return "" }
+
+	case 1:
+		this.format = fs[0]
+
+	default:
+		ls := make([]string, len(fs))
+		this.format = func(b Bar) string {
+			for i, v := range fs {
+				ls[i] = v(b)
+			}
+			return strings.Join(ls, "  ")
+		}
+
 	}
 }
 
@@ -222,13 +243,23 @@ func (this *base) LastTime() time.Time {
 	return this.lastTime
 }
 
+func (this *base) Logf(format string, a ...any) {
+	s := "\r\033[K" + fmt.Sprintf(format, a...)
+	if len(s) == 0 || s[len(s)-1] != '\n' {
+		s += "\n"
+	}
+	this.writer.Write([]byte(s))
+}
+
 func (this *base) Log(a ...any) {
 	s := "\r\033[K" + fmt.Sprintln(a...)
 	this.writer.Write([]byte(s))
-	this.Flush()
 }
 
 func (this *base) Flush() (closed bool) {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
 	if this.Closed() {
 		return true
 	}
@@ -276,17 +307,14 @@ func (this *base) String() string {
 
  */
 
-var (
-	// DefaultClient 默认客户端,下载大文件的时候需要设置长的超时时间
-	DefaultClient = http.NewClient().SetTimeout(0)
-)
-
-func (this *base) DownloadHTTP(source, filename string, proxy ...string) (int64, error) {
-	if err := DefaultClient.SetProxy(conv.Default("", proxy...)); err != nil {
+func (this *base) Download(source, filename string, proxy ...string) (int64, error) {
+	//下载大文件的时候需要设置长的超时时间
+	h := http.NewClient().SetTimeout(0)
+	if err := h.SetProxy(conv.Default("", proxy...)); err != nil {
 		return 0, err
 	}
 	defer this.Close()
-	return DefaultClient.GetToFileWithPlan(source, filename, func(p *http.Plan) {
+	return h.GetToFileWithPlan(source, filename, func(p *http.Plan) {
 		this.SetTotal(p.Total)
 		this.Set(p.Current)
 		this.Flush()
