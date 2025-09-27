@@ -41,6 +41,7 @@ func WithFormatDefault(op ...PlanOption) Option {
 			WithPlan(op...),
 			WithRateSize(),
 			WithSpeed(),
+			WithRemain(),
 		)
 	}
 }
