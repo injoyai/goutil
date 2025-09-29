@@ -20,6 +20,7 @@ type Bar interface {
 			WithPlan(op...),
 			WithRateSize(),
 			WithSpeed(),
+			WithRemain(),
 		)
 	*/
 	SetFormat(format ...Format)
@@ -29,16 +30,15 @@ type Bar interface {
 	OnSet(f func())          //设置事件
 	OnFinal(f func(b Bar))   //完成事件
 
-	Last() int64                          //最后数量
-	Current() int64                       //当前数量
-	Total() int64                         //总数量
-	StartTime() time.Time                 //开始时间
-	LastTime() time.Time                  //最后时间
-	Flush() bool                          //刷入writer
-	IntervalFlush(interval time.Duration) //间隔刷新
-	Done() <-chan struct{}                //
-	Logf(format string, a ...any)         //在bar上方输出日志
-	Log(a ...any)                         //在bar上方输出日志
+	Last() int64                  //最后数量
+	Current() int64               //当前数量
+	Total() int64                 //总数量
+	StartTime() time.Time         //开始时间
+	LastTime() time.Time          //最后时间
+	Flush() bool                  //刷入writer
+	Done() <-chan struct{}        //完成
+	Logf(format string, a ...any) //在bar上方输出日志
+	Log(a ...any)                 //在bar上方输出日志
 
 	Download(source, filename string, proxy ...string) (int64, error) //通过http下载
 	Copy(w io.Writer, r io.Reader) (int64, error)                     //复制

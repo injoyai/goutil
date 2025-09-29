@@ -53,6 +53,7 @@ func WithFormatDefaultUnit(op ...PlanOption) Option {
 			WithPlan(op...),
 			WithRateSizeUnit(),
 			WithSpeedUnit(),
+			WithRemain(),
 		)
 	}
 }
@@ -90,7 +91,18 @@ func WithAutoFlush() Option {
 // WithIntervalFlush 设置定时刷新
 func WithIntervalFlush(interval time.Duration) Option {
 	return func(b Bar) {
-		b.IntervalFlush(interval)
+		go func() {
+			t := time.NewTimer(interval)
+			defer t.Stop()
+			for {
+				select {
+				case <-b.Done():
+					return
+				case <-t.C:
+					b.Flush()
+				}
+			}
+		}()
 	}
 }
 
@@ -279,17 +291,6 @@ func (this *base) Flush() (closed bool) {
 		this.Close()
 	}
 	return this.Closed()
-}
-
-func (this *base) IntervalFlush(interval time.Duration) {
-	for {
-		select {
-		case <-this.Done():
-			return
-		case <-time.After(interval):
-			this.Flush()
-		}
-	}
 }
 
 func (this *base) String() string {
