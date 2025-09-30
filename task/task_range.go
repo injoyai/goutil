@@ -4,10 +4,13 @@ import (
 	"context"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/str/bar/v2"
 	"time"
 )
 
-type Handler[T any] func(ctx context.Context) (T, error)
+type (
+	Handler[T any] func(ctx context.Context) (T, error)
+)
 
 func NewRange[T any]() *Range[T] {
 	return &Range[T]{
@@ -17,11 +20,13 @@ func NewRange[T any]() *Range[T] {
 }
 
 type Range[T any] struct {
-	queue          []Handler[T]            //分片队列
-	coroutine      int                     //协程数
-	retry          int                     //重试次数
-	onFinishedItem func(resp *ItemResp[T]) //子项执行完成
-	onFinished     func(resp *Resp)        //全部完成
+	queue          []Handler[T]              //分片队列
+	coroutine      int                       //协程数
+	retry          int                       //重试次数
+	retryInterval  func(i int) time.Duration //重试时间间隔
+	bar            bar.Bar                   //精度条
+	onFinishedItem func(resp *ItemResp[T])   //子项执行完成
+	onFinished     func(resp *Resp)          //全部完成
 }
 
 func (this *Range[T]) Len() int {
@@ -59,6 +64,16 @@ func (this *Range[T]) SetRetry(retry int) *Range[T] {
 	return this
 }
 
+func (this *Range[T]) SetRetryInterval(f func(i int) time.Duration) *Range[T] {
+	this.retryInterval = f
+	return this
+}
+
+func (this *Range[T]) SetBar(bar bar.Bar) *Range[T] {
+	this.bar = bar
+	return this
+}
+
 func (this *Range[T]) OnFinishedItem(f func(resp *ItemResp[T])) *Range[T] {
 	this.onFinishedItem = f
 	return this
@@ -70,9 +85,13 @@ func (this *Range[T]) OnFinished(f func(resp *Resp)) *Range[T] {
 }
 
 func (this *Range[T]) Run(ctx ...context.Context) error {
-	_ctx := context.Background()
-	if len(ctx) > 0 && ctx[0] != nil {
-		_ctx = ctx[0]
+
+	_ctx := conv.Default(context.Background(), ctx...)
+
+	if this.bar != nil {
+		this.bar.SetTotal(int64(this.Len()))
+		this.bar.Flush()
+		defer this.bar.Close()
 	}
 
 	start := time.Now()
@@ -86,19 +105,32 @@ func (this *Range[T]) Run(ctx ...context.Context) error {
 			return _ctx.Err()
 		default:
 			wg.Add()
-			go func(ctx context.Context, t *Range[T], i int, f Handler[T]) {
+			go func(ctx context.Context, i int, f Handler[T]) {
 				defer wg.Done()
 				resp := &ItemResp[T]{Index: i}
-				for x := 0; x <= t.retry; x++ {
+				defer func() {
+					if resp.Err == nil && this.bar != nil {
+						this.bar.Add(1)
+						this.bar.Flush()
+					}
+				}()
+				for x := 0; x <= this.retry; x++ {
+					if x > 0 && this.retryInterval != nil {
+						<-time.After(this.retryInterval(x))
+					}
 					resp.Data, resp.Err = f(ctx)
 					if resp.Err == nil {
 						break
 					}
 				}
-				if t.onFinishedItem != nil {
-					t.onFinishedItem(resp)
+				if resp.Err != nil && this.bar != nil {
+					this.bar.Logf("[错误] [%03d]: %v\n", i, resp.Err)
+					this.bar.Flush()
 				}
-			}(_ctx, this, i, f)
+				if this.onFinishedItem != nil {
+					this.onFinishedItem(resp)
+				}
+			}(_ctx, i, f)
 		}
 	}
 	wg.Wait()
