@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+type Coroutine interface {
+	Bar
+	Wait()
+	Go(f func())
+}
+
 type Bar interface {
 	fmt.Stringer
 	io.Closer
