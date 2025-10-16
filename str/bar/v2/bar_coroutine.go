@@ -5,6 +5,7 @@ import "github.com/injoyai/base/chans"
 func NewCoroutine(total, limit int, op ...Option) Coroutine {
 	b := New(op...)
 	b.SetTotal(int64(total))
+	b.Flush()
 	return &coroutine{
 		Bar: b,
 		wg:  chans.NewWaitLimit(limit),
