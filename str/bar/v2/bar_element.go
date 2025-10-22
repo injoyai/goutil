@@ -13,7 +13,7 @@ func WithPlan(op ...PlanOption) Format {
 	p := &plan{
 		prefix: "[",
 		suffix: "]",
-		style:  ">",
+		style:  "■",
 		color:  nil,
 		width:  50,
 	}
