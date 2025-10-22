@@ -12,6 +12,9 @@ import (
 
 func main() {
 
+	bar.Demo()
+	return
+
 	{
 		bar.DownloadHLS(
 			"http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8",
@@ -22,8 +25,6 @@ func main() {
 	}
 	return
 
-	bar.Demo()
-
 	{
 		logs.Debug("文件示例:")
 		url := "https://github.com/injoyai/downloader/releases/latest/download/downloader.exe"
@@ -32,7 +33,7 @@ func main() {
 			bar.WithPrefix("下载进度:"),
 			bar.WithFormatDefaultUnit(func(p bar.Plan) {
 				p.SetColor(bar.BgYellow)
-				p.SetStyle('#')
+				//p.SetStyle('#')
 				p.SetPrefix("(")
 				p.SetSuffix(")")
 			}))

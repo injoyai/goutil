@@ -10,7 +10,7 @@ import (
 type plan struct {
 	prefix string       //前缀 例 [
 	suffix string       //后缀 例 ]
-	style  byte         //进度条风格 例 >
+	style  string       //进度条风格 例 >
 	color  *color.Color //整体颜色
 	width  int          //宽度
 
@@ -26,7 +26,7 @@ func (this *plan) SetSuffix(suffix string) {
 	this.suffix = suffix
 }
 
-func (this *plan) SetStyle(style byte) {
+func (this *plan) SetStyle(style string) {
 	this.style = style
 }
 
@@ -39,10 +39,16 @@ func (this *plan) SetColor(a color.Attribute) {
 }
 
 func (this *plan) String() string {
+	lenStyle := len([]rune(this.style))
 	rate := float64(this.current) / float64(this.total)
-	count := int(float64(this.width) * rate)
+	count := int(float64(this.width) * rate / float64(lenStyle))
 	count = conv.Select(count < 0, 0, count)
-	nowWidth := strings.Repeat(string(this.style), count)
+	nowWidth := strings.Repeat(this.style, count)
+	if rate == 1 {
+		for i := 0; len([]rune(nowWidth)) < this.width; i++ {
+			nowWidth += string([]rune(this.style)[i%lenStyle])
+		}
+	}
 	barStr := fmt.Sprintf(fmt.Sprintf("%s%%-%ds%s", this.prefix, this.width, this.suffix), nowWidth)
 	if this.color != nil {
 		barStr = this.color.Sprint(barStr)

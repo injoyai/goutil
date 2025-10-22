@@ -57,7 +57,7 @@ type Format func(b Bar) string
 type Plan interface {
 	SetPrefix(s string) //设置前缀
 	SetSuffix(s string) //设置后缀
-	SetStyle(s byte)    //设置样式
+	SetStyle(s string)  //设置样式 ■ □ # >
 	SetColor(c Color)   //设置颜色
 	SetWidth(w int)     //设置宽度
 }
