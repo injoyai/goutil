@@ -22,6 +22,13 @@ func (this *coroutine) Wait() {
 }
 
 func (this *coroutine) Go(f func()) {
+	this.GoRetry(func() error {
+		f()
+		return nil
+	}, 1)
+}
+
+func (this *coroutine) GoRetry(f func() error, retry int) {
 	if f == nil {
 		return
 	}
@@ -32,6 +39,10 @@ func (this *coroutine) Go(f func()) {
 			this.Bar.Flush()
 			this.wg.Done()
 		}()
-		f()
+		for i := 0; i < retry; i++ {
+			if err := f(); err == nil {
+				return
+			}
+		}
 	}()
 }
