@@ -18,7 +18,7 @@ func Demo() error {
 	x := New(
 		WithTotal(60),
 		WithFormatDefault(func(p Plan) {
-			p.SetStyle("123")
+			p.SetStyle("■")
 			p.SetColor(BgCyan)
 		}),
 	)
