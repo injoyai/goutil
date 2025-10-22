@@ -10,6 +10,7 @@ type Coroutine interface {
 	Bar
 	Wait()
 	Go(f func())
+	GoRetry(f func() error, retry int)
 }
 
 type Bar interface {
