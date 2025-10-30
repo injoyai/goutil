@@ -229,6 +229,15 @@ func InputVar(hint ...any) *conv.Var {
 	return conv.New(input)
 }
 
+// InputEnterFunc 监听用户输入直到回车
+// 配合defer使用 defer g.InputEnterFunc()()
+func InputEnterFunc(hint ...string) func() {
+	s := conv.Default("按回车键退出...", hint...)
+	return func() {
+		Input(s)
+	}
+}
+
 // FuncName 获取函数名
 func FuncName(f any) string {
 	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
