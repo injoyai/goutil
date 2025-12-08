@@ -4,6 +4,12 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"math"
+	"reflect"
+	"runtime"
+	"runtime/debug"
+	"time"
+
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/crypt/md5"
 	"github.com/injoyai/base/maps/wait"
@@ -11,11 +17,6 @@ import (
 	"github.com/injoyai/conv"
 	"github.com/injoyai/logs"
 	uuid "github.com/satori/go.uuid"
-	"math"
-	"reflect"
-	"runtime"
-	"runtime/debug"
-	"time"
 )
 
 //========================================Chan========================================
@@ -290,4 +291,13 @@ func Max[T types.Comparable](v1 T, v2 ...T) T {
 		}
 	}
 	return v1
+}
+
+// Sum 累加
+func Sum[T types.Number](ls ...T) T {
+	var total T
+	for _, v := range ls {
+		total += v
+	}
+	return total
 }
