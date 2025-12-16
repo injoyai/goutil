@@ -3,8 +3,10 @@ package csv
 import (
 	"bytes"
 	"encoding/csv"
-	"github.com/injoyai/conv"
+	"io"
 	"os"
+
+	"github.com/injoyai/conv"
 )
 
 func Import(filename string, fn func(line []string) bool) ([][]string, error) {
@@ -26,6 +28,9 @@ func ImportRange(filename string, fn func(line []string) bool) error {
 	for {
 		line, err := r.Read()
 		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
 			return err
 		}
 		if !fn(line) {
