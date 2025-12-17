@@ -18,14 +18,14 @@ func Import(filename string) ([][]string, error) {
 	return result, err
 }
 
-func ImportRange(filename string, fn func(line []string) bool) error {
+func ImportRange(filename string, fn func(i int, line []string) bool) error {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 	r := csv.NewReader(f)
-	for {
+	for i := 0; ; i++ {
 		line, err := r.Read()
 		if err != nil {
 			if err == io.EOF {
@@ -33,7 +33,7 @@ func ImportRange(filename string, fn func(line []string) bool) error {
 			}
 			return err
 		}
-		if !fn(line) {
+		if !fn(i, line) {
 			return nil
 		}
 	}
