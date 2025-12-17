@@ -9,7 +9,7 @@ import (
 	"github.com/injoyai/conv"
 )
 
-func Import(filename string, fn func(line []string) bool) ([][]string, error) {
+func Import(filename string) ([][]string, error) {
 	result := [][]string(nil)
 	err := ImportRange(filename, func(line []string) bool {
 		result = append(result, line)
