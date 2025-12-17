@@ -11,7 +11,7 @@ import (
 
 func Import(filename string) ([][]string, error) {
 	result := [][]string(nil)
-	err := ImportRange(filename, func(line []string) bool {
+	err := ImportRange(filename, func(i int, line []string) bool {
 		result = append(result, line)
 		return true
 	})
