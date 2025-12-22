@@ -248,8 +248,9 @@ func FuncName(f any) string {
 
 // Decimals 保留小数点,默认2位
 func Decimals(f float64, d ...int) float64 {
-	b := math.Pow10(conv.Default(2, d...))
-	return float64(int64(f*b+0.5)) / b
+	n := conv.Default(2, d...)
+	p := math.Pow10(n)
+	return math.Round(f*p) / p
 }
 
 //========================================Third========================================
