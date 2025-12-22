@@ -2,6 +2,7 @@ package net_tools
 
 import (
 	"context"
+
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/ios"
 	"github.com/injoyai/ios/client"
@@ -31,7 +32,7 @@ type TCPClientEnable struct {
 func (this *TCPClientEnable) Enable() error {
 
 	this.Runner.SetFunc(func(ctx context.Context) error {
-		return client.RedialWithContext(this.ctx, this.DialFunc, func(c *client.Client) {
+		return client.RedialContext(this.ctx, this.DialFunc, func(c *client.Client) {
 			go func() {
 				select {
 				case <-ctx.Done():
@@ -40,7 +41,7 @@ func (this *TCPClientEnable) Enable() error {
 				}
 			}()
 			c.SetOption(this.Options...)
-		}).Run()
+		}).Run(context.Background())
 	})
 	go this.Runner.Run()
 	return nil
