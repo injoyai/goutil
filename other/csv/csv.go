@@ -10,6 +10,12 @@ import (
 	"github.com/injoyai/conv"
 )
 
+var (
+	UTF8    = []byte{0xEF, 0xBB, 0xBF}
+	UTF16BE = []byte{0xFE, 0xFF}
+	UTF16LE = []byte{0xFF, 0xFE}
+)
+
 func Import(filename string) ([][]string, error) {
 	result := [][]string(nil)
 	err := ImportRange(filename, func(i int, line []string) bool {
@@ -35,20 +41,11 @@ func ImportRange(filename string, fn func(i int, line []string) bool) error {
 			}
 			return err
 		}
-
-		// 1. 匹配 UTF-8 BOM (EF BB BF)
-		if bytes.HasPrefix(bs, []byte{0xEF, 0xBB, 0xBF}) {
-			buf.Discard(3)
-		}
-
-		// 2. 匹配 UTF-16 Big Endian (FE FF)
-		if bytes.HasPrefix(bs, []byte{0xFE, 0xFF}) {
-			buf.Discard(2)
-		}
-
-		// 3. 匹配 UTF-16 Little Endian (FF FE)
-		if bytes.HasPrefix(bs, []byte{0xFF, 0xFE}) {
-			buf.Discard(2)
+		for _, v := range [][]byte{UTF8, UTF16BE, UTF16LE} {
+			if bytes.HasPrefix(bs, v) {
+				buf.Discard(len(v))
+				break
+			}
 		}
 	}
 
@@ -68,9 +65,9 @@ func ImportRange(filename string, fn func(i int, line []string) bool) error {
 	}
 }
 
-func Export(data [][]any) (*bytes.Buffer, error) {
+func Export[T any](data [][]T) (*bytes.Buffer, error) {
 	buf := bytes.NewBuffer(nil)
-	if _, err := buf.WriteString("\xEF\xBB\xBF"); err != nil {
+	if _, err := buf.Write(UTF8); err != nil {
 		return nil, err
 	}
 	w := csv.NewWriter(buf)
