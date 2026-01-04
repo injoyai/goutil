@@ -1,6 +1,7 @@
 package csv
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/csv"
 	"io"
@@ -24,7 +25,35 @@ func ImportRange(filename string, fn func(i int, line []string) bool) error {
 		return err
 	}
 	defer f.Close()
-	r := csv.NewReader(f)
+
+	buf := bufio.NewReader(f)
+	{
+		bs, err := buf.Peek(4)
+		if err != nil && err != io.EOF {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+
+		// 1. 匹配 UTF-8 BOM (EF BB BF)
+		if bytes.HasPrefix(bs, []byte{0xEF, 0xBB, 0xBF}) {
+			buf.Discard(3)
+		}
+
+		// 2. 匹配 UTF-16 Big Endian (FE FF)
+		if bytes.HasPrefix(bs, []byte{0xFE, 0xFF}) {
+			buf.Discard(2)
+		}
+
+		// 3. 匹配 UTF-16 Little Endian (FF FE)
+		if bytes.HasPrefix(bs, []byte{0xFF, 0xFE}) {
+			buf.Discard(2)
+		}
+	}
+
+	r := csv.NewReader(buf)
+
 	for i := 0; ; i++ {
 		line, err := r.Read()
 		if err != nil {
