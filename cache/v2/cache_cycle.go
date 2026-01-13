@@ -11,23 +11,23 @@ func NewCycle[T any](length int) *Cycle[T] {
 		list:      make([]T, length),
 		offset:    0,
 		length:    length,
-		subscribe: chans.NewSubscribe[T](),
+		subscribe: chans.NewSubscribe[string, T](),
 	}
 }
 
 // Cycle 固定列表长度,循环使用
 type Cycle[T any] struct {
-	list       types.List[T]       //列表数据
-	offset     int                 //当前数据位置下标
-	length     int                 //列表长度
-	cycle      bool                //循环使用,数据量已经超过列表的长度,覆盖了老数据
-	subscribe  *chans.Subscribe[T] //数据订阅
-	middleware []func(data T) bool //中间件
+	list       types.List[T]               //列表数据
+	offset     int                         //当前数据位置下标
+	length     int                         //列表长度
+	cycle      bool                        //循环使用,数据量已经超过列表的长度,覆盖了老数据
+	subscribe  *chans.Subscribe[string, T] //数据订阅
+	middleware []func(data T) bool         //中间件
 }
 
 // Subscribe 开启一个订阅数据的通道
 func (this *Cycle[T]) Subscribe(cap ...int) *chans.Safe[T] {
-	return this.subscribe.Subscribe(cap...)
+	return this.subscribe.Subscribe("", cap...)
 }
 
 // Padding 填充数据
@@ -75,7 +75,7 @@ func (this *Cycle[T]) Append(data T) *Cycle[T] {
 			return this
 		}
 	}
-	this.subscribe.Publish(data)
+	this.subscribe.Publish("", data)
 	this.offset = conv.Select[int](this.offset >= len(this.list) || this.offset < 0, 0, this.offset)
 	this.list[this.offset] = data
 	this.offset++

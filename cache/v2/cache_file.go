@@ -4,10 +4,11 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/oss"
 	"os"
 	"path/filepath"
+
+	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/oss"
 )
 
 var DefaultDir = "./data/cache/"

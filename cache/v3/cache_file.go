@@ -1,10 +1,11 @@
 package cache
 
 import (
-	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/oss"
 	"os"
 	"path/filepath"
+
+	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/oss"
 )
 
 // NewFile 新建文件缓存

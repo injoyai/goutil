@@ -1,11 +1,12 @@
 package file_log
 
 import (
-	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/oss"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/oss"
 )
 
 func TestNew(t *testing.T) {

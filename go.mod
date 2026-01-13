@@ -3,9 +3,9 @@ module github.com/injoyai/goutil
 go 1.23
 
 require (
-	github.com/injoyai/base v1.2.13
+	github.com/injoyai/base v1.2.20
 	github.com/injoyai/conv v1.2.5
-	github.com/injoyai/ios v1.2.2
+	github.com/injoyai/ios v1.2.5
 	github.com/injoyai/logs v1.0.12
 )
 
