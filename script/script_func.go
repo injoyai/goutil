@@ -4,6 +4,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"math"
+	"math/rand"
+	"strings"
+	"time"
+
 	"github.com/injoyai/base/crypt/crc"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
@@ -12,10 +17,6 @@ import (
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/str"
 	"github.com/robertkrimen/otto"
-	"math"
-	"math/rand"
-	"strings"
-	"time"
 )
 
 var (
@@ -441,7 +442,7 @@ func funcCrc16(args *Args) any {
 	case "XMODEM":
 		param = crc.CRC16_XMODEM
 	}
-	return crc.Encrypt16(bs, param).String()
+	return string(crc.Encrypt16(bs, param))
 }
 
 func funcPing(args *Args) (any, error) {
