@@ -2,11 +2,12 @@ package file_log
 
 import (
 	"bytes"
-	"github.com/injoyai/conv"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/injoyai/conv"
 )
 
 func New(cfg *Config) *FileLog {

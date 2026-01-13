@@ -764,10 +764,14 @@ github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d h1:/WZ
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/injoyai/base v1.2.13 h1:Em0D2Cs1BP419wOg5uyYfwIpTSbiMXtWl8gVLTSVytk=
 github.com/injoyai/base v1.2.13/go.mod h1:NfCQjml3z2pCvQ3J3YcOXtecqXD0xVPKjo4YTsMLhr8=
+github.com/injoyai/base v1.2.20 h1:S0y66Cl/VptBsX8SgpQk7o3rMK17rvqP7hI/LQCa9Sc=
+github.com/injoyai/base v1.2.20/go.mod h1:NfCQjml3z2pCvQ3J3YcOXtecqXD0xVPKjo4YTsMLhr8=
 github.com/injoyai/conv v1.2.5 h1:G4OCyF0NTZul5W1u9IgXDOhW4/zmIigdPKXFHQGmv1M=
 github.com/injoyai/conv v1.2.5/go.mod h1:s05l3fQJQ4mT4VX+KIdbvCWQB0YzZHprmUfUu2uxd1k=
 github.com/injoyai/ios v1.2.2 h1:fAPWBL6t22DiE2ZEpBgf5bzyVQTcm2ZhLMkM+JFPhZA=
 github.com/injoyai/ios v1.2.2/go.mod h1:DJVJGQFQvqF80CeJVabFOm6AKilqc/m8MFvz39Uy5ow=
+github.com/injoyai/ios v1.2.5 h1:QtPdBGALkwXcUlDy+gLZjEg8jnkFH+utNimJBwhoFXM=
+github.com/injoyai/ios v1.2.5/go.mod h1:DJVJGQFQvqF80CeJVabFOm6AKilqc/m8MFvz39Uy5ow=
 github.com/injoyai/logs v1.0.12 h1:f7syIGZMTg9ZzhJhdd3tzaPdxkMhdKsncGaxljqIiYE=
 github.com/injoyai/logs v1.0.12/go.mod h1:+dKEL6GvaFqqVRatqUBiCicJbZnAgtj7hVs824Src4s=
 github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07/go.mod h1:co9pwDoBCm1kGxawmb4sPq0cSIOOWNPT4KnHotMP1Zg=
