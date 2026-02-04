@@ -33,30 +33,31 @@ func ImportRange(filename string, fn func(i int, line []string) bool) error {
 	defer f.Close()
 
 	buf := bufio.NewReader(f)
-	{
-		bs, err := buf.Peek(4)
-		if err != nil && err != io.EOF {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		}
-		for _, v := range [][]byte{UTF8, UTF16BE, UTF16LE} {
-			if bytes.HasPrefix(bs, v) {
-				buf.Discard(len(v))
-				break
-			}
+
+	// 处理 BOM（仅跳过，不做编码转换）
+	bs, err := buf.Peek(3)
+	if err == io.EOF {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	for _, v := range [][]byte{UTF8, UTF16BE, UTF16LE} {
+		if bytes.HasPrefix(bs, v) {
+			buf.Discard(len(v))
+			break
 		}
 	}
 
 	r := csv.NewReader(buf)
+	r.FieldsPerRecord = -1
 
 	for i := 0; ; i++ {
 		line, err := r.Read()
+		if err == io.EOF {
+			return nil
+		}
 		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
 			return err
 		}
 		if !fn(i, line) {

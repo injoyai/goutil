@@ -2,9 +2,10 @@ package oss
 
 import (
 	"fmt"
-	"github.com/injoyai/conv"
 	"math"
 	"strings"
+
+	"github.com/injoyai/conv"
 )
 
 const (
@@ -25,23 +26,22 @@ func (this Volume) Uint64() uint64 {
 
 func (this Volume) String() string {
 	size, unit := this.SizeUnit()
-	return fmt.Sprintf("%v%s", size, unit)
+	return fmt.Sprintf("%.2f%s", size, unit)
 }
 
 func (this Volume) SizeUnit() (float64, string) {
-	i := 0
-	//先用uint64进行循环除以1024,float64的指数比uint64小
-	//当值比float64的最大值小的时候,能转成float64时,使用float64进行除以1024
-	for ; float64(this) < 0; i++ {
-		this = this / 1024
+	if this == 0 {
+		return 0, mapSizeUnit[0]
 	}
+
 	f := float64(this)
-	for ; f >= 1024*1024; i++ {
-		f = f / 1024
+	i := 0
+
+	for f >= 1024 && i < len(mapSizeUnit)-1 {
+		f /= 1024
+		i++
 	}
-	if f >= 1024 {
-		return f / 1024, mapSizeUnit[i+1]
-	}
+
 	return f, mapSizeUnit[i]
 }
 

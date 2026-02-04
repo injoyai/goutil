@@ -4,14 +4,15 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/fatih/color"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/script"
 	"github.com/injoyai/goutil/script/js"
 	"gopkg.in/yaml.v3"
-	"strconv"
-	"strings"
 )
 
 type Option func(*Decode)
