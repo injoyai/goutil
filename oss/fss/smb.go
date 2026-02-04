@@ -1,11 +1,12 @@
 package fss
 
 import (
-	"github.com/hirochachacha/go-smb2"
-	"github.com/injoyai/base/safe"
 	"io"
 	"io/fs"
 	"net"
+
+	"github.com/hirochachacha/go-smb2"
+	"github.com/injoyai/base/safe"
 )
 
 func NewSmb(cfg *SmbConfig) (*Smb, error) {
