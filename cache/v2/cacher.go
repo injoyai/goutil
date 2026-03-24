@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/injoyai/base/maps"
+	"github.com/injoyai/conv"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -14,22 +15,22 @@ import (
 
 */
 
-type Interface interface {
-	Get(key string) (any, error)
-	Set(key string, value any, expiration ...time.Duration) error
-	Del(key string) error
+type Cacher[K comparable, V any] interface {
+	Get(key K) (V, error)
+	Set(key K, value V, expiration ...time.Duration) error
+	Del(key K) error
 }
 
-func NewRedisCacher(client *redis.Client) Interface {
+func NewRedis(client *redis.Client) Cacher[string, any] {
 	return &_redis{Client: client}
 }
 
-func NewMapCacher() Interface {
-	return &_map{Safe: maps.NewSafe()}
+func NewMemory[K comparable, V any]() Cacher[K, V] {
+	return &_memory[K, V]{Generic: maps.NewGeneric[K, V]()}
 }
 
-func NewFileCacher(name string, groups ...string) Interface {
-	return &_file{File: NewFile(name, groups...)}
+func NewDisk(name string, groups ...string) Cacher[string, any] {
+	return &_disk{File: NewFile(name, groups...)}
 }
 
 /*
@@ -43,15 +44,12 @@ type _redis struct {
 }
 
 func (this *_redis) Get(key string) (any, error) {
-	s, err := this.Client.Get(context.Background(), key).Result()
-	return s, err
+	return this.Client.Get(context.Background(), conv.String(key)).Result()
 }
 
 func (this *_redis) Set(key string, value any, expiration ...time.Duration) error {
-	if len(expiration) == 0 {
-		return this.Client.Set(context.Background(), key, value, -1).Err()
-	}
-	return this.Client.Set(context.Background(), key, value, expiration[0]).Err()
+	exp := conv.Default(-1, expiration...)
+	return this.Client.Set(context.Background(), key, value, exp).Err()
 }
 
 func (this *_redis) Del(key string) error {
@@ -60,41 +58,41 @@ func (this *_redis) Del(key string) error {
 
 /**/
 
-type _map struct {
-	*maps.Safe
+type _memory[K comparable, V any] struct {
+	*maps.Generic[K, V]
 }
 
-func (this *_map) Get(key string) (any, error) {
-	val, _ := this.Safe.Get(key)
+func (this *_memory[K, V]) Get(key K) (V, error) {
+	val, _ := this.Generic.Get(key)
 	return val, nil
 }
 
-func (this *_map) Set(key string, value any, expiration ...time.Duration) error {
-	this.Safe.Set(key, value, expiration...)
+func (this *_memory[K, V]) Set(key K, value V, expiration ...time.Duration) error {
+	this.Generic.Set(key, value, expiration...)
 	return nil
 }
 
-func (this *_map) Del(key string) error {
-	this.Safe.Del(key)
+func (this *_memory[K, V]) Del(key K) error {
+	this.Generic.Del(key)
 	return nil
 }
 
 /**/
 
-type _file struct {
+type _disk struct {
 	*File
 }
 
-func (this *_file) Get(key string) (any, error) {
+func (this *_disk) Get(key string) (any, error) {
 	return this.File.GetInterface(key), nil
 }
 
-func (this *_file) Set(key string, value any, expiration ...time.Duration) error {
+func (this *_disk) Set(key string, value any, expiration ...time.Duration) error {
 	this.File.Set(key, value)
 	return nil
 }
 
-func (this *_file) Del(key string) error {
+func (this *_disk) Del(key string) error {
 	this.File.Map.Del(key)
 	return nil
 }

@@ -177,7 +177,7 @@ require (
 	github.com/jlaffaye/ftp v0.2.0
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/pion/stun v0.6.1
-	github.com/redis/go-redis/v9 v9.5.1
+	github.com/redis/go-redis/v9 v9.7.3
 	github.com/spf13/cobra v1.2.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/tickstep/cloudpan189-api v0.1.0
