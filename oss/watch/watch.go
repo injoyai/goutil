@@ -11,22 +11,29 @@ import (
 	"github.com/injoyai/conv"
 )
 
-func File(filename string, fn func(e fsnotify.Op)) error {
-	x := New(func(e fsnotify.Event) { fn(e.Op) }, filename)
+type (
+	Op    = fsnotify.Op
+	Event = fsnotify.Event
+)
+
+var (
+	Create = fsnotify.Create
+	Write  = fsnotify.Write
+	Remove = fsnotify.Remove
+	Rename = fsnotify.Rename
+	Chmod  = fsnotify.Chmod
+)
+
+func File(filename string, fn func(e Op)) error {
+	x := New(func(e Event) { fn(e.Op) }, filename)
 	return x.Run()
 }
 
-func Files(filename []string, fn func(e fsnotify.Event)) error {
-	x := New(fn, filename...)
-	return x.Run()
+func Watch(fn func(e Event), path ...string) error {
+	return New(fn, path...).Run()
 }
 
-func Dir(dir string, fn func(e fsnotify.Op)) error {
-	x := New(func(e fsnotify.Event) { fn(e.Op) }, dir)
-	return x.Run()
-}
-
-type Handler func(e fsnotify.Event)
+type Handler func(e Event)
 
 type Watcher struct {
 	dirs map[string]*files
