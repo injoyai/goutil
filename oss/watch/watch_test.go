@@ -13,13 +13,12 @@ func TestFile(t *testing.T) {
 }
 
 func TestFiles(t *testing.T) {
-	Files(
-		[]string{
-			"./test.txt",
-			"./test2.txt",
-			"./test/",
-		}, func(e fsnotify.Event) {
+	Watch(
+		func(e fsnotify.Event) {
 			t.Log(e)
 		},
+		"./test.txt",
+		"./test2.txt",
+		"./test/",
 	)
 }
