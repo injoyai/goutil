@@ -24,13 +24,8 @@ var (
 	Chmod  = fsnotify.Chmod
 )
 
-func File(filename string, fn func(e Op)) error {
-	x := New(func(e Event) { fn(e.Op) }, filename)
-	return x.Run()
-}
-
-func Watch(fn Handler, path ...string) error {
-	return New(fn, path...).Run()
+func Watch[T string | []string](path T, fn Handler) error {
+	return New(path, fn).Run()
 }
 
 type Handler func(e Event)
@@ -44,11 +39,11 @@ type Watcher struct {
 	callback Handler
 }
 
-func New(fn Handler, filename ...string) *Watcher {
+func New[T string | []string](path T, fn Handler) *Watcher {
 
 	dirs := map[string]*files{}
 
-	for _, originName := range filename {
+	for _, originName := range conv.Strings(path) {
 
 		//统一格式,绝对路径
 		fullName, _ := filepath.Abs(originName)
@@ -119,9 +114,14 @@ func (w *Watcher) Run(ctx ...context.Context) error {
 
 			//统一格式,绝对路径
 			fullName, _ := filepath.Abs(ev.Name)
-			dir := filepath.Dir(fullName)
-			filename := filepath.Clean(fullName)
 
+			//如果监听到文件夹创建,切在监听目录下,则需要继续监听
+			if f := w.dirs[fullName]; f != nil && ev.Op == Create {
+				watcher.Add(f.origin)
+				continue
+			}
+
+			dir := filepath.Dir(fullName)
 			f := w.dirs[dir]
 			if f == nil {
 				continue
@@ -130,6 +130,7 @@ func (w *Watcher) Run(ctx ...context.Context) error {
 			if f.isDir {
 				ev.Name = f.origin + filepath.Base(ev.Name)
 			} else {
+				filename := filepath.Clean(fullName)
 				ev.Name, ok = f.files[filename]
 				if !ok {
 					continue
