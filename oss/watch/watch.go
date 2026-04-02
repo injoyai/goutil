@@ -85,6 +85,10 @@ func (w *Watcher) Close() error {
 	return nil
 }
 
+func (w *Watcher) SetAfter(d time.Duration) {
+	w.debounce.SetAfter(d)
+}
+
 func (w *Watcher) Run(ctx ...context.Context) error {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -168,6 +172,10 @@ type Debounce[K comparable] struct {
 	after  time.Duration
 	timers map[K]*time.Timer
 	mu     sync.Mutex
+}
+
+func (d *Debounce[K]) SetAfter(after time.Duration) {
+	d.after = after
 }
 
 func (d *Debounce[K]) Do(k K, f func()) {
