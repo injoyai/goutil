@@ -29,7 +29,7 @@ func File(filename string, fn func(e Op)) error {
 	return x.Run()
 }
 
-func Watch(fn func(e Event), path ...string) error {
+func Watch(fn Handler, path ...string) error {
 	return New(fn, path...).Run()
 }
 
