@@ -7,18 +7,22 @@ import (
 )
 
 func TestFile(t *testing.T) {
-	File("./test.txt", func(e fsnotify.Op) {
+	Watch("./test.txt", func(e Event) {
 		t.Log(e)
 	})
 }
 
 func TestFiles(t *testing.T) {
-	Watch(
+	err := Watch(
+		[]string{
+			"./test.txt",
+			"./test2.txt",
+			"./test/",
+			"./test/config.txt",
+		},
 		func(e fsnotify.Event) {
 			t.Log(e)
 		},
-		"./test.txt",
-		"./test2.txt",
-		"./test/",
 	)
+	t.Log(err)
 }
