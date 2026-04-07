@@ -131,10 +131,6 @@ func NewRequest(url string, op ...RequestOption) *Request {
 	return req
 }
 
-func Url(url string) *Request {
-	return NewRequest(url)
-}
-
 type Request struct {
 
 	// 请求方式
