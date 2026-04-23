@@ -13,12 +13,14 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.63.107
 	github.com/compose-spec/compose-go v1.20.0
 	github.com/ctessum/polyclip-go v1.1.0
+	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/denisenkom/go-mssqldb v0.10.0
 	github.com/docker/compose/v2 v2.0.0
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484
 	github.com/fatih/color v1.18.0
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-gonic/gin v1.7.4
 	github.com/glebarez/go-sqlite v1.21.1
 	github.com/go-ole/go-ole v1.2.6
@@ -71,7 +73,6 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.5.0 // indirect
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/geoffgarside/ber v1.1.0 // indirect
 	github.com/getlantern/context v0.0.0-20190109183933-c447772a6520 // indirect
 	github.com/getlantern/errors v0.0.0-20190325191628-abdb3e3e36f7 // indirect
