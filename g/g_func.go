@@ -10,13 +10,13 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/crypt/md5"
 	"github.com/injoyai/base/maps/wait"
 	"github.com/injoyai/base/types"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/logs"
-	uuid "github.com/satori/go.uuid"
 )
 
 //========================================Chan========================================
@@ -256,7 +256,7 @@ func Decimals(f float64, d ...int) float64 {
 //========================================Third========================================
 
 // UUID uuid
-func UUID() string { return uuid.NewV4().String() }
+func UUID() string { return uuid.New().String() }
 
 //========================================Generic========================================
 
