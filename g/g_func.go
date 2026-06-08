@@ -202,13 +202,22 @@ func Done(key string, value any) { wait.Done(key, value) }
 
 //========================================OS========================================
 
-// Input 监听用户输入
-func Input(hint ...any) (s string) {
+// InputVar 监听用户输入,返回*conv.Var
+func InputVar(hint string) *conv.Var {
 	if len(hint) > 0 {
-		fmt.Println(hint...)
+		fmt.Println(hint)
 	}
-	fmt.Scanln(&s)
-	return
+	var input string
+	fmt.Scanln(&input)
+	if len(input) == 0 {
+		return conv.Nil()
+	}
+	return conv.New(input)
+}
+
+// Input 监听用户输入
+func Input(hint string, _default ...string) (s string) {
+	return InputVar(hint).String(_default...)
 }
 
 // InputUntil 监听用户输入直到满足条件
@@ -221,22 +230,11 @@ func InputUntil(hint string, f func(s string) bool) (s string) {
 	}
 }
 
-// InputVar 监听用户输入,返回*conv.Var
-func InputVar(hint ...any) *conv.Var {
-	input := Input(hint...)
-	if len(input) == 0 {
-		return conv.Nil()
-	}
-	return conv.New(input)
-}
-
-// InputEnterFunc 监听用户输入直到回车
-// 配合defer使用 defer g.InputEnterFunc()()
-func InputEnterFunc(hint ...string) func() {
+// InputEnter 监听用户输入直到回车
+// 配合defer使用 defer g.InputEnter()
+func InputEnter(hint ...string) {
 	s := conv.Default("按回车键退出...", hint...)
-	return func() {
-		Input(s)
-	}
+	Input(s)
 }
 
 // FuncName 获取函数名
