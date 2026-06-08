@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 12px 20px;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .header p {
+            margin-top: 4px;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .config-section {
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .config-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        .form-group {
+            margin-bottom: 8px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 3px;
+        }
+
+        .form-hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.12);
+        }
+
+        .form-textarea {
+            min-height: 60px;
+            resize: vertical;
+            font-family: "Consolas", "Monaco", monospace;
+        }
+
+        .switch-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .switch-label {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ccc;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+
+        .slider:before {
+            content: "";
+            position: absolute;
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .switch input:checked + .slider {
+            background: #667eea;
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-picker {
+            width: 36px;
+            height: 28px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 1px;
+        }
+
+        .color-value {
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .range-slider {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .range-value {
+            min-width: 40px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #667eea;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #fafafa;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 7px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #555;
+        }
+
+        .toast {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 12px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success {
+            background: #51cf66;
+        }
+
+        .toast-error {
+            background: #ff6b6b;
+        }
+
+        .toast-info {
+            background: #339af0;
+        }
+
+        .json-output {
+            display: none;
+            margin: 10px 20px;
+            padding: 10px;
+            background: #2d2d2d;
+            border-radius: 5px;
+            color: #f8f8f2;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .json-output.show {
+            display: block;
+        }
+
+        .array-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 8px;
+            background: #fafafa;
+        }
+
+        .array-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+            padding: 4px 8px;
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+        }
+
+        .array-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .array-item-index {
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #667eea;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .array-item-input {
+            flex: 1;
+            padding: 3px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .array-item-input:focus {
+            border-color: #667eea;
+        }
+
+        .array-item-btn {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .array-item-btn-remove {
+            background: #fee;
+            color: #ff6b6b;
+        }
+
+        .array-item-btn-remove:hover {
+            background: #fdd;
+        }
+
+        .array-add-btn {
+            width: 100%;
+            padding: 5px;
+            border: 1px dashed #ddd;
+            border-radius: 4px;
+            background: transparent;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .array-add-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .array-empty {
+            text-align: center;
+            padding: 10px;
+            color: #bbb;
+            font-size: 12px;
+        }
+
+        .dict-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 8px;
+            background: #fafafa;
+        }
+
+        .dict-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+            padding: 4px 8px;
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+        }
+
+        .dict-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .dict-item-key {
+            flex: 1;
+            padding: 3px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+            background: #f0f4ff;
+            font-weight: 500;
+        }
+
+        .dict-item-key:focus {
+            border-color: #667eea;
+            background: #fff;
+        }
+
+        .dict-item-separator {
+            color: #999;
+            font-size: 14px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .dict-item-value {
+            flex: 1;
+            padding: 3px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .dict-item-value:focus {
+            border-color: #667eea;
+        }
+
+        .dict-item-btn {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .dict-item-btn-remove {
+            background: #fee;
+            color: #ff6b6b;
+        }
+
+        .dict-item-btn-remove:hover {
+            background: #fdd;
+        }
+
+        .dict-add-btn {
+            width: 100%;
+            padding: 5px;
+            border: 1px dashed #ddd;
+            border-radius: 4px;
+            background: transparent;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .dict-add-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .dict-empty {
+            text-align: center;
+            padding: 10px;
+            color: #bbb;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⚙️配置</h1>
+        <p>通过 JSON Schema 动态生成配置表单</p>
+    </div>
+
+    <div id="configForm"></div>
+
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="toggleJson()">查看数据</button>
+        <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+    </div>
+
+    <pre class="json-output" id="jsonOutput"></pre>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    let currentSchema = null;
+    let currentConfig = {};
+
+    function setDotNotation(obj, path, value) {
+        const keys = path.split('.');
+        let current = obj;
+        for (let i = 0; i < keys.length - 1; i++) {
+            if (!current[keys[i]]) current[keys[i]] = {};
+            current = current[keys[i]];
+        }
+        current[keys[keys.length - 1]] = value;
+    }
+
+    function getDotNotation(obj, path) {
+        const keys = path.split('.');
+        let current = obj;
+        for (let key of keys) {
+            if (current === undefined || current[key] === undefined) return undefined;
+            current = current[key];
+        }
+        return current;
+    }
+
+    function createFieldElement(field) {
+        const group = document.createElement('div');
+        group.className = 'form-group';
+        group.dataset.key = field.key;
+
+        if (field.dependsOn) {
+            group.dataset.dependsOn = field.dependsOn.key;
+            group.dataset.dependsValue = field.dependsOn.value;
+        }
+
+        const label = document.createElement('label');
+        label.className = 'form-label';
+        label.textContent = field.label;
+        group.appendChild(label);
+
+        let input;
+
+        switch (field.type) {
+            case 'input':
+                input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-input';
+                input.value = field.defaultValue || '';
+                break;
+
+            case 'number':
+                input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'form-input';
+                input.value = field.defaultValue || 0;
+                if (field.min !== undefined) input.min = field.min;
+                if (field.max !== undefined) input.max = field.max;
+                break;
+
+            case 'textarea':
+                input = document.createElement('textarea');
+                input.className = 'form-textarea';
+                input.value = field.defaultValue || '';
+                break;
+
+            case 'json':
+                input = document.createElement('textarea');
+                input.className = 'form-textarea';
+                try {
+                    const parsed = JSON.parse(field.defaultValue || '{}');
+                    input.value = JSON.stringify(parsed, null, 2);
+                } catch (e) {
+                    input.value = field.defaultValue || '{}';
+                }
+                break;
+
+            case 'select':
+                input = document.createElement('select');
+                input.className = 'form-select';
+                (field.options || []).forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.textContent = opt.label;
+                    if (opt.value === field.defaultValue) option.selected = true;
+                    input.appendChild(option);
+                });
+                break;
+
+            case 'switch':
+                group.className = 'switch-group';
+                const switchLabel = document.createElement('span');
+                switchLabel.className = 'switch-label';
+                switchLabel.textContent = field.label;
+                group.insertBefore(switchLabel, group.firstChild);
+
+                const switchContainer = document.createElement('label');
+                switchContainer.className = 'switch';
+
+                input = document.createElement('input');
+                input.type = 'checkbox';
+                input.checked = field.defaultValue === true;
+
+                const slider = document.createElement('span');
+                slider.className = 'slider';
+
+                switchContainer.appendChild(input);
+                switchContainer.appendChild(slider);
+                group.appendChild(switchContainer);
+                break;
+
+            case 'color':
+                const colorGroup = document.createElement('div');
+                colorGroup.className = 'color-picker-group';
+
+                input = document.createElement('input');
+                input.type = 'color';
+                input.className = 'color-picker';
+                input.value = field.defaultValue || '#667eea';
+
+                const colorValue = document.createElement('span');
+                colorValue.className = 'color-value';
+                colorValue.textContent = input.value;
+
+                input.addEventListener('input', () => {
+                    colorValue.textContent = input.value;
+                });
+
+                colorGroup.appendChild(input);
+                colorGroup.appendChild(colorValue);
+                group.appendChild(colorGroup);
+                break;
+
+            case 'range':
+                const rangeGroup = document.createElement('div');
+                rangeGroup.className = 'range-group';
+
+                input = document.createElement('input');
+                input.type = 'range';
+                input.className = 'range-slider';
+                input.value = field.defaultValue || 0;
+                input.min = field.min || 0;
+                input.max = field.max || 100;
+                input.step = field.step || 1;
+
+                const rangeValue = document.createElement('span');
+                rangeValue.className = 'range-value';
+                rangeValue.textContent = input.value + (field.suffix || '');
+
+                input.addEventListener('input', () => {
+                    rangeValue.textContent = input.value + (field.suffix || '');
+                });
+
+                rangeGroup.appendChild(input);
+                rangeGroup.appendChild(rangeValue);
+                group.appendChild(rangeGroup);
+                break;
+
+            case 'array':
+                const arrayData = Array.isArray(field.defaultValue) ? field.defaultValue : [];
+                const arrayContainer = document.createElement('div');
+                arrayContainer.className = 'array-container';
+                arrayContainer.dataset.configKey = field.key;
+                arrayContainer.dataset.arrayType = 'true';
+
+            function renderArrayItems() {
+                arrayContainer.innerHTML = '';
+                const items = arrayContainer._data || [];
+
+                if (items.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'array-empty';
+                    empty.textContent = '暂无数据，点击下方按钮添加';
+                    arrayContainer.appendChild(empty);
+                }
+
+                items.forEach((item, index) => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'array-item';
+
+                    const indexEl = document.createElement('span');
+                    indexEl.className = 'array-item-index';
+                    indexEl.textContent = index + 1;
+
+                    const inputEl = document.createElement('input');
+                    inputEl.type = 'text';
+                    inputEl.className = 'array-item-input';
+                    inputEl.value = item;
+                    inputEl.placeholder = field.placeholder || '请输入内容';
+
+                    inputEl.addEventListener('input', () => {
+                        arrayContainer._data[index] = inputEl.value;
+                    });
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'array-item-btn array-item-btn-remove';
+                    removeBtn.textContent = '×';
+                    removeBtn.addEventListener('click', () => {
+                        arrayContainer._data.splice(index, 1);
+                        renderArrayItems();
+                    });
+
+                    itemEl.appendChild(indexEl);
+                    itemEl.appendChild(inputEl);
+                    itemEl.appendChild(removeBtn);
+                    arrayContainer.appendChild(itemEl);
+                });
+
+                const addBtn = document.createElement('button');
+                addBtn.className = 'array-add-btn';
+                addBtn.textContent = '+ 添加';
+                addBtn.addEventListener('click', () => {
+                    arrayContainer._data.push('');
+                    renderArrayItems();
+                    const inputs = arrayContainer.querySelectorAll('.array-item-input');
+                    if (inputs.length > 0) {
+                        inputs[inputs.length - 1].focus();
+                    }
+                });
+                arrayContainer.appendChild(addBtn);
+            }
+
+                arrayContainer._data = arrayData.slice();
+                arrayContainer.renderArrayItems = renderArrayItems;
+                renderArrayItems();
+                group.appendChild(arrayContainer);
+                break;
+
+            case 'dict':
+                const dictData = Array.isArray(field.defaultValue) ? field.defaultValue : [];
+                const dictContainer = document.createElement('div');
+                dictContainer.className = 'dict-container';
+                dictContainer.dataset.configKey = field.key;
+                dictContainer.dataset.dictType = 'true';
+
+            function renderDictItems() {
+                dictContainer.innerHTML = '';
+                const items = dictContainer._data || [];
+
+                if (items.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'dict-empty';
+                    empty.textContent = '暂无数据，点击下方按钮添加';
+                    dictContainer.appendChild(empty);
+                }
+
+                items.forEach((item, index) => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'dict-item';
+
+                    const keyEl = document.createElement('input');
+                    keyEl.type = 'text';
+                    keyEl.className = 'dict-item-key';
+                    keyEl.value = item.key || '';
+                    keyEl.placeholder = field.keyPlaceholder || '键';
+
+                    keyEl.addEventListener('input', () => {
+                        dictContainer._data[index].key = keyEl.value;
+                    });
+
+                    const sepEl = document.createElement('span');
+                    sepEl.className = 'dict-item-separator';
+                    sepEl.textContent = ':';
+
+                    const valEl = document.createElement('input');
+                    valEl.type = 'text';
+                    valEl.className = 'dict-item-value';
+                    valEl.value = item.value || '';
+                    valEl.placeholder = field.valuePlaceholder || '值';
+
+                    valEl.addEventListener('input', () => {
+                        dictContainer._data[index].value = valEl.value;
+                    });
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'dict-item-btn dict-item-btn-remove';
+                    removeBtn.textContent = '×';
+                    removeBtn.addEventListener('click', () => {
+                        dictContainer._data.splice(index, 1);
+                        renderDictItems();
+                    });
+
+                    itemEl.appendChild(keyEl);
+                    itemEl.appendChild(sepEl);
+                    itemEl.appendChild(valEl);
+                    itemEl.appendChild(removeBtn);
+                    dictContainer.appendChild(itemEl);
+                });
+
+                const addBtn = document.createElement('button');
+                addBtn.className = 'dict-add-btn';
+                addBtn.textContent = '+ 添加';
+                addBtn.addEventListener('click', () => {
+                    dictContainer._data.push({ key: '', value: '' });
+                    renderDictItems();
+                    const keys = dictContainer.querySelectorAll('.dict-item-key');
+                    if (keys.length > 0) {
+                        keys[keys.length - 1].focus();
+                    }
+                });
+                dictContainer.appendChild(addBtn);
+            }
+
+                dictContainer._data = dictData.map(function(d) {
+                    return { key: d.key || '', value: d.value || '' };
+                });
+                dictContainer.renderDictItems = renderDictItems;
+                renderDictItems();
+                group.appendChild(dictContainer);
+                break;
+
+            default:
+                input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-input';
+                input.value = field.defaultValue || '';
+        }
+
+        if (field.type !== 'switch' && field.type !== 'color' && field.type !== 'range' && field.type !== 'array' && field.type !== 'dict') {
+            input.id = 'field-' + field.key.replace(/\./g, '-');
+            input.dataset.configKey = field.key;
+            group.insertBefore(input, group.querySelector('.form-hint') || null);
+        } else if (field.type !== 'switch' && field.type !== 'array' && field.type !== 'dict') {
+            input.id = 'field-' + field.key.replace(/\./g, '-');
+            input.dataset.configKey = field.key;
+        } else if (field.type === 'switch') {
+            input.id = 'field-' + field.key.replace(/\./g, '-');
+            input.dataset.configKey = field.key;
+        }
+
+        if (field.hint && field.type !== 'switch') {
+            const hint = document.createElement('p');
+            hint.className = 'form-hint';
+            hint.textContent = field.hint;
+            group.appendChild(hint);
+        }
+
+        return group;
+    }
+
+    function renderForm(schema) {
+        const form = document.getElementById('configForm');
+        form.innerHTML = '';
+
+        schema.sections.forEach(section => {
+            const sectionEl = document.createElement('div');
+            sectionEl.className = 'config-section';
+
+            const title = document.createElement('div');
+            title.className = 'section-title';
+            title.textContent = section.title;
+            sectionEl.appendChild(title);
+
+            section.fields.forEach(field => {
+                sectionEl.appendChild(createFieldElement(field));
+            });
+
+            form.appendChild(sectionEl);
+        });
+
+        updateDependentFields();
+    }
+
+    function updateDependentFields() {
+        document.querySelectorAll('[data-depends-on]').forEach(group => {
+            const dependsKey = group.dataset.dependsOn;
+            const dependsValue = group.dataset.dependsValue === 'true';
+            const triggerEl = document.querySelector('[data-config-key="' + dependsKey + '"]');
+
+            if (triggerEl) {
+                const triggerValue = triggerEl.type === 'checkbox' ? triggerEl.checked : triggerEl.value;
+                group.style.display = triggerValue === dependsValue ? '' : 'none';
+            }
+        });
+
+        document.querySelectorAll('[data-config-key]').forEach(el => {
+            el.removeEventListener('change', updateDependentFields);
+            el.addEventListener('change', updateDependentFields);
+        });
+    }
+
+    function collectConfig() {
+        const config = {};
+
+        document.querySelectorAll('[data-config-key]').forEach(el => {
+            const key = el.dataset.configKey;
+            let value;
+
+            if (el.type === 'checkbox') {
+                value = el.checked;
+            } else if (el.type === 'number') {
+                value = Number(el.value);
+            } else if (el.classList.contains('form-textarea') && key.includes('customParams')) {
+                try {
+                    value = JSON.parse(el.value);
+                } catch (e) {
+                    value = el.value;
+                }
+            } else {
+                value = el.value;
+            }
+
+            setDotNotation(config, key, value);
+        });
+
+        document.querySelectorAll('[data-array-type="true"]').forEach(el => {
+            const key = el.dataset.configKey;
+            const data = el._data || [];
+            setDotNotation(config, key, data);
+        });
+
+        document.querySelectorAll('[data-dict-type="true"]').forEach(el => {
+            const key = el.dataset.configKey;
+            const data = el._data || [];
+            const obj = {};
+            data.forEach(function(item) {
+                if (item.key) {
+                    obj[item.key] = item.value;
+                }
+            });
+            setDotNotation(config, key, obj);
+        });
+
+        return config;
+    }
+
+    function loadConfig(config) {
+        document.querySelectorAll('[data-config-key]').forEach(el => {
+            const key = el.dataset.configKey;
+            const value = getDotNotation(config, key);
+
+            if (value === undefined) return;
+
+            if (el.type === 'checkbox') {
+                el.checked = value;
+            } else if (key.includes('customParams')) {
+                try {
+                    el.value = JSON.stringify(typeof value === 'string' ? JSON.parse(value) : value, null, 2);
+                } catch (e) {
+                    el.value = typeof value === 'string' ? value : JSON.stringify(value);
+                }
+            } else {
+                el.value = value;
+            }
+
+            el.dispatchEvent(new Event('input'));
+        });
+
+        document.querySelectorAll('[data-array-type="true"]').forEach(el => {
+            const key = el.dataset.configKey;
+            const value = getDotNotation(config, key);
+
+            if (value === undefined) return;
+
+            if (Array.isArray(value)) {
+                el._data = value.slice();
+                if (el.renderArrayItems) {
+                    el.renderArrayItems();
+                }
+            }
+        });
+
+        document.querySelectorAll('[data-dict-type="true"]').forEach(el => {
+            const key = el.dataset.configKey;
+            const value = getDotNotation(config, key);
+
+            if (value === undefined) return;
+
+            if (typeof value === 'object' && !Array.isArray(value)) {
+                el._data = [];
+                Object.keys(value).forEach(function(k) {
+                    el._data.push({ key: k, value: value[k] });
+                });
+                if (el.renderDictItems) {
+                    el.renderDictItems();
+                }
+            }
+        });
+
+        updateDependentFields();
+    }
+
+    function showToast(message, type) {
+        type = type || 'success';
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast toast-' + type + ' show';
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function saveConfig() {
+        const config = collectConfig();
+        const jsonStr = JSON.stringify(config, null, 2);
+
+        fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: jsonStr
+        }).then(function(res) {
+            if (res.ok) {
+                showToast('配置已保存');
+            } else {
+                showToast('保存失败', 'error');
+            }
+        }).catch(function() {
+            showToast('保存失败', 'error');
+        });
+
+        document.getElementById('jsonOutput').textContent = jsonStr;
+    }
+
+    function loadSavedConfig() {
+        fetch('/api/schema')
+            .then(function(res) { return res.json(); })
+            .then(function(schema) {
+                currentSchema = schema;
+                renderForm(currentSchema);
+
+                return fetch('/api/config').then(function(res) {
+                    if (res.ok) return res.json();
+                    return null;
+                });
+            })
+            .then(function(config) {
+                if (config) {
+                    loadConfig(config);
+                    showToast('已从服务器加载配置', 'info');
+                }
+            })
+            .catch(function() {
+                showToast('加载失败', 'error');
+            });
+    }
+
+    function toggleJson() {
+        const output = document.getElementById('jsonOutput');
+        const config = collectConfig();
+        output.textContent = JSON.stringify(config, null, 2);
+        output.classList.toggle('show');
+    }
+
+    window.addEventListener('DOMContentLoaded', loadSavedConfig);
+</script>
+</body>
+</html>
