@@ -33,6 +33,7 @@ require (
 	github.com/grafov/m3u8 v0.12.1
 	github.com/hirochachacha/go-smb2 v1.1.0
 	github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d
+	github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82
 	github.com/json-iterator/go v1.1.12
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/mojocn/base64Captcha v1.3.5
