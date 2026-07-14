@@ -1,17 +1,18 @@
 package net_tools
 
 import (
-	"github.com/injoyai/goutil/oss"
-	"github.com/injoyai/ios"
-	"github.com/injoyai/ios/client"
-	"github.com/injoyai/ios/client/dial"
 	"testing"
 	"time"
+
+	"github.com/injoyai/goutil/oss"
+	"github.com/injoyai/ios/v2"
+	"github.com/injoyai/ios/v2/client"
+	"github.com/injoyai/ios/v2/module/tcp"
 )
 
 func TestNewTCPClientEnable(t *testing.T) {
-	e := NewTCPClientEnable(dial.WithTCP(":10086"), func(c *client.Client) {
-		c.Logger.Debug()
+	e := NewTCPClientEnable(tcp.NewDial(":10086"), func(c *client.Client) {
+		c.Logger.Enable()
 		c.GoTimerWriter(time.Second, func(w ios.MoreWriter) error {
 			_, err := w.WriteString(time.Now().Format("15:04:05"))
 			return err

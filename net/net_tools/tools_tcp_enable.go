@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/injoyai/base/safe"
-	"github.com/injoyai/ios"
-	"github.com/injoyai/ios/client"
+	"github.com/injoyai/ios/v2"
+	"github.com/injoyai/ios/v2/client"
 )
 
 func NewTCPClientEnable(dial ios.DialFunc, options ...client.Option) *TCPClientEnable {
@@ -36,7 +36,7 @@ func (this *TCPClientEnable) Enable() error {
 			go func() {
 				select {
 				case <-ctx.Done():
-					c.CloseAll()
+					c.Exit()
 				case <-c.Done():
 				}
 			}()
