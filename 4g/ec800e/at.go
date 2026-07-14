@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"github.com/injoyai/base/maps/wait"
-	"github.com/injoyai/conv"
-	"github.com/injoyai/logs"
 	"io"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/injoyai/base/maps/wait"
+	"github.com/injoyai/conv"
+	"github.com/injoyai/logs"
 )
 
 // New 4G模块断开网络很慢,可能要好几分钟,初始化的时候无法等待这么久
@@ -90,7 +91,7 @@ Revision: EC801ECNCGR03A03M02
 
 响应情况2:
 ----------------------------------------------
-AT+QPING=1,"39.107.120.124"
+AT+QPING=1,"36.00.00.00"
 OK
 
 ----------------------------------------------

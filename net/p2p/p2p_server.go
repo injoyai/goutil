@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/ios"
-	"github.com/injoyai/ios/client"
+	"github.com/injoyai/ios/v2"
+	"github.com/injoyai/ios/v2/client"
 	"github.com/injoyai/logs"
 	"github.com/pion/webrtc/v3"
 )
@@ -28,10 +29,10 @@ func Listen(key string, relay *client.Client) (ios.Listener, error) {
 		relay:   relay,
 	}
 
-	relay.OnDealMessage = func(c *client.Client, msg ios.Acker) {
+	relay.OnDealMessage(func(c *client.Client, msg ios.Acker) {
 		logs.PrintErr(func() error {
 			m := Message{}
-			err := json.Unmarshal(msg.Payload(), &m)
+			err := json.Unmarshal(msg.Bytes(), &m)
 			if err != nil {
 				return err
 			}
@@ -88,7 +89,7 @@ func Listen(key string, relay *client.Client) (ios.Listener, error) {
 			}
 			return nil
 		}())
-	}
+	})
 	go relay.Run(context.Background())
 
 	return l, nil

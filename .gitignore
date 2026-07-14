@@ -6,3 +6,7 @@
 /oss/img/qrcode/test.png
 /oss/docker/data/
 /other/upload/a
+*.exe
+*.csv
+*.pdf
+*.zip

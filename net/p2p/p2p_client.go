@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
+	"time"
+
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/ios"
-	"github.com/injoyai/ios/client"
+	"github.com/injoyai/ios/v2"
+	"github.com/injoyai/ios/v2/client"
 	"github.com/pion/webrtc/v3"
-	"io"
-	"time"
 )
 
 func NewDial(relay *client.Client, target string) ios.DialFunc {
@@ -65,13 +66,13 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 	//处理中继服务器返回的数据
 	wait := chans.NewSafe[struct{}]()
 	dc.OnOpen(func() { wait.Add(struct{}{}) })
-	relay.OnDealMessage = func(c *client.Client, msg ios.Acker) {
+	relay.OnDealMessage(func(c *client.Client, msg ios.Acker) {
 
 		var err error
 		defer func() { wait.CloseWithErr(err) }()
 
 		m := Message{}
-		err = json.Unmarshal(msg.Payload(), &m)
+		err = json.Unmarshal(msg.Bytes(), &m)
 		if err != nil {
 			return
 		}
@@ -100,7 +101,7 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 			err = errors.New(m.Data)
 		}
 
-	}
+	})
 
 	//等待中继服务器响应
 	select {
@@ -143,8 +144,6 @@ func Dial(relay *client.Client, target string) (*Client, error) {
 
 	return p, nil
 }
-
-var _ ios.MReadWriteCloser = &Client{}
 
 func newClient(key string, channel *webrtc.DataChannel) *Client {
 	return &Client{

@@ -3,9 +3,10 @@ package process
 import (
 	"context"
 	"fmt"
-	"github.com/injoyai/ios"
 	"testing"
 	"time"
+
+	"github.com/injoyai/ios/v2"
 )
 
 func TestNew(t *testing.T) {

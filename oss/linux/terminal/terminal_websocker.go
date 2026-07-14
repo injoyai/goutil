@@ -2,12 +2,13 @@ package terminal
 
 import (
 	"encoding/base64"
+
 	ws "github.com/gorilla/websocket"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/ios"
-	"github.com/injoyai/ios/client"
-	"github.com/injoyai/ios/client/dial"
-	"github.com/injoyai/ios/module/ssh"
+	"github.com/injoyai/ios/v2"
+	"github.com/injoyai/ios/v2/client"
+	"github.com/injoyai/ios/v2/client/dial"
+	"github.com/injoyai/ios/v2/module/ssh"
 	json "github.com/json-iterator/go"
 )
 
@@ -19,25 +20,25 @@ type Websocket interface {
 }
 
 func NewWebsocket(s *ws.Conn, cfg *ssh.Config, options ...client.Option) (*websocket, error) {
-	c, err := dial.SSH(cfg, options...)
+	c, err := dial.With(ssh.NewDial(cfg), options...)
 	if err != nil {
 		return nil, err
 	}
-	c.Event.OnDealMessage = func(c *client.Client, msg ios.Acker) {
+	c.OnDealMessage(func(c *client.Client, msg ios.Acker) {
 		if err := s.WriteMessage(ws.TextMessage, conv.Bytes(WebsocketMsg{
 			Type: WsTypeCmd,
-			Data: base64.StdEncoding.EncodeToString(msg.Payload()),
+			Data: base64.StdEncoding.EncodeToString(msg.Bytes()),
 		})); err != nil {
 			c.Close()
 		}
-	}
-	c.Event.OnDisconnect = func(c *client.Client, err error) {
+	})
+	c.OnDisconnect(func(c *client.Client, err error) {
 		s.WriteMessage(ws.TextMessage, conv.Bytes(&WebsocketMsg{
 			Type: WsTypeErr,
 			Data: err.Error(),
 		}))
 		s.Close()
-	}
+	})
 	return &websocket{
 		Client: c,
 		ws:     s,
@@ -65,7 +66,7 @@ func (this *websocket) Run() error {
 		case WsTypeResize:
 			//重新设置窗口大小
 			if msg.High > 0 && msg.Wide > 0 {
-				if err := this.Client.Reader.(*ssh.Client).WindowChange(msg.High, msg.Wide); err == nil {
+				if err := this.Client.Origin().(*ssh.Client).WindowChange(msg.High, msg.Wide); err == nil {
 					if err := this.ws.WriteMessage(ws.TextMessage, data); err != nil {
 						return err
 					}

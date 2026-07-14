@@ -1,6 +1,12 @@
 package script
 
 import (
+	"io"
+	"net"
+	gohttp "net/http"
+	"runtime"
+	"time"
+
 	"github.com/injoyai/base/maps"
 	"github.com/injoyai/base/maps/wait"
 	"github.com/injoyai/base/types"
@@ -13,14 +19,9 @@ import (
 	"github.com/injoyai/goutil/net/ip"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
-	"github.com/injoyai/ios/client"
-	"github.com/injoyai/ios/client/dial"
+	"github.com/injoyai/ios/v2/client"
+	"github.com/injoyai/ios/v2/client/dial"
 	"github.com/injoyai/logs"
-	"io"
-	"net"
-	gohttp "net/http"
-	"runtime"
-	"time"
 )
 
 func NewGlobal() *Global {
