@@ -227,7 +227,7 @@ func (this *Conv) Duration(i any) time.Duration {
 
 func NewCfg() *Cfg {
 	return &Cfg{
-		Extend: cfg.Default,
+		Extend: cfg.Default(),
 	}
 }
 
