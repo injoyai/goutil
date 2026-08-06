@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/injoyai/base v1.2.23
-	github.com/injoyai/conv v1.2.5
+	github.com/injoyai/conv v1.2.8
 	github.com/injoyai/logs v1.0.12
 )
 

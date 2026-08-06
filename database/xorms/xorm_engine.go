@@ -2,14 +2,15 @@ package xorms
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
 	//_ "github.com/denisenkom/go-mssqldb" 需要手动加载驱动,减少不必要的开销
 	//_ "github.com/glebarez/go-sqlite"
 	//_ "github.com/go-sql-driver/mysql"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/conv/cfg"
-	"os"
-	"path/filepath"
-	"time"
 	"xorm.io/core"
 	"xorm.io/xorm"
 	"xorm.io/xorm/schemas"
@@ -128,7 +129,7 @@ func NewMssql(dsn string, options ...Option) (*Engine, error) {
 }
 
 func ByCfg(path ...string) (*Engine, error) {
-	return ByDMap(cfg.Default.GetDMap(conv.Default[string]("database", path...)))
+	return ByDMap(cfg.GetDMap(conv.Default("database", path...)))
 }
 
 func ByDMap(m *conv.Map) (*Engine, error) {
