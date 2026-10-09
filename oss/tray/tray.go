@@ -1,15 +1,19 @@
+//go:build cgo
+// +build cgo
+
 package tray
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/getlantern/systray"
 	"github.com/injoyai/base/safe"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/oss/win"
 	"github.com/injoyai/logs"
-	"path/filepath"
-	"strings"
 )
 
 type (
